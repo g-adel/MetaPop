@@ -56,6 +56,7 @@
         "erlang": "escript",
         "spwn": "spwn build",
         "pkl": "cd $dir && pkl eval -f yaml $fileName -o $fileNameWithoutExt.yaml",
-        "gleam": "gleam run -m $fileNameWithoutExt"
-    }
+        "gleam": "gleam run -m $fileNameWithoutExt",
+        },
+    "workbench.editor.wrapTabs": true
 }

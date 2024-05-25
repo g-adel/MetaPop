@@ -1,3 +1,7 @@
+struct Network
+    nPopulations::Int
+    k_bar::Int
+end
 
 function fillConnectionMatrix!(connections::Array{Float64, 2}, nPopulations::Int, k_bar)
     for i in 1:nPopulations
@@ -7,12 +11,11 @@ function fillConnectionMatrix!(connections::Array{Float64, 2}, nPopulations::Int
 end
 
 
-function updateNetwork!(populations, connections)
+function updateNetwork!(populations, connections,epi)
     populations_copy = deepcopy(populations)
 
     for (i, population_copy) in enumerate(populations_copy)
-       updatePopulation!(population_copy, connections[i,:],populations_copy)
-
+        updatePopulation!(population_copy, connections[i,:],populations_copy,epi)
         populations[i] = population_copy
     end
 end
