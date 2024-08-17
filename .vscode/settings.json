@@ -58,5 +58,9 @@
         "pkl": "cd $dir && pkl eval -f yaml $fileName -o $fileNameWithoutExt.yaml",
         "gleam": "gleam run -m $fileNameWithoutExt",
         },
-    "workbench.editor.wrapTabs": true
+    "workbench.editor.wrapTabs": true,
+    "editor.inlineSuggest.enabled": false,
+    "julia.debuggerDefaultCompiled": [
+        "ALL_MODULES_EXCEPT_MAIN",
+    ],
 }

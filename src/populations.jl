@@ -1,11 +1,11 @@
 mutable struct Population
-    S::Float64
-    I::Float64
-    R::Float64
-    size::Float64
-    position::Point
-    index::Int
-    mobilityRates::Array{Float64, 1}
+    S::Float64 # Susciptible population fraction
+    I::Float64 # Infected population fraction
+    R::Float64 # Recovered population fraction
+    size::Float64 # Total population size
+    position::Point # Position of the population
+    index::Int # Index number of the population
+    mobilityRates::Array{Float64, 1} # Mobility rates to other populations
 end
 
 function initializePopulations!(populations)
@@ -23,25 +23,20 @@ end
 
 
 function updatePopulation!(pop::Population,localConnections::Array{Float64, 1},populations,epi)
+    # DO NOT use populations[pop.index] equivalently with pop - not the same for order of updates
     S = pop.S; I = pop.I; R = pop.R
-    α, β, μ = structVals(epi)
-    totalIncomingInfected = totalIncomingSusceptible = totalIncomingRecovered = 0
-    totalOutgoingInfected = totalOutgoingSusceptible = totalOutgoingRecovered = 0
+    γ, β, μ = structVals(epi)
+    netFlowInfected = netFlowSusceptible = netFlowRecovered = 0
     for (connPopInd, connectionWeight) in enumerate(localConnections)
-        if connectionWeight > 0
-            finalMobilityRate = μ * connectionWeight * populations[connPopInd].mobilityRates[pop.index] * populations[pop.index].mobilityRates[connPopInd]
-            totalIncomingSusceptible += finalMobilityRate * populations[connPopInd].S
-            totalIncomingInfected += finalMobilityRate * populations[connPopInd].I
-            totalIncomingRecovered += finalMobilityRate * populations[connPopInd].R
-            
-            totalOutgoingSusceptible += finalMobilityRate * S
-            totalOutgoingInfected += finalMobilityRate * I
-            totalOutgoingRecovered += finalMobilityRate * R
-        end
+        finalMobilityRate = connectionWeight * μ *  populations[connPopInd].mobilityRates[pop.index] * populations[pop.index].mobilityRates[connPopInd]
+
+        netFlowSusceptible += finalMobilityRate * (populations[connPopInd].S - S)
+        netFlowInfected += finalMobilityRate * (populations[connPopInd].I - I)
+        netFlowRecovered += finalMobilityRate * (R - populations[connPopInd].R)
     end
-    dS = -(β*I)*S + totalIncomingSusceptible - totalOutgoingSusceptible
-    dI = (β*I)*S - α*I + totalIncomingInfected - totalOutgoingInfected
-    dR = α*I + totalIncomingRecovered - totalOutgoingRecovered
+    dS = -(β*I)*S +  netFlowSusceptible
+    dI = (β*I)*S - γ*I + netFlowInfected
+    dR = γ*I + netFlowRecovered
 
     # integration
     pop.S += dS
@@ -49,6 +44,6 @@ function updatePopulation!(pop::Population,localConnections::Array{Float64, 1},p
     pop.R += dR
 
     # Mobility adaptivity update
-    # pop.mobilityRates = linearUniformDiffResponse(pop.index, populations,localConnections,epi,bias = 0)
-    pop.mobilityRates = linearIndivDiffResponse(pop.index, populations,localConnections,epi,bias = 0)
+    pop.mobilityRates = linearUniformDiffResponse(pop.index, populations,localConnections,epi,bias = 0.1)
+    # pop.mobilityRates = linearIndivDiffResponse(pop.index, populations,localConnections,epi,bias = 0.0)
 end

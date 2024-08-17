@@ -16,31 +16,26 @@ function drawArc2PntAngle(p1::Point, p2::Point, angle::Float64)
     center = midpoint + dist_to_center * direction
 
     angle1 = atan(p1.y - center.y, p1.x - center.x)
-    angle2 = atan(p2.y - center.y, p2.x - center.x)
+    # angle2 = atan(p2.y - center.y, p2.x - center.x)
 
-    # arc(center, radius, angle1, angle2,:stroke)
     return center, radius, angle1
 end
 
-function drawPopulation(pop::Population)
+function drawPopulation(pop::Population;radiusScale = 15)
     # Calculate the fractions
-    total = pop.S + pop.I + pop.R
-    s_fraction = pop.S / total
-    i_fraction = pop.I / total
-    r_fraction = pop.R / total
-    maxRadius = sqrt(pop.size)*15
+    maxRadius = sqrt(pop.size)*radiusScale
 
     Luxor.translate(pop.position)
     Luxor.rotate(-π/2)
-    s_angle = s_fraction * 2 * pi
-    i_angle = i_fraction * 2 * pi
+    sAngle = 2π- pop.S* 2 * pi #cw
+    iAngle = 2π - pop.I * 2 * pi
 
     setcolor("blue")
-    sector(O, 0, maxRadius, 0, s_angle, :fill)
+    sector(O, 0, maxRadius, 0, sAngle, :fill)
     setcolor("red")
-    sector(O, 0, maxRadius, s_angle, s_angle + i_angle, :fill)
+    sector(O, 0, maxRadius, sAngle, sAngle + iAngle, :fill)
     setcolor("green")
-    sector(O, 0, maxRadius, s_angle + i_angle, 2 * pi, :fill)
+    sector(O, 0, maxRadius, sAngle + iAngle, 2 * π, :fill)
         
     # function drawDisk(radius, color)
     #     setcolor(color)
@@ -58,9 +53,27 @@ function drawPopulation(pop::Population)
     origin()
 end
 
-function drawConnection(i,j,populations)
+function drawPopulationHistory(pop, popSusceptibleHistory, popInfectedHistory,)
+    nTimeSteps = length(popSusceptibleHistory)
+    popC = deepcopy(pop)
+    nPts = 40
+    Luxor.translate(pop.position+Point(-nPts/2,-nPts/2))
+    for r in 1:nPts
+        S = popSusceptibleHistory[floor(Int,r*nTimeSteps/nPts)]
+        I = popInfectedHistory[floor(Int,r*nTimeSteps/nPts)]
+        R = 1 - S - I
+        setcolor(0,0,1)
+        rect(Point(r,0),1.5,nPts*S,:fill)
+        setcolor("green")
+        rect(Point(r,nPts*(S)),1.5,nPts*R,:fill)
+        setcolor("red")
+        rect(Point(r,nPts*(S+R)),1.5,nPts*I,:fill)
+        
+    end
+    origin()
+end 
 
-    
+function drawConnection(i,j,populations; PNG = false)
     if (j>i)
         startInd, endInd = (j,i)
     else
@@ -76,48 +89,53 @@ function drawConnection(i,j,populations)
     end
     infFrac1 = populations[startInd].I
     infFrac2 = populations[endInd].I  
-    mobRate1 = populations[startInd].mobilityRates[j]
-    mobRate2 = populations[endInd].mobilityRates[i]
+    mobRate1 = populations[startInd].mobilityRates[endInd]
+    mobRate2 = populations[endInd].mobilityRates[startInd]
     nSegs = 20
     center, radius, angle1 = drawArc2PntAngle(populations[startInd].position,populations[endInd].position, angle)
+
     
-    lineStep = (populations[j].position-populations[i].position)/nSegs
+    # lineStep = (populations[j].position-populations[i].position)/nSegs
     angleStep = angle/nSegs
     for k in 1:nSegs
-        redness::Float64 = infFrac1*(nSegs-k)/nSegs + infFrac2*(k-1)/nSegs
-        transparency::Float64 = max(mobRate1*(nSegs-k)/nSegs, mobRate2*(k-1)/nSegs) * 2
-        setcolor(redness^.5,0,0,transparency)
+        x = (k-1)/nSegs
+        redness = infFrac1*(1-x) + infFrac2*x
+        # transparency = max(mobRate1*(1-x)^2, mobRate2*(x)^2) * abs(nSegs*.5-k)/nSegs*4
+        transparency::Float64 = parabolaS0(x,mobRate1,mobRate2)
+        if (PNG)
+            setcolor(0,0,0)
+        else
+            setcolor(1-(1-redness)^1.1,0,0,transparency)
+        end
         arc(center,radius,angle1+angleStep*(k-1),angle1+angleStep*k,:stroke)
         # line(populations[i].position+lineStep*(k-1), populations[i].position+lineStep*k,:stroke)
     end
 end
 
-function drawConnections(populations,connections)
+function drawConnections(populations,connections;PNG = false)
     setline(2) # Set line width
     sethue("black") # Set line color
     nPopulations = length(populations)
     for i in 1:nPopulations
         for j in 1:i
             if connections[i,j] == 1
-                drawConnection(i,j,populations)
+                drawConnection(i,j,populations; PNG = PNG)
             end
         end
     end
 end
 
-function draw_network(populations,connections)
-    # @png begin
-        background("white")
-        origin()
-        drawConnections(populations,connections)
-        for pop in populations
-            drawPopulation(pop)
-        end
-        finish()
-    # end 400 400 "MetaPopNet.png"
+function drawNetwork(populations,connections)
+    background("white")
+    origin()
+    drawConnections(populations,connections)
+    for pop in populations
+        drawPopulation(pop)
+    end
+    finish()
 end
 
-function frame(scene::Scene, framenumber::Int)
+function frame(scene::Scene, framenumber::Int, populations,infectedHistory, susceptibleHistory, recoveredHistory, mobilityRatesHistory,connections)
     # locally available variables: populations,connections,infectedHistory, mobilityRatesHistory
     # create `populationsSnapshot` based on framenumber
     populationsSnapshot = deepcopy(populations)
@@ -128,13 +146,24 @@ function frame(scene::Scene, framenumber::Int)
         population.mobilityRates = mobilityRatesHistory[framenumber, population.index, :]
     end
 
-    draw_network(populationsSnapshot,connections)
+    drawNetwork(populationsSnapshot,connections)
 end
 
 
+function drawNetworkPNG(populations,connections,infectedHistory, mobilityRatesHistory;filename = "MetaPopNet.png")
+    @png begin
+        background("white")
+        origin()
+        drawConnections(populations,connections;PNG = true)
+        for pop in populations
+            drawPopulationHistory(pop, susceptibleHistory[:,pop.index], infectedHistory[:,pop.index])
+        end
+        finish()
+    end 400 400 filename
+end
 
-function animate_network(populations,connections,infectedHistory, mobilityRatesHistory;filename = "preview.gif")
+function animate_network(populations,connections,infectedHistory, susceptibleHistory, recoveredHistory, mobilityRatesHistory;filename = "preview.gif")
     nFrames = size(infectedHistory,1)
     mymovie=Movie(W,H,"test",1:nFrames)
-    Luxor.animate(mymovie,[Scene(mymovie,frame,1:nFrames)],creategif=true, framerate=5,pathname=filename)
+    Luxor.animate(mymovie,[Scene(mymovie,(s, f) -> frame(s, f, populations,infectedHistory, susceptibleHistory, recoveredHistory, mobilityRatesHistory,connections),1:nFrames)],creategif=true, framerate=2,pathname=filename)
 end

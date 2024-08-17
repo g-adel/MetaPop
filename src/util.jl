@@ -1,3 +1,15 @@
+function structVals(s)
+    return Tuple(getfield(s, name) for name in fieldnames(typeof(s)))
+end
+
+function parabolaS0(x,y1,y2)
+    if(y2>y1)
+        return y1+(x^2)*(y2-y1)
+    else
+        return y2+((1-x)^2)*(y1-y2)
+    end
+end
+
 function mag(p::Point)
     return sqrt(p.x^2+p.y^2)
 end

@@ -19,29 +19,23 @@ function plotTimeEvolution(infected::Array{Float64,2})
 end
 
 
-function plotTotalConnectivity(mobilityRatesHistory::Array{Float64,3},connections::Array{Float64, 2})
-    nTimeSteps, nPopulations, _ = size(mobilityRatesHistory)
+function plotTotalConnectivity(POConnectivity,AveragePOConnectivity,POrder,nTimeSteps,nPopulations)
 
-    totalConnectivity = zeros(nTimeSteps, nPopulations)
-    AverageConnectivity = zeros(nTimeSteps)
-    for i in 1:nTimeSteps
-        for j in 1:nPopulations
-            for k in 1:size(mobilityRatesHistory, 3)
-                totalConnectivity[i, j] += mobilityRatesHistory[i, j, k]*connections[j,k]
-            end
-            AverageConnectivity[i]+=totalConnectivity[i, j]
-        end
-    end
-    AverageConnectivity = AverageConnectivity./nPopulations
-    p = plot(1:nTimeSteps, totalConnectivity[:, 1], label="Pop. 1")
+    p = plot(1:nTimeSteps, POConnectivity[:, 1], label="Pop. 1")
     for i in 2:nPopulations
-        plot!(p, 1:nTimeSteps, totalConnectivity[:, i], label="Pop. $i")
+        plot!(p, 1:nTimeSteps, POConnectivity[:, i], label="Pop. $i")
     end
-    plot!(p, 1:nTimeSteps, AverageConnectivity.*ones(nTimeSteps), label="Avg. Conn.", linestyle=:dash, linewidth=2) 
+    plot!(p, 1:nTimeSteps, AveragePOConnectivity.*ones(nTimeSteps), label="P"*string(POrder)*"Avg. Conn.", linestyle=:dash, linewidth=2) 
     xlabel!(p, "Time (days)")
     ylabel!(p, "Total Connectivity")
-    title!(p, "Evolution of Total Connectivity")
-    p = plot!(p, legend=:topright)
     
+    (POrder == 0) && title!(p, "Evolution of M Connectivity")
+    (POrder == 2) && title!(p, "Evolution of P Connectivity")
+    p = plot!(p, legend=:topright)
+    current_ylims = ylims(p)
+    plot!(p, ylims=(0, max(current_ylims...)*1.1))
+    # print ylims of plot
+
     return(p)
 end
+
