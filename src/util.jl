@@ -59,10 +59,6 @@ function Base.:/(p1::Point, p2::Point)
     return Point(p1.x / p2.x, p1.y / p2.y)
 end
 
-function Base.:-(num::Number, p::Point)
-    return Point(num - p.x, num - p.y)
-end
-
 function Base.:-(p1::Point, num::Number)
     return Point(p1.x - num, p1.y - num)
 end

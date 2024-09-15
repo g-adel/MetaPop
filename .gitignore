@@ -1,3 +1,4 @@
 # ignore svg and png files
 *.svg
 *.png
+*.gif
