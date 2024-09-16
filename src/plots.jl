@@ -1,17 +1,17 @@
 function plotPlots(data,nTimeSteps,net)
     plots = []
     push!(plots, plotTimeEvolution(data["infectedHistory"]))
-    push!(plots, plotRestrictions(data["mobilityRestrictionsHistory"]))
-    push!(plots, plotRestrictionsGrid(data["mobilityRestrictionsHistory"]))
+    push!(plots, plotRestrictions(data["restrictionsHistory"]))
+    push!(plots, plotRestrictionsGrid(data["restrictionsHistory"]))
     # push!(plots, plotTotalConnectivity(data["P0Connectivity"],data["AverageP0Connectivity"],0,nTimeSteps,net.nPopulations))
     # push!(plots, plotTotalConnectivity(data["P2Connectivity"],data["AverageP2Connectivity"],2,nTimeSteps,net.nPopulations))
     
     # for p in plots
     #     p = plot!(p, legend = false)
     # end
-    height = 300 * length(plots)
+    height = 400 * length(plots)
     layout = @layout [a; b; c{0.4h}; d; e]
-    plot(plots..., layout=layout, size = (500, height))
+    plot(plots..., layout=layout, size = (600, height))
 end
 
 function plotTimeEvolution(infected::Array{Float64,2})
@@ -29,7 +29,7 @@ function plotTimeEvolution(infected::Array{Float64,2})
     end
 
     # plot the average infection fraction
-    plot!(p, 1:nTimeSteps, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2)
+    plot!(p, 1:nTimeSteps, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2, legendfontsize=6)
 
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
@@ -37,8 +37,8 @@ function plotTimeEvolution(infected::Array{Float64,2})
     return(p)
 end
 
-function plotRestrictions(mobilityRestrictionsHistory)
-    nTimeSteps, nPopulations, _ = size(mobilityRestrictionsHistory)
+function plotRestrictions(restrictionsHistory)
+    nTimeSteps, nPopulations, _ = size(restrictionsHistory)
     p = plot(1:nTimeSteps, zeros(nTimeSteps), label="P1", legend=false)
     
     colors = palette(:jet, nPopulations * nPopulations)
@@ -46,7 +46,7 @@ function plotRestrictions(mobilityRestrictionsHistory)
     color_index = 1
     for i in 1:nPopulations
         for j in 1:nPopulations
-            plot!(p, 1:nTimeSteps, mobilityRestrictionsHistory[:, i, j], label="P($i,$j)", color=colors[color_index])
+            plot!(p, 1:nTimeSteps, restrictionsHistory[:, i, j], label="P($i,$j)", color=colors[color_index], ylim=(0,1))
             color_index += 1
         end
     end
@@ -57,14 +57,14 @@ function plotRestrictions(mobilityRestrictionsHistory)
     return p
 end
 
-function plotRestrictionsGrid(mobilityRestrictionsHistory)
-    nTimeSteps, nPopulations, _ = size(mobilityRestrictionsHistory)
+function plotRestrictionsGrid(restrictionsHistory)
+    nTimeSteps, nPopulations, _ = size(restrictionsHistory)
     layout = @layout [grid(nPopulations, nPopulations)]
     p = plot(layout=layout, size=(800, 800), framestyle=:none, ticks=nothing,legend=false)
     
     for i in 1:nPopulations
         for j in 1:nPopulations
-            plot!(p, 1:nTimeSteps, mobilityRestrictionsHistory[:, i, j], label="", subplot=(i-1)*nPopulations + j)
+            plot!(p, 1:nTimeSteps, restrictionsHistory[:, i, j], label="", subplot=(i-1)*nPopulations + j)
         end
     end
     

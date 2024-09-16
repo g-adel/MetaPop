@@ -1,4 +1,4 @@
-struct Strat
+Base.@kwdef struct Strat
     λ::Float64
     mobBias::Float64
 end
@@ -15,20 +15,18 @@ function uniformDiffRestriction(pop,populations,localConnections::Array{Float64,
     
     for (connPopInd, connWeight) in enumerate(localConnections)        
         connPop = populations[connPopInd]
-        finalMobilityRate = connWeight * μ *  (1-connPop.mobilityRestrictions[pop.index]) * (1-pop.mobilityRestrictions[connPopInd])
+        finalMobilityRate = connWeight * μ *  max(0,(1-connPop.restrictions[pop.index])) * max(0,(1-pop.restrictions[connPopInd]))
 
-        netFlowInfected += finalMobilityRate * (populations[connPopInd].I)# -pop.I)
+        netFlowInfected += finalMobilityRate * (populations[connPopInd].I)
         # println("connPopInd: ", connPopInd, ", connWeight: ", connWeight, ", finalMobilityRate: ", finalMobilityRate, ", netFlowInfected: ", netFlowInfected)
     end
 
-    obilityRestrictionResidual = λ*netFlowInfected - pop.strat.mobBias ### STRATEGY
-    
-    newMobilityRestrictions = deepcopy(pop.mobilityRestrictions)    
+    # restrictionResidual = λ*netFlowInfected - pop.strat.mobBias *  ### STRATEGY
+    restrictionRateOfChange = zeros(size(pop.restrictions))
     for i in nbrs_indices
-        newMobilityRestrictions[i] = pop.mobilityRestrictions[i] + obilityRestrictionResidual
+        restrictionRateOfChange[i] = λ*netFlowInfected - pop.strat.mobBias * pop.restrictions[i]
     end
-    clamp!(newMobilityRestrictions,0.0,.99)
-    return newMobilityRestrictions
+    return restrictionRateOfChange
 end
 
 # function homogenousLinearRestriction(pop,populations,localConnections::Array{Float64, 1},epi)
@@ -40,7 +38,7 @@ end
 #     γ, β, μ = structVals(epi)
 #     pop = populations[popInd]
 #     # compute average incoming and outgoing infection rate
-#     newMobilityRestrictions = deepcopy(pop.mobilityRestrictions)
+#     newRestrictions = deepcopy(pop.mobilityRestrictions)
 #     mobilityBias = bias/λ*(pop.size-pop.I)
 #     for (connPopInd, connWeight) in enumerate(localConnections)
 #         connPop = populations[connPopInd]
@@ -49,9 +47,9 @@ end
 #             incomingInfected = linkMobilityRate * populations[connPopInd].I
 #             outgoingInfected = linkMobilityRate * pop.I
 #             # (connPopInd == 10 && popInd == 8) &&   print("incomingInfected: ",incomingInfected,", outgoingInfected: ",outgoingInfected,"\n")
-#             newMobilityRestrictions[connPopInd] += λ*(outgoingInfected  - incomingInfected + mobilityBias)*pop.mobilityRestrictions[connPopInd]
+#             newRestrictions[connPopInd] += λ*(outgoingInfected  - incomingInfected + mobilityBias)*pop.mobilityRestrictions[connPopInd]
 #         end
 #     end
-#     clamp!(newMobilityRestrictions,0.001,1.)
-#     return newMobilityRestrictions
+#     clamp!(newRestrictions,0.001,1.)
+#     return newRestrictions
 # end

@@ -89,8 +89,8 @@ function drawConnection(i,j,populations; PNG = false)
     end
     infFrac1 = populations[startInd].I
     infFrac2 = populations[endInd].I  
-    mobRestriction1 = populations[startInd].mobilityRestrictions[endInd]
-    mobRestriction2 = populations[endInd].mobilityRestrictions[startInd]
+    mobRestriction1 = populations[startInd].restrictions[endInd]
+    mobRestriction2 = populations[endInd].restrictions[startInd]
     nSegs = 20
     center, radius, angle1 = drawArc2PntAngle(populations[startInd].position,populations[endInd].position, angle)
 
@@ -135,22 +135,22 @@ function drawNetwork(populations,connections)
     finish()
 end
 
-function frame(scene::Scene, framenumber::Int, populations,infectedHistory, susceptibleHistory, recoveredHistory, mobilityRestrictionsHistory,connections)
-    # locally available variables: populations,connections,infectedHistory, mobilityRestrictionsHistory
+function frame(scene::Scene, framenumber::Int, populations,infectedHistory, susceptibleHistory, recoveredHistory, restrictionsHistory,connections)
+    # locally available variables: populations,connections,infectedHistory, restrictionsHistory
     # create `populationsSnapshot` based on framenumber
     populationsSnapshot = deepcopy(populations)
     for population in populationsSnapshot
         population.I = infectedHistory[framenumber, population.index]
         population.S = susceptibleHistory[framenumber, population.index]
         population.R = recoveredHistory[framenumber, population.index]
-        population.mobilityRestrictions = mobilityRestrictionsHistory[framenumber, population.index, :]
+        population.restrictions = restrictionsHistory[framenumber, population.index, :]
     end
 
     drawNetwork(populationsSnapshot,connections)
 end
 
 
-function drawNetworkPNG(populations,connections,infectedHistory, mobilityRestrictionsHistory;filename = "MetaPopNet.png")
+function drawNetworkPNG(populations,connections,infectedHistory, restrictionsHistory;filename = "MetaPopNet.png")
     @png begin
         background("white")
         origin()
@@ -162,8 +162,8 @@ function drawNetworkPNG(populations,connections,infectedHistory, mobilityRestric
     end 400 400 filename
 end
 
-function animate_network(populations,connections,infectedHistory, susceptibleHistory, recoveredHistory, mobilityRestrictionsHistory;filename = "preview.gif")
+function animate_network(populations,connections,infectedHistory, susceptibleHistory, recoveredHistory, restrictionsHistory;filename = "preview.gif")
     nFrames = size(infectedHistory,1)
     mymovie=Movie(W,H,"test",1:nFrames)
-    Luxor.animate(mymovie,[Scene(mymovie,(s, f) -> frame(s, f, populations,infectedHistory, susceptibleHistory, recoveredHistory, mobilityRestrictionsHistory,connections),1:nFrames)],creategif=true, framerate=2,pathname=filename)
+    Luxor.animate(mymovie,[Scene(mymovie,(s, f) -> frame(s, f, populations,infectedHistory, susceptibleHistory, recoveredHistory, restrictionsHistory,connections),1:nFrames)],creategif=true, framerate=2,pathname=filename)
 end

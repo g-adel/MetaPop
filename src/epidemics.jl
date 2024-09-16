@@ -1,10 +1,10 @@
-struct SIR_epidemic
+Base.@kwdef struct SIR_epidemic
     γ::Float64 # recovery rate
     β::Float64 # internal population infection rate
     μ::Float64 # external link population infection rate
 end
 
-struct SIRS_epidemic
+Base.@kwdef struct SIRS_epidemic
     γ::Float64 # recovery rate
     β::Float64 # internal population infection rate
     σ::Float64 # immunity loss rate

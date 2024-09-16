@@ -6,7 +6,14 @@ mutable struct Population
     position::Point # Position of the population
     index::Int # Index number of the population
     strat#::Strat # strategy parameters
-    mobilityRestrictions::Array{Float64, 1} # Mobility rates to other populations
+    restrictions::Array{Float64, 1} # Mobility rates to other populations
+end
+
+mutable struct PopulationRoC
+    dS::Float64 # Susciptible population fraction
+    dI::Float64 # Infected population fraction
+    dR::Float64 # Recovered population fraction
+    restrictionsRoC::Array{Float64, 1}
 end
 
 function initializePopulations!(populations,strat)
@@ -17,20 +24,19 @@ function initializePopulations!(populations,strat)
         location = Point(r*cos(theta), r*sin(theta))
         populations[i] = Population(1., 0., 0., 1., location, i,strat,zeros(nPopulations))
     end
-    populations[1].I=.0001;
+    populations[1].I=.00003;
     populations[1].S= 1 - populations[1].I
     
 end
 
 
-function updatePopulation!(pop::Population,localConnections::Array{Float64, 1},populations,epi)
-    # DO NOT use populations[pop.index] equivalently with pop - not the same for order of updates
+function getPopulationRoC(pop::Population,localConnections::Array{Float64, 1},populations,epi)
     S = pop.S; I = pop.I; R = pop.R
     γ, β, σ, μ = structVals(epi)
     netFlowInfected = netFlowSusceptible = netFlowRecovered = 0
     for (connPopInd, connWeight) in enumerate(localConnections)
         connPop = populations[connPopInd]
-        finalMobilityRate = connWeight * μ *  (1-connPop.mobilityRestrictions[pop.index]) * (1-connPop.mobilityRestrictions[connPopInd])
+        finalMobilityRate = connWeight * μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
 
         netFlowSusceptible += finalMobilityRate * (connPop.S - S)
         netFlowInfected += finalMobilityRate * (connPop.I - I)
@@ -40,12 +46,9 @@ function updatePopulation!(pop::Population,localConnections::Array{Float64, 1},p
     dI = β*I*S  - γ*I + netFlowInfected
     dR = γ*I    - σ*R + netFlowRecovered
 
-    # integration
-    pop.S += dS
-    pop.I += dI
-    pop.R += dR
-
-    # Mobility adaptivity update
-    pop.mobilityRestrictions = uniformDiffRestriction(pop, populations,localConnections,epi)
-    # pop.mobilityRates = linearIndivDiffResponse(pop.index, populations,localConnections,epi,bias = 0.0)
+    # Restriction RoC
+    restrictionsRoC = uniformDiffRestriction(pop, populations,localConnections,epi) #UNDO
+    # restrictionsRoC = zeros(size(populations))
+    populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC)
+    return populationRoC
 end
