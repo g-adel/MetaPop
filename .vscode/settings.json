@@ -63,5 +63,6 @@
     "editor.inlineSuggest.enabled": false,
     "julia.debuggerDefaultCompiled": [
         "ALL_MODULES_EXCEPT_MAIN",
+        "-MetaPop",
     ],
 }

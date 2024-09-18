@@ -12,6 +12,18 @@ function KRegRingMatrix(net::Network)
     return connections
 end
 
+function smallWorldMatrix(net::Network; β=.5)
+    is_graph_connected = false
+    g = SimpleGraph()
+    while !is_graph_connected
+        g = watts_strogatz(net.nPopulations, net.k_bar,β)
+        is_graph_connected = Graphs.is_connected(g)
+    end
+    adj = convert(Matrix{Float64}, adjacency_matrix(g))
+    return adj
+end
+
+
 function KRegChainMatrix(net::Network)
     connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
     for i in 1:net.nPopulations

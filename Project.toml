@@ -6,6 +6,7 @@ version = "0.1.0"
 [deps]
 BasicBSpline = "4c5d9882-2acf-4ea4-9e48-968fd4518195"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
 Infiltrator = "5903a43b-9cc3-4c30-8d17-598619ec4e9b"
 Luxor = "ae8d54c2-7ccd-5906-9d76-62fc9837b5bc"

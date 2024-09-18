@@ -47,7 +47,7 @@ function getPopulationRoC(pop::Population,localConnections::Array{Float64, 1},po
     dR = γ*I    - σ*R + netFlowRecovered
 
     # Restriction RoC
-    restrictionsRoC = uniformDiffRestriction(pop, populations,localConnections,epi) #UNDO
+    restrictionsRoC = uniformDiffRestriction(pop, populations,localConnections,epi)
     # restrictionsRoC = zeros(size(populations))
     populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC)
     return populationRoC

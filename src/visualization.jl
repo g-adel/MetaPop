@@ -150,7 +150,7 @@ function frame(scene::Scene, framenumber::Int, populations,infectedHistory, susc
 end
 
 
-function drawNetworkPNG(populations,connections,infectedHistory, restrictionsHistory;filename = "MetaPopNet.png")
+function drawNetworkPNG(populations,connections,infectedHistory, susceptibleHistory,restrictionsHistory;filename = "MetaPopNet.png")
     @png begin
         background("white")
         origin()
@@ -160,6 +160,7 @@ function drawNetworkPNG(populations,connections,infectedHistory, restrictionsHis
         end
         finish()
     end 400 400 filename
+    return filename
 end
 
 function animate_network(populations,connections,infectedHistory, susceptibleHistory, recoveredHistory, restrictionsHistory;filename = "preview.gif")

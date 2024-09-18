@@ -1,24 +1,31 @@
-function plotPlots(data,nTimeSteps,net)
+using Plots
+
+function plotPlots(data, s;img_filename="")
+    nPopulations = s.net.nPopulations
     plots = []
-    push!(plots, plotTimeEvolution(data["infectedHistory"]))
+    push!(plots, plotTimeEvolution(data["infectedHistory"],data["infectedAvgHistory"]))
     push!(plots, plotRestrictions(data["restrictionsHistory"]))
     push!(plots, plotRestrictionsGrid(data["restrictionsHistory"]))
-    # push!(plots, plotTotalConnectivity(data["P0Connectivity"],data["AverageP0Connectivity"],0,nTimeSteps,net.nPopulations))
-    # push!(plots, plotTotalConnectivity(data["P2Connectivity"],data["AverageP2Connectivity"],2,nTimeSteps,net.nPopulations))
     
-    # for p in plots
-    #     p = plot!(p, legend = false)
-    # end
+    # Load the image and add it to the plots
+    if img_filename != ""
+        img = load(img_filename)
+        img_plot = plot(img, seriestype=:image)
+        push!(plots, img_plot)
+    end
+    for plt in plots
+        plt[:legend] = false
+    end
+    # Adjust the layout to accommodate the new plot
     height = 400 * length(plots)
-    layout = @layout [a; b; c{0.4h}; d; e]
-    plot(plots..., layout=layout, size = (600, height))
+    layout = @layout [a; b; c{0.4h}; d{0.4h};]
+    plot(plots..., layout=layout, size=(600, height))
 end
 
-function plotTimeEvolution(infected::Array{Float64,2})
-    nTimeSteps, nPopulations = size(infected)
+function plotTimeEvolution(timeseries::Array{Float64,2},avg_infected_percent)
+    nTimeSteps, nPopulations = size(timeseries)
 
-    infected_percent = infected 
-    avg_infected_percent = sum(infected, dims=2)./nPopulations # calculate the average across populations
+    infected_percent = timeseries 
     colors = palette(:jet, nPopulations)
 
     color_index = 1
@@ -27,10 +34,8 @@ function plotTimeEvolution(infected::Array{Float64,2})
         plot!(p,1:nTimeSteps, infected_percent[:, i], label="Pop. $i", color=colors[color_index])
         color_index += 1
     end
-
-    # plot the average infection fraction
     plot!(p, 1:nTimeSteps, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2, legendfontsize=6)
-
+    p[:legend] = false
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
     title!(p,"Prevalence of Infected")
@@ -59,7 +64,7 @@ end
 
 function plotRestrictionsGrid(restrictionsHistory)
     nTimeSteps, nPopulations, _ = size(restrictionsHistory)
-    layout = @layout [grid(nPopulations, nPopulations)]
+    layout = @layout [Plots.grid(nPopulations, nPopulations)]
     p = plot(layout=layout, size=(800, 800), framestyle=:none, ticks=nothing,legend=false)
     
     for i in 1:nPopulations
