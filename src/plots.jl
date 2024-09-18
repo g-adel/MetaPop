@@ -69,7 +69,7 @@ function plotRestrictionsGrid(restrictionsHistory)
     
     for i in 1:nPopulations
         for j in 1:nPopulations
-            plot!(p, 1:nTimeSteps, restrictionsHistory[:, i, j], label="", subplot=(i-1)*nPopulations + j)
+            plot!(p, 1:nTimeSteps, restrictionsHistory[:, i, j], label="", subplot=(i-1)*nPopulations + j,ylim=(0,1))
         end
     end
     

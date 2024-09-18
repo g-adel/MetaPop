@@ -9,6 +9,11 @@ mutable struct Population
     restrictions::Array{Float64, 1} # Mobility rates to other populations
 end
 
+@kwdef mutable struct Metapopulation
+    populations::Array{Population, 1}
+    infectedFlows::Array{Float64, 2} 
+end
+
 mutable struct PopulationRoC
     dS::Float64 # Susciptible population fraction
     dI::Float64 # Infected population fraction
@@ -32,19 +37,18 @@ end
 
 function getPopulationRoC(pop::Population,localConnections::Array{Float64, 1},populations,epi)
     S = pop.S; I = pop.I; R = pop.R
-    γ, β, σ, μ = structVals(epi)
     netFlowInfected = netFlowSusceptible = netFlowRecovered = 0
     for (connPopInd, connWeight) in enumerate(localConnections)
         connPop = populations[connPopInd]
-        finalMobilityRate = connWeight * μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
+        finalMobilityRate = connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
 
         netFlowSusceptible += finalMobilityRate * (connPop.S - S)
         netFlowInfected += finalMobilityRate * (connPop.I - I)
         netFlowRecovered += finalMobilityRate * (R - connPop.R)
     end
-    dS = -β*I*S + σ*R + netFlowSusceptible # is netFlow a rate of change?
-    dI = β*I*S  - γ*I + netFlowInfected
-    dR = γ*I    - σ*R + netFlowRecovered
+    dS = -epi.β*I*S + epi.σ*R + netFlowSusceptible # is netFlow a rate of change?
+    dI =  epi.β*I*S - epi.γ*I + netFlowInfected
+    dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
 
     # Restriction RoC
     restrictionsRoC = uniformDiffRestriction(pop, populations,localConnections,epi)

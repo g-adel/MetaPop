@@ -1,6 +1,8 @@
-Base.@kwdef struct Network
+Base.@kwdef mutable struct Network
     nPopulations::Int
     k_bar::Int
+    connections::Array{Float64,2}
+
 end
 
 function KRegRingMatrix(net::Network)
@@ -45,13 +47,15 @@ function KRegRingMatrix(net::Network)
     return connections
 end
 
-function updateNetwork!(populations, infectedFlows, connections,epi,sim)
+function updateNetwork!(populations, net, meta,s)
+    epi=s.epi
+    sim=s.sim
     populations_copy = deepcopy(populations)
     popsRoC = Array{PopulationRoC, 1}(undef, length(populations))
     for _ in 1:sim.nTimeSteps
         for (i, population_copy) in enumerate(populations_copy)
             # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
-            popsRoC[i] = getPopulationRoC(populations[i], connections[i,:], populations_copy, epi)
+            popsRoC[i] = getPopulationRoC(populations[i], net.connections[i,:], populations_copy, epi)
         end
         for (i,population) in enumerate(populations)
             populations[i].S+=popsRoC[i].dS*1/sim.nTimeSteps
@@ -61,11 +65,13 @@ function updateNetwork!(populations, infectedFlows, connections,epi,sim)
             clamp!(populations[i].restrictions,0.0,1.0) # NEVER change these values
         end
     end
+    totalInfectedFlow = 0
     for (popInd, pop) in enumerate(populations)
-        localConnections = connections[popInd,:]
+        localConnections = net.connections[popInd,:]
         for (connPopInd, connWeight) in enumerate(localConnections)
             connPop = populations[connPopInd]
-            infectedFlows[popInd,connPopInd] =  connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
+            meta.infectedFlows[popInd,connPopInd] =  connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
+            totalInfectedFlow += meta.infectedFlows[popInd,connPopInd] 
         end
     end
 end
