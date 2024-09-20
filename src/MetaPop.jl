@@ -1,6 +1,6 @@
-using Revise
+using Revise, Plots
 module MetaPop
-using Graphs, Luxor, Images, Plots, Plots.PlotMeasures
+using Graphs, Luxor, Karnak, Images, Plots, Plots.PlotMeasures
 
 include("epidemics.jl");include("populations.jl");include("network.jl");
 include("visualization.jl");include("plots.jl");include("strategies.jl");
@@ -16,16 +16,18 @@ end
 
 
 function main()
-    print("¡Hola!")
+    println("¡Hola!")
     # epi = SIR_epidemic(γ = 0.05, β = 0.2, μ = .01)
     epi = SIRS_epidemic(γ = 0.05, β = 0.2, σ = .0, μ = .02)
-    net = Network(; nPopulations = 10, k_bar = 2, connections = Array{Float64,2}(undef, 0, 0))
-    strat = Strat(; λ = 30000, mobBias = 0) 
-    sim = Sim(; nTimeSteps =100, nDays = 500)
-    S = Scenario(epi, net, strat, sim)
-    meta = Metapopulation(populations=Array{Population, 1}(undef, net.nPopulations), infectedFlows = zeros(Float64, net.nPopulations, net.nPopulations))
-    # connections = KRegChainMatrix(net)
-    net.connections = smallWorldMatrix(net)
+    net = Network(; nPopulations = 30, k_bar = 4, connections = Array{Float64,2}(undef, 0, 0), graph = SimpleGraph())
+    strat = Strat(; λ = 300000, mobBias = 0) #UNDO
+    sim = Sim(; nTimeSteps =50, nDays = 500)
+    S = Scenario(epi, net, strat, sim) #TODO add S to meta
+    meta = Metapopulation(populations=Array{Population, 1}(undef, net.nPopulations),
+                         infectedFlows = zeros(Float64, net.nPopulations, net.nPopulations))
+    # net.connections, net.graph = KRegChainMatrix(net)
+    net.connections, net.graph = smallWorldMatrix(net)
+    # net.connections, net.graph = baraAlbert(net)
     # println("SWM",connections,"chain",KRegChainMatrix(net))
     initializePopulations!(meta.populations,strat)
     susceptibleHistory = zeros(sim.nDays, net.nPopulations)
@@ -69,19 +71,22 @@ function main()
     data["P2Connectivity"] = P2Connectivity
     data["AverageP2Connectivity"] = AverageP2Connectivity
 
-    img_file = ""
-    img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, restrictionsHistory)
-    # animate_network(populations,connections,infectedHistory, susceptibleHistory, recoveredHistory, restrictionsHistory)
     dataAnalytics!(data,net)
+
+    img_file = ""
+    # img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, restrictionsHistory)
+    img_file = drawNetworkKarnak(meta, net, data)
+    # animate_network(meta.populations,meta.connections,infectedHistory, susceptibleHistory, recoveredHistory, restrictionsHistory)
     # println("infection Analytics",infectionAnalytics(infectedHistory))
     # println("restrictions Analytics", restrictionsAnalytics(restrictionsHistory))
-    # @show S
-    plotPlots(data,S;img_filename=img_file)
-    # DO NOT ADD ANYTHING HERE
+    # @show data
+    combinedPlot = plotPlots(data,S;img_filename=img_file)
+    return combinedPlot
 end
 
 export main
 
 end
+plotLayout = MetaPop.main()
 
-MetaPop.main()
+plot(plotLayout)

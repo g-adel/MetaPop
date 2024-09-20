@@ -35,7 +35,7 @@ function initializePopulations!(populations,strat)
 end
 
 
-function getPopulationRoC(pop::Population,localConnections::Array{Float64, 1},populations,epi)
+function getPopulationRoC(pop::Population,localConnections::Array{Float64, 1},populations,epi,meta)
     S = pop.S; I = pop.I; R = pop.R
     netFlowInfected = netFlowSusceptible = netFlowRecovered = 0
     for (connPopInd, connWeight) in enumerate(localConnections)

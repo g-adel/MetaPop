@@ -5,7 +5,8 @@ function plotPlots(data, s;img_filename="")
     plots = []
     push!(plots, plotTimeEvolution(data["infectedHistory"],data["infectedAvgHistory"]))
     push!(plots, plotRestrictions(data["restrictionsHistory"]))
-    push!(plots, plotRestrictionsGrid(data["restrictionsHistory"]))
+    push!(plots, plotInfectionIndices(data))
+    # push!(plots, plotRestrictionsGrid(data["restrictionsHistory"]))
     
     # Load the image and add it to the plots
     if img_filename != ""
@@ -17,9 +18,25 @@ function plotPlots(data, s;img_filename="")
         plt[:legend] = false
     end
     # Adjust the layout to accommodate the new plot
-    height = 400 * length(plots)
+    height = 800 * length(plots)
     layout = @layout [a; b; c{0.4h}; d{0.4h};]
-    plot(plots..., layout=layout, size=(600, height))
+    
+    combined_plot = plot(plots..., layout=layout, size=(1000, height))
+    return combined_plot
+end
+
+function plotInfectionIndices(data)
+    pathLengths = data["pathLengths"]
+    spreadInfInd = data["spreadInfInd"]
+    peakInfInd = data["peakInfInd"]
+    @show spreadInfInd, peakInfInd
+    # Create a scatter plot
+    p = scatter(pathLengths, [spreadInfInd peakInfInd], label="Spread Infection Index",
+     xlabel="Path Lengths", ylabel="Indices",size = (1000,800),
+     legendfontsize=15, tickfontsize=15, guidefontsize=15,left_margin=10Plots.mm)
+    # scatter!(p, pathLengths, peakInfInd, label="Peak Infection Indices")
+
+    return p
 end
 
 function plotTimeEvolution(timeseries::Array{Float64,2},avg_infected_percent)

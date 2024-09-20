@@ -163,6 +163,25 @@ function drawNetworkPNG(populations,connections,infectedHistory, susceptibleHist
     return filename
 end
 
+function drawNetworkKarnak(meta, net, data; filename = "Network.png")
+    spreadTimes = data["spreadInfInd"].-1
+    peakTimes = data["peakInfInd"].-data["peakInfInd"][1]
+    g = net.graph
+    @png begin
+        background("white")
+        sethue("black")
+
+        drawgraph(g, layout=spring,
+            vertexshapesizes = 20,
+            margin=40,
+            vertexlabels = (vtx) -> string(Int(peakTimes[vtx])),
+            vertexlabelfontsizes = 20,
+            vertexstrokecolors = (vtx) -> vtx==1 ? colorant"red" : colorant"black", 
+            vertexstrokeweights = (vtx) -> vtx==1 ? 5 : 1  
+        )
+    end 1000 1000 filename
+    return filename
+end
 function animate_network(populations,connections,infectedHistory, susceptibleHistory, recoveredHistory, restrictionsHistory;filename = "preview.gif")
     nFrames = size(infectedHistory,1)
     mymovie=Movie(W,H,"test",1:nFrames)
