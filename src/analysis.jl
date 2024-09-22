@@ -9,6 +9,7 @@ function dataAnalytics!(data,net)
     data["peakInfInd"] = peakInfInd' # reasons
     initInf = data["infectedHistory"][1, 1]
     spreadInfInd = [findfirst(x -> x >= initInf, data["infectedHistory"][:, i]) for i in 1:nPopulations]
+    spreadInfInd = [x === nothing ? 0 : x for x in spreadInfInd]
     data["spreadInfInd"] = spreadInfInd
     data["pathLengths"] = dijkstra_shortest_paths(g, 1).dists
 end

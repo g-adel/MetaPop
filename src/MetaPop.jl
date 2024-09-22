@@ -5,7 +5,7 @@ using Graphs, Luxor, Karnak, Images, Plots, Plots.PlotMeasures
 include("epidemics.jl");include("populations.jl");include("network.jl");
 include("visualization.jl");include("plots.jl");include("strategies.jl");
 include("simulation.jl"); include("analysis.jl");
-include("util.jl")
+include("util.jl"); include("tests.jl")
 
 mutable struct Scenario
     epi::SIRS_epidemic
@@ -18,17 +18,20 @@ end
 function main()
     println("¡Hola!")
     # epi = SIR_epidemic(γ = 0.05, β = 0.2, μ = .01)
-    epi = SIRS_epidemic(γ = 0.05, β = 0.2, σ = .0, μ = .02)
-    net = Network(; nPopulations = 30, k_bar = 4, connections = Array{Float64,2}(undef, 0, 0), graph = SimpleGraph())
-    strat = Strat(; λ = 300000, mobBias = 0) #UNDO
+    epi = SIRS_epidemic(β = 0.2,γ = 0.05, σ = .0, μ = .02)
+    net = Network(; nPopulations = 10, k_bar = 2, connections = Array{Float64,2}(undef, 0, 0), graph = SimpleDiGraph())
+    strat = Strat(; λ = 0000, mobBias = 0)
     sim = Sim(; nTimeSteps =50, nDays = 500)
     S = Scenario(epi, net, strat, sim) #TODO add S to meta
-    meta = Metapopulation(populations=Array{Population, 1}(undef, net.nPopulations),
+    meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                          infectedFlows = zeros(Float64, net.nPopulations, net.nPopulations))
     # net.connections, net.graph = KRegChainMatrix(net)
-    net.connections, net.graph = smallWorldMatrix(net)
+    net.connections, net.graph = directedPath(net)
+    # net.connections, net.graph = smallWorldMatrix(net)
     # net.connections, net.graph = baraAlbert(net)
     # println("SWM",connections,"chain",KRegChainMatrix(net))
+    debugPlots = []
+    debugVars = Dict()
     initializePopulations!(meta.populations,strat)
     susceptibleHistory = zeros(sim.nDays, net.nPopulations)
     infectedHistory = zeros(sim.nDays, net.nPopulations)
@@ -81,12 +84,13 @@ function main()
     # println("restrictions Analytics", restrictionsAnalytics(restrictionsHistory))
     # @show data
     combinedPlot = plotPlots(data,S;img_filename=img_file)
-    return combinedPlot
+    return combinedPlot, meta, data
 end
 
 export main
 
 end
-plotLayout = MetaPop.main()
 
-plot(plotLayout)
+combinedPlot, meta, data = MetaPop.main()
+
+plot(combinedPlot)

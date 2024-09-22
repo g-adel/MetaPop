@@ -164,7 +164,7 @@ function drawNetworkPNG(populations,connections,infectedHistory, susceptibleHist
 end
 
 function drawNetworkKarnak(meta, net, data; filename = "Network.png")
-    spreadTimes = data["spreadInfInd"].-1
+    spreadTimes = data["spreadInfInd"].-1 # if time=-1 means not found
     peakTimes = data["peakInfInd"].-data["peakInfInd"][1]
     g = net.graph
     @png begin
@@ -174,7 +174,7 @@ function drawNetworkKarnak(meta, net, data; filename = "Network.png")
         drawgraph(g, layout=spring,
             vertexshapesizes = 20,
             margin=40,
-            vertexlabels = (vtx) -> string(Int(peakTimes[vtx])),
+            vertexlabels = (vtx) -> string(Int(spreadTimes[vtx])),
             vertexlabelfontsizes = 20,
             vertexstrokecolors = (vtx) -> vtx==1 ? colorant"red" : colorant"black", 
             vertexstrokeweights = (vtx) -> vtx==1 ? 5 : 1  

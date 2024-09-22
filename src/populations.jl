@@ -10,6 +10,7 @@ mutable struct Population
 end
 
 @kwdef mutable struct Metapopulation
+    S
     populations::Array{Population, 1}
     infectedFlows::Array{Float64, 2} 
 end
@@ -53,6 +54,6 @@ function getPopulationRoC(pop::Population,localConnections::Array{Float64, 1},po
     # Restriction RoC
     restrictionsRoC = uniformDiffRestriction(pop, populations,localConnections,epi)
     # restrictionsRoC = zeros(size(populations))
-    populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC)
+    populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC) #struct
     return populationRoC
 end

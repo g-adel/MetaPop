@@ -10,7 +10,7 @@ function globalDiffRestriction(pop,populations,globalInfectedFlow,epi)
     λ = pop.strat.λ # Adaptive mobility tuning rate
     # compute average incoming and outgoing infection rate
     netFlowInfected = 0;
-    nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
+    nbrs_indices = findall(x -> x > 0, localConnections)
     
     for (connPopInd, connWeight) in enumerate(localConnections)
         connPop = populations[connPopInd]

@@ -48,6 +48,14 @@ function KRegChainMatrix(net::Network)
     return adj, g
 end
 
+function directedPath(net::Network)
+    g = path_digraph(net.nPopulations)
+    adj = convert(Matrix{Float64}, adjacency_matrix(g))
+
+    return adj, g
+end
+
+
 function KRegRingMatrix(net::Network)
     connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
     for i in 1:net.nPopulations
@@ -60,10 +68,11 @@ end
 function updateNetwork!(populations, net, meta,s)
     epi=s.epi
     sim=s.sim
-    
+    g= net.graph
 
     popsRoC = Array{PopulationRoC, 1}(undef, length(populations))
     for _ in 1:sim.nTimeSteps
+        # populations[1].I=.00003
         totalInfectedFlow = 0
         for (popInd, pop) in enumerate(populations)
             for (connPopInd, connWeight) in enumerate(net.connections[popInd,:])
@@ -74,7 +83,7 @@ function updateNetwork!(populations, net, meta,s)
         end
         for (i, population) in enumerate(populations)
             # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
-            popsRoC[i] = getPopulationRoC(population, net.connections[i,:], populations, epi,meta)
+            popsRoC[i] = getPopulationRoC(population, net.connections[:,i], populations, epi,meta)
 
             population.S+=popsRoC[i].dS*1/sim.nTimeSteps
             population.I+=popsRoC[i].dI*1/sim.nTimeSteps
