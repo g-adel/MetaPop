@@ -1,4 +1,5 @@
-function dataAnalytics!(data,net)
+function dataAnalytics!(data,S)
+    net=S.net
     g = net.graph
     nTimeSteps, nPopulations = size(data["infectedHistory"])
     data["infectedAvgHistory"] = sum(data["infectedHistory"], dims=2)./nPopulations # TODO make it account for het. sizes
@@ -11,5 +12,6 @@ function dataAnalytics!(data,net)
     spreadInfInd = [findfirst(x -> x >= initInf, data["infectedHistory"][:, i]) for i in 1:nPopulations]
     spreadInfInd = [x === nothing ? 0 : x for x in spreadInfInd]
     data["spreadInfInd"] = spreadInfInd
-    data["pathLengths"] = dijkstra_shortest_paths(g, 1).dists
+    distances = dijkstra_shortest_paths(g, 1).dists
+    data["pathLengths"] = distances
 end

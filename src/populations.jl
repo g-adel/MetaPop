@@ -36,23 +36,33 @@ function initializePopulations!(populations,strat)
 end
 
 
-function getPopulationRoC(pop::Population,localConnections::Array{Float64, 1},populations,epi,meta)
+function getPopulationRoC(pop::Population,net,populations,epi,meta)
     S = pop.S; I = pop.I; R = pop.R
+    inConnections = net.connections[:,pop.index]
+    outConnections = net.connections[pop.index,:]
     netFlowInfected = netFlowSusceptible = netFlowRecovered = 0
-    for (connPopInd, connWeight) in enumerate(localConnections)
+    for (connPopInd, connWeight) in enumerate(inConnections)
         connPop = populations[connPopInd]
         finalMobilityRate = connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
 
-        netFlowSusceptible += finalMobilityRate * (connPop.S - S)
-        netFlowInfected += finalMobilityRate * (connPop.I - I)
-        netFlowRecovered += finalMobilityRate * (R - connPop.R)
+        netFlowSusceptible += finalMobilityRate * (connPop.S)
+        netFlowInfected += finalMobilityRate * (connPop.I)
+        netFlowRecovered += finalMobilityRate * (connPop.R)
+    end
+    for (connPopInd, connWeight) in enumerate(outConnections)
+        connPop = populations[connPopInd]
+        finalMobilityRate = connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
+
+        netFlowSusceptible += finalMobilityRate * (- S)
+        netFlowInfected += finalMobilityRate    * (- I)
+        netFlowRecovered += finalMobilityRate   * (- R)
     end
     dS = -epi.β*I*S + epi.σ*R + netFlowSusceptible # is netFlow a rate of change?
-    dI =  epi.β*I*S - epi.γ*I + netFlowInfected
+    dI =  epi.β*I*S - epi.γ*I + netFlowInfected # 
     dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
 
     # Restriction RoC
-    restrictionsRoC = uniformDiffRestriction(pop, populations,localConnections,epi)
+    restrictionsRoC = uniformDiffRestriction(pop, populations,inConnections,epi)
     # restrictionsRoC = zeros(size(populations))
     populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC) #struct
     return populationRoC

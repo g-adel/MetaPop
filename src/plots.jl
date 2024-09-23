@@ -29,13 +29,14 @@ function plotInfectionIndices(data)
     pathLengths = data["pathLengths"]
     spreadInfInd = data["spreadInfInd"]
     peakInfInd = data["peakInfInd"]
-    
+
     # Create a scatter plot
     p = scatter(pathLengths, spreadInfInd, label="Spread Infection Day",
                 xlabel="Path Length", ylabel="Indices", size=(1000,800),
-                legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm)
+                legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm,
+                mc=:blue)
     
-    scatter!(p, pathLengths, peakInfInd, label="Peak Infection Day")
+    scatter!(p, pathLengths, peakInfInd, label="Peak Infection Day", mc=:red)
 
     return p
 end

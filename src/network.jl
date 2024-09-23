@@ -33,23 +33,12 @@ end
 
 
 
-function KRegChainMatrix(net::Network)
-    # connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
-    # for i in 1:net.nPopulations
-    #     for j in max(1, i - net.k_bar ÷ 2):min(net.nPopulations, i + net.k_bar ÷ 2)
-    #         if i != j
-    #             connections[i, j] = 1
-    #         end
-    #     end
-    # end
-    g = path_graph(net.nPopulations)
-    adj = convert(Matrix{Float64}, adjacency_matrix(g))
-
-    return adj, g
-end
-
-function directedPath(net::Network)
-    g = path_digraph(net.nPopulations)
+function pathGraph(net::Network; directed=false)
+    if directed
+        g = path_digraph(net.nPopulations)
+    else
+        g = path_graph(net.nPopulations)
+    end
     adj = convert(Matrix{Float64}, adjacency_matrix(g))
 
     return adj, g
@@ -83,7 +72,7 @@ function updateNetwork!(populations, net, meta,s)
         end
         for (i, population) in enumerate(populations)
             # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
-            popsRoC[i] = getPopulationRoC(population, net.connections[:,i], populations, epi,meta)
+            popsRoC[i] = getPopulationRoC(population, net, populations, epi,meta)
 
             population.S+=popsRoC[i].dS*1/sim.nTimeSteps
             population.I+=popsRoC[i].dI*1/sim.nTimeSteps
