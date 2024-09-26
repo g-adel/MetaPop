@@ -37,6 +37,7 @@ function plotInfectionIndices(data)
                 mc=:blue)
     
     scatter!(p, pathLengths, peakInfInd, label="Peak Infection Day", mc=:red)
+    scatter!(p, pathLengths, data["firstOrderApprox"], label="First Order Approx.", mc=:yellow)
 
     return p
 end
