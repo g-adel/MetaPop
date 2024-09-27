@@ -54,26 +54,26 @@ function KRegRingMatrix(net::Network)
     return connections
 end
 
-function updateNetwork!(populations, net, meta,s)
-    epi=s.epi
-    sim=s.sim
+function updateNetwork!(meta)
+    populations = meta.populations
+    epi, sim, net = meta.S.epi, meta.S.sim, meta.S.net
     g= net.graph
 
     popsRoC = Array{PopulationRoC, 1}(undef, length(populations))
     for _ in 1:sim.nTimeSteps
-        # populations[1].I=.00003
-        totalInfectedFlow = 0
+        globalInfectedFlow = 0
         for (popInd, pop) in enumerate(populations)
             for (connPopInd, connWeight) in enumerate(net.connections[popInd,:])
                 connPop = populations[connPopInd]
-                meta.infectedFlows[popInd,connPopInd] =  connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
-                totalInfectedFlow += meta.infectedFlows[popInd,connPopInd]
+                meta.mobilityRates[popInd,connPopInd] =  connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-pop.restrictions[connPopInd])
+                globalInfectedFlow += meta.mobilityRates[popInd,connPopInd]
             end
         end
+        # integration
         for (i, population) in enumerate(populations)
             # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
-            popsRoC[i] = getPopulationRoC(population, net, populations, epi,meta)
-
+            popsRoC[i] = getPopulationRoC(population, meta)
+            
             population.S+=popsRoC[i].dS*1/sim.nTimeSteps
             population.I+=popsRoC[i].dI*1/sim.nTimeSteps
             population.R+=popsRoC[i].dR*1/sim.nTimeSteps
@@ -83,21 +83,21 @@ function updateNetwork!(populations, net, meta,s)
     end
 end
 
-function computePOConnectivityHistory(restrictionsHistory,infectedHistory,populations,connections,POrder)
-    # POrder = 0, 1, or 2
-    nTimeSteps, nPopulations, nMobility = size(restrictionsHistory)
-    POConnectivity = zeros(nTimeSteps, nPopulations)
-    AveragePOConnectivity = zeros(nTimeSteps)
-    for t in 1:nTimeSteps
-        for i in 1:nPopulations
-            for j in 1:nMobility
-                POConnectivity[t, i] += restrictionsHistory[t, i, j]*restrictionsHistory[t, j, i]*connections[i,j]
-                if POrder > 0 POConnectivity[t, i] *= (populations[j].size - infectedHistory[t,i]) end 
-                if POrder > 1 POConnectivity[t, i] *= (populations[i].size-infectedHistory[t,j]) end
-            end
-            AveragePOConnectivity[t]+=POConnectivity[t, i]
-        end
-    end
-    AveragePOConnectivity = AveragePOConnectivity./nPopulations
-    return POConnectivity, AveragePOConnectivity
-end
+# function computePOConnectivityHistory(restrictionsHistory,infectedHistory,populations,connections,POrder)
+#     # POrder = 0, 1, or 2
+#     nTimeSteps, nPopulations, nMobility = size(restrictionsHistory)
+#     POConnectivity = zeros(nTimeSteps, nPopulations)
+#     AveragePOConnectivity = zeros(nTimeSteps)
+#     for t in 1:nTimeSteps
+#         for i in 1:nPopulations
+#             for j in 1:nMobility
+#                 POConnectivity[t, i] += restrictionsHistory[t, i, j]*restrictionsHistory[t, j, i]*connections[i,j]
+#                 if POrder > 0 POConnectivity[t, i] *= (populations[j].size - infectedHistory[t,i]) end 
+#                 if POrder > 1 POConnectivity[t, i] *= (populations[i].size-infectedHistory[t,j]) end
+#             end
+#             AveragePOConnectivity[t]+=POConnectivity[t, i]
+#         end
+#     end
+#     AveragePOConnectivity = AveragePOConnectivity./nPopulations
+#     return POConnectivity, AveragePOConnectivity
+# end

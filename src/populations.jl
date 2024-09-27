@@ -12,13 +12,13 @@ end
 @kwdef mutable struct Metapopulation
     S
     populations::Array{Population, 1}
-    infectedFlows::Array{Float64, 2} 
+    mobilityRates::Array{Float64, 2} 
 end
 
 mutable struct PopulationRoC
-    dS::Float64 # Susciptible population fraction
-    dI::Float64 # Infected population fraction
-    dR::Float64 # Recovered population fraction
+    dS::Float64 # Susciptible population fraction RoC
+    dI::Float64 # Infected population fraction RoC
+    dR::Float64 # Recovered population fraction RoC
     restrictionsRoC::Array{Float64, 1}
 end
 
@@ -36,14 +36,15 @@ function initializePopulations!(populations,strat)
 end
 
 
-function getPopulationRoC(pop::Population,net,populations,epi,meta)
+function getPopulationRoC(pop::Population,meta::Metapopulation)
+    net, populations, epi = meta.S.net, meta.populations, meta.S.epi;
     S = pop.S; I = pop.I; R = pop.R
     inConnections = net.connections[:,pop.index]
     outConnections = net.connections[pop.index,:]
     netFlowInfected = netFlowSusceptible = netFlowRecovered = 0
     for (connPopInd, connWeight) in enumerate(inConnections)
         connPop = populations[connPopInd]
-        finalMobilityRate = connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
+        finalMobilityRate = meta.mobilityRates[pop.index,connPopInd]
 
         netFlowSusceptible += finalMobilityRate * (connPop.S)
         netFlowInfected += finalMobilityRate * (connPop.I)
@@ -51,18 +52,18 @@ function getPopulationRoC(pop::Population,net,populations,epi,meta)
     end
     for (connPopInd, connWeight) in enumerate(outConnections)
         connPop = populations[connPopInd]
-        finalMobilityRate = connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-connPop.restrictions[connPopInd])
+        finalMobilityRate = meta.mobilityRates[connPopInd, pop.index]
 
         netFlowSusceptible += finalMobilityRate * (- S)
         netFlowInfected += finalMobilityRate    * (- I)
         netFlowRecovered += finalMobilityRate   * (- R)
     end
     dS = -epi.β*I*S + epi.σ*R + netFlowSusceptible # is netFlow a rate of change?
-    dI =  epi.β*I*S - epi.γ*I + netFlowInfected # 
+    dI =  epi.β*I*S - epi.γ*I + netFlowInfected
     dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
 
     # Restriction RoC
-    restrictionsRoC = uniformDiffRestriction(pop, populations,inConnections,epi)
+    restrictionsRoC = uniformDiffRestriction(pop,inConnections,meta)
     # restrictionsRoC = zeros(size(populations))
     populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC) #struct
     return populationRoC

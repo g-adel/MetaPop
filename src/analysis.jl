@@ -24,7 +24,7 @@ function firstOrderApprox(p, epi)
     μ = epi.μ
     κ = epi.β - epi.γ - 2*epi.μ
 
-    p==0 && return 0
+    (p==0 || κ<=0) && return 0
 
     # Define the transformed equation to be solved for t
     # log of Sequation(t) = μ^p * t^p * exp(κ * t) / factorial(p) - 1

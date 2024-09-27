@@ -1,7 +1,7 @@
 using Plots
 
-function plotPlots(data, s;img_filename="")
-    nPopulations = s.net.nPopulations
+function plotPlots(data, S;img_filename="")
+    nPopulations = S.net.nPopulations
     plots = []
     push!(plots, plotTimeEvolution(data["infectedHistory"],data["infectedAvgHistory"]))
     push!(plots, plotRestrictions(data["restrictionsHistory"]))
@@ -14,15 +14,32 @@ function plotPlots(data, s;img_filename="")
         img_plot = plot(img, seriestype=:image)
         push!(plots, img_plot)
     end
-    for plt in plots
-        plt[:legend] = false
-    end
     # Adjust the layout to accommodate the new plot
     height = 800 * length(plots)
     layout = @layout [a; b; c{0.4h}; d{0.4h};]
     
     combined_plot = plot(plots..., layout=layout, size=(1000, height))
     return combined_plot
+end
+
+function plotTimeEvolution(timeseries::Array{Float64,2},avg_infected_percent)
+    nTimeSteps, nPopulations = size(timeseries)
+
+    infected_percent = timeseries 
+    colors = palette(:jet, nPopulations)
+
+    color_index = 1
+    p = plot()
+    for i in 1:nPopulations
+        plot!(p,1:nTimeSteps, infected_percent[:, i], label="Pop. $i", color=colors[color_index])
+        color_index += 1
+    end
+    plot!(p, 1:nTimeSteps, avg_infected_percent, label="Average",
+     linestyle=:dash, linewidth=2, legendfontsize=6, legend=false)
+    xlabel!(p,"Time (days)")
+    ylabel!(p,"Infected Population Fraction")
+    title!(p,"Prevalence of Infected")
+    return(p)
 end
 
 function plotInfectionIndices(data)
@@ -42,25 +59,6 @@ function plotInfectionIndices(data)
     return p
 end
 
-function plotTimeEvolution(timeseries::Array{Float64,2},avg_infected_percent)
-    nTimeSteps, nPopulations = size(timeseries)
-
-    infected_percent = timeseries 
-    colors = palette(:jet, nPopulations)
-
-    color_index = 1
-    p = plot()
-    for i in 1:nPopulations
-        plot!(p,1:nTimeSteps, infected_percent[:, i], label="Pop. $i", color=colors[color_index])
-        color_index += 1
-    end
-    plot!(p, 1:nTimeSteps, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2, legendfontsize=6)
-    p[:legend] = false
-    xlabel!(p,"Time (days)")
-    ylabel!(p,"Infected Population Fraction")
-    title!(p,"Prevalence of Infected")
-    return(p)
-end
 
 function plotRestrictions(restrictionsHistory)
     nTimeSteps, nPopulations, _ = size(restrictionsHistory)
