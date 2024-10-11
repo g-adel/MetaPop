@@ -5,6 +5,7 @@ function plotPlots(data, S;img_filename="")
     plots = []
     push!(plots, plotTimeEvolution(data["infectedHistory"],data["infectedAvgHistory"]))
     push!(plots, plotRestrictions(data["restrictionsHistory"]))
+    # push!(plots, plotAvgRestrictions(data["restrictionsAvgHistory"]))    
     push!(plots, plotInfectionIndices(data))
     # push!(plots, plotRestrictionsGrid(data["restrictionsHistory"]))
     
@@ -42,23 +43,6 @@ function plotTimeEvolution(timeseries::Array{Float64,2},avg_infected_percent)
     return(p)
 end
 
-function plotInfectionIndices(data)
-    pathLengths = data["pathLengths"]
-    spreadInfInd = data["spreadInfInd"]
-    peakInfInd = data["peakInfInd"]
-
-    # Create a scatter plot
-    p = scatter(pathLengths, spreadInfInd, label="Spread Infection Day",
-                xlabel="Path Length", ylabel="Indices", size=(1000,800),
-                legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm,
-                mc=:blue)
-    
-    scatter!(p, pathLengths, peakInfInd, label="Peak Infection Day", mc=:red)
-    scatter!(p, pathLengths, data["firstOrderApprox"], label="First Order Approx.", mc=:yellow)
-
-    return p
-end
-
 
 function plotRestrictions(restrictionsHistory)
     nTimeSteps, nPopulations, _ = size(restrictionsHistory)
@@ -72,6 +56,24 @@ function plotRestrictions(restrictionsHistory)
             plot!(p, 1:nTimeSteps, restrictionsHistory[:, i, j], label="P($i,$j)", color=colors[color_index], ylim=(0,1))
             color_index += 1
         end
+    end
+    
+    xlabel!(p, "Time (days)")
+    ylabel!(p, "Mobility Restrictions")
+    title!(p, "Evolution of Mobility Restrictions")
+    return p
+end
+
+function plotAvgRestrictions(restrictionsAvgHistory)
+    nTimeSteps, nPopulations = size(restrictionsAvgHistory)
+    p = plot(1:nTimeSteps, zeros(nTimeSteps), label="P1", legend=false)
+    
+    colors = palette(:jet, nPopulations)
+    
+    color_index = 1
+    for i in 1:nPopulations
+        plot!(p, 1:nTimeSteps, restrictionsAvgHistory[:, i], label="P($i)", color=colors[color_index], ylim=(0,1))
+        color_index += 1
     end
     
     xlabel!(p, "Time (days)")
@@ -94,23 +96,75 @@ function plotRestrictionsGrid(restrictionsHistory)
     return p
 end
 
-function plotTotalConnectivity(POConnectivity,AveragePOConnectivity,POrder,nTimeSteps,nPopulations)
+function plotInfectionIndices(data)
+    pathLengths = data["pathLengths"]
+    spreadInfInd = data["spreadInfInd"]
+    peakInfInd = data["peakInfInd"]
 
-    p = plot(1:nTimeSteps, POConnectivity[:, 1], label="Pop. 1",legend=:topright, legendbg=:transparent)
-    for i in 2:nPopulations
-        plot!(p, 1:nTimeSteps, POConnectivity[:, i], label="Pop. $i")
-    end
-    plot!(p, 1:nTimeSteps, AveragePOConnectivity.*ones(nTimeSteps), label="P"*string(POrder)*"Avg. Conn.", linestyle=:dash, linewidth=2) 
-    xlabel!(p, "Time (days)")
-    ylabel!(p, "Total Connectivity")
+    # Create a scatter plot
+    p = scatter(pathLengths, spreadInfInd, label="Spread Infection Day",
+                xlabel="Path Length", ylabel="Indices", size=(1000,800),
+                legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm,
+                mc=:blue)
     
-    (POrder == 0) && title!(p, "Evolution of M Connectivity")
-    (POrder == 2) && title!(p, "Evolution of P Connectivity")
-    p = plot!(p, legend=:topright)
-    current_ylims = ylims(p)
-    plot!(p, ylims=(0, max(current_ylims...)*1.1))
-    # print ylims of plot
-
-    return(p)
+    scatter!(p, pathLengths, peakInfInd, label="Peak Infection Day", mc=:red)
+    scatter!(p, pathLengths, data["firstOrderApprox"], label="First Order Approx.", mc=:yellow)
+    scatter!(p, pathLengths[2:end], spreadInfInd[2:end].-spreadInfInd[1:end-1], label="Infection rate")
+    p=plot(p,legend=false)
+    return p
 end
+
+function plot_spread_rates(data::Array{Dict, 2},Ss)
+    nRows, nCols = size(data)
+    
+    # Initialize arrays to store the values
+    referenceSpreadRates = [[] for _ in 1:nCols]
+    firstOrderSpreadRates = [[] for _ in 1:nCols]
+    spreadRates = [[] for _ in 1:nCols]
+    βs=[]
+    μs=[]
+    
+    # Extract values from each dictionary in the 2D array
+    for i in 1:nRows
+        for j in 1:nCols
+            push!(referenceSpreadRates[j], data[i, j]["referenceSpreadRate"])
+            push!(firstOrderSpreadRates[j], data[i, j]["firstOrderSpreadRate"])
+            push!(spreadRates[j], data[i, j]["spreadRate"])
+            i==1 && push!(βs,Ss[1,j].epi.β)
+        end
+        push!(μs,Ss[i,1].epi.μ) 
+    end
+    @show βs μs
+    # Create the plot
+    p = plot(xlabel="μ", ylabel="Rate (nodes/day)", title="Spread Rates")
+    
+    for j in 1:nCols
+        plot!(p, μs, spreadRates[j], label="Actual Rate (β= $(βs[j]))", lw=2, lc=:green, legendfontsize=6)
+        scatter!(p, μs, referenceSpreadRates[j], label="Ref Rate (β= $(βs[j]))", lw=2, mc=:black)
+        scatter!(p, μs, firstOrderSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, mc=:white)
+    end
+    
+    return p
+end
+
+# function plotTotalConnectivity(POConnectivity,AveragePOConnectivity,POrder,nTimeSteps,nPopulations)
+
+#     p = plot(1:nTimeSteps, POConnectivity[:, 1], label="Pop. 1",legend=:topright, legendbg=:transparent)
+#     for i in 2:nPopulations
+#         plot!(p, 1:nTimeSteps, POConnectivity[:, i], label="Pop. $i")
+#     end
+#     plot!(p, 1:nTimeSteps, AveragePOConnectivity.*ones(nTimeSteps), label="P"*string(POrder)*"Avg. Conn.", linestyle=:dash, linewidth=2) 
+#     xlabel!(p, "Time (days)")
+#     ylabel!(p, "Total Connectivity")
+    
+#     (POrder == 0) && title!(p, "Evolution of M Connectivity")
+#     (POrder == 2) && title!(p, "Evolution of P Connectivity")
+#     p = plot!(p, legend=:topright)
+#     current_ylims = ylims(p)
+#     plot!(p, ylims=(0, max(current_ylims...)*1.1))
+#     # print ylims of plot
+
+#     return(p)
+# end
+
 

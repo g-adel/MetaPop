@@ -21,3 +21,17 @@ function uniformDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
 
     return restrictionRoC
 end
+
+function indivDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
+    λ = pop.strat.λ # Adaptive mobility tuning rate
+    nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
+    restrictionRoC = zeros(size(pop.restrictions))
+    
+    for connPopInd in nbrs_indices
+        # could be turned into array operation
+        inflowInfected = meta.mobilityRates[connPopInd,pop.index] * (meta.populations[connPopInd].I)
+        restrictionRoC[connPopInd] = λ*inflowInfected - pop.strat.mobBias * pop.restrictions[connPopInd]
+    end
+
+    return restrictionRoC
+end

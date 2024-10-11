@@ -36,10 +36,11 @@ end
 function pathGraph(net::Network; directed=false)
     if directed
         g = path_digraph(net.nPopulations)
+        adj = convert(Matrix{Float64}, adjacency_matrix(g))' #FIX
     else
         g = path_graph(net.nPopulations)
+        adj = convert(Matrix{Float64}, adjacency_matrix(g))
     end
-    adj = convert(Matrix{Float64}, adjacency_matrix(g))
 
     return adj, g
 end
@@ -77,7 +78,7 @@ function updateNetwork!(meta)
             population.S+=popsRoC[i].dS*1/sim.nTimeSteps
             population.I+=popsRoC[i].dI*1/sim.nTimeSteps
             population.R+=popsRoC[i].dR*1/sim.nTimeSteps
-            population.restrictions+=popsRoC[i].restrictionsRoC*1/sim.nTimeSteps
+            population.restrictions = population.restrictions .+ popsRoC[i].restrictionsRoC*1/sim.nTimeSteps
             clamp!(populations[i].restrictions,0.0,1.0) # NEVER change these values
         end
     end

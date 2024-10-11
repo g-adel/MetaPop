@@ -22,15 +22,16 @@ mutable struct PopulationRoC
     restrictionsRoC::Array{Float64, 1}
 end
 
-function initializePopulations!(populations,strat)
+function initializePopulations!(meta)
     r = W/2 - 30
-    nPopulations = length(populations)
+    populations=meta.populations
+    nPopulations = meta.S.net.nPopulations
     for i in 1:nPopulations
         theta = 2*π/nPopulations * (i-1)
         location = Point(r*cos(theta), r*sin(theta))
-        populations[i] = Population(1., 0., 0., 1., location, i,strat,zeros(nPopulations))
+        populations[i] = Population(1., 0., 0., 1., location, i,meta.S.strat,zeros(nPopulations))
     end
-    populations[1].I=.00003;
+    populations[1].I=meta.S.sim.I₀;
     populations[1].S= 1 - populations[1].I
     
 end
@@ -62,8 +63,8 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
     dI =  epi.β*I*S - epi.γ*I + netFlowInfected
     dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
 
-    # Restriction RoC
-    restrictionsRoC = uniformDiffRestriction(pop,inConnections,meta)
+    # restrictionsRoC = uniformDiffRestriction(pop,inConnections,meta)
+    restrictionsRoC = indivDiffRestriction(pop,inConnections,meta)
     # restrictionsRoC = zeros(size(populations))
     populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC) #struct
     return populationRoC

@@ -1,14 +1,15 @@
 Base.@kwdef mutable struct Sim
     nTimeSteps::Float64
     nDays::Int64
+    I₀::Float64
 end
 
 function simulateSystem(meta)
     sim, net= meta.S.sim, meta.S.net
-    susceptibleHistory = zeros(sim.nDays, net.nPopulations)
-    infectedHistory = zeros(sim.nDays, net.nPopulations)
-    recoveredHistory = zeros(sim.nDays, net.nPopulations)
-    restrictionsHistory = zeros(sim.nDays, net.nPopulations, net.nPopulations)
+    susceptibleHistory = zeros(Float64,sim.nDays, net.nPopulations)
+    infectedHistory = zeros(Float64,sim.nDays, net.nPopulations)
+    recoveredHistory = zeros(Float64,sim.nDays, net.nPopulations)
+    restrictionsHistory = zeros(Float64,sim.nDays, net.nPopulations, net.nPopulations)
     
     for t in 1:meta.S.sim.nDays
         for i in 1:net.nPopulations
@@ -32,5 +33,23 @@ function simulateSystem(meta)
     data = Dict()
     data["susceptibleHistory"] = susceptibleHistory[1:sim.nDays,:];    data["infectedHistory"] = infectedHistory[1:sim.nDays,:];
     data["recoveredHistory"] = recoveredHistory[1:sim.nDays,:];    data["restrictionsHistory"] = restrictionsHistory[1:sim.nDays,:,:]
+
     return data
+end
+
+function metaSimulation(Ss)
+    datas=Array{Dict,2}(undef,size(Ss))
+    
+    for i in 1:size(Ss,1)
+        for j in 1:size(Ss,1)
+            net=Ss[i,j].net
+            newMeta= Metapopulation(S = Ss[i,j], populations=Array{Population, 1}(undef, net.nPopulations),
+                         mobilityRates = zeros(Float64, net.nPopulations, net.nPopulations))
+            net.connections, net.graph = pathGraph(net;directed=false)
+            initializePopulations!(newMeta)
+            datas[i,j]=simulateSystem(newMeta)
+            dataAnalytics!(datas[i,j],Ss[i,j])
+        end
+    end
+    return datas
 end

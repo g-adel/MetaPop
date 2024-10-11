@@ -4,7 +4,7 @@ using Graphs, Luxor, Karnak, Images, Plots, Plots.PlotMeasures
 
 include("epidemics.jl");include("populations.jl");include("network.jl");
 include("visualization.jl");include("plots.jl");include("strategies.jl");
-include("simulation.jl"); include("analysis.jl");
+include("simulation.jl"); include("analysis.jl"); include("metaAnalysis.jl");
 include("util.jl"); include("tests.jl");
 mutable struct Scenario
     epi::SIRS_epidemic
@@ -17,10 +17,10 @@ end
 
 function main()
     println("¡Hola!")
-    epi = SIRS_epidemic(β = 0.2,γ = 0.00, σ = .0, μ = 1/10)
-    net = Network(; nPopulations = 15, k_bar = 2, connections = Array{Float64,2}(undef, 0, 0), graph = SimpleDiGraph())
-    strat = Strat(; λ = 3000000, mobBias = 0.0)
-    sim = Sim(; nTimeSteps =50, nDays = 500)
+    epi = SIRS_epidemic(β = 0.2,γ = 0.05, σ = .0, μ = 1/50)
+    net = Network(; nPopulations = 20, k_bar = 2, connections = Array{Float64,2}(undef, 0, 0), graph = SimpleDiGraph())
+    strat = Strat(; λ = 10e15, mobBias = 0.0)
+    sim = Sim(; nTimeSteps =10, nDays = 500, I₀=1e-5)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                          mobilityRates = zeros(Float64, net.nPopulations, net.nPopulations))
@@ -28,13 +28,17 @@ function main()
     # net.connections, net.graph = smallWorldMatrix(net)
     # net.connections, net.graph = baraAlbert(net)
 
-    debugPlots = []
-    debugVars = Dict()
 
-    initializePopulations!(meta.populations,strat)
+    initializePopulations!(meta)
     data = simulateSystem(meta)
 
     dataAnalytics!(data,S)
+
+    # Ss = multiScenario(S)
+    # datas = metaSimulation(Ss)
+
+    # plot = plot_spread_rates(datas, Ss)
+    # return plot, datas
 
     img_file = ""
     # img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, restrictionsHistory)
@@ -44,12 +48,12 @@ function main()
     # println("restrictions Analytics", restrictionsAnalytics(restrictionsHistory))
     # @show data
     combinedPlot = plotPlots(data,S;img_filename=img_file)
-    
     return combinedPlot, meta, data
 end
 
 export main
 
 end
+# combinedPlot, datas=MetaPop.main()
 combinedPlot, meta, data = MetaPop.main()
 plot(combinedPlot)
