@@ -5,15 +5,15 @@ function dataAnalytics!(data,S)
     data["infectedAvgHistory"] = sum(data["infectedHistory"], dims=2)./nPopulations # TODO make it account for het. sizes
     data["susceptibleAvgHistory"] = sum(data["susceptibleHistory"], dims=2)./nPopulations
     data["recoveredAvgHistory"] = sum(data["recoveredHistory"], dims=2)./nPopulations
-    # data["restrictionsAvgHistory"] = dropdims(sum(data["restrictionsHistory"],dims=3),dims=3)./sum(S.net.connections,dims=2)
-    restrictionsAvg = zeros(nTimeSteps, nPopulations)
+    # data["ρsAvgHistory"] = dropdims(sum(data["ρsHistory"],dims=3),dims=3)./sum(S.net.connections,dims=2)
+    ρsAvg = zeros(nTimeSteps, nPopulations)
     nodeStrength = sum(S.net.connections, dims=2)
     for t in 1:nTimeSteps
         for p in 1:nPopulations
-            restrictionsAvg[t, p] = sum(data["restrictionsHistory"][t, p, :])./nodeStrength[p]
+            ρsAvg[t, p] = sum(data["ρsHistory"][t, p, :])./nodeStrength[p]
         end
     end
-    data["restrictionsAvgHistory"] = restrictionsAvg
+    data["ρsAvgHistory"] = ρsAvg
     maxInfecteds = findmax(data["infectedHistory"], dims =1)
     data["peakGlobalInfection"] = findmax(data["infectedAvgHistory"])
     peakInfInd = [index[1] for index in maxInfecteds[2]]

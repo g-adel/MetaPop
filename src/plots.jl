@@ -4,22 +4,29 @@ function plotPlots(data, S;img_filename="")
     nPopulations = S.net.nPopulations
     plots = []
     push!(plots, plotTimeEvolution(data["infectedHistory"],data["infectedAvgHistory"]))
-    push!(plots, plotRestrictions(data["restrictionsHistory"]))
-    # push!(plots, plotAvgRestrictions(data["restrictionsAvgHistory"]))    
+    push!(plots, plotRestrictions(data["ρsHistory"]))
+    # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
     push!(plots, plotInfectionIndices(data))
-    # push!(plots, plotRestrictionsGrid(data["restrictionsHistory"]))
+    push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
+    push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
+    # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
     
     # Load the image and add it to the plots
     if img_filename != ""
         img = load(img_filename)
         img_plot = plot(img, seriestype=:image)
-        push!(plots, img_plot)
+        push!(plots, (img_plot,800))
     end
-    # Adjust the layout to accommodate the new plot
-    height = 800 * length(plots)
-    layout = @layout [a; b; c{0.4h}; d{0.4h};]
     
-    combined_plot = plot(plots..., layout=layout, size=(1000, height))
+    # Calculate the total height
+    height = sum(p[2] for p in plots)
+    
+    # Extract the heights for the layout
+    layout_heights = [p[2] for p in plots]./height
+    layout_heights[end]=1-sum(layout_heights[1:end-1])
+    
+    l = Plots.grid(length(plots), 1, heights=layout_heights)
+    combined_plot = plot([p[1] for p in plots]..., layout=l, size=(1000, height))
     return combined_plot
 end
 
@@ -40,12 +47,12 @@ function plotTimeEvolution(timeseries::Array{Float64,2},avg_infected_percent)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
     title!(p,"Prevalence of Infected")
-    return(p)
+    return p, 400
 end
 
 
-function plotRestrictions(restrictionsHistory)
-    nTimeSteps, nPopulations, _ = size(restrictionsHistory)
+function plotRestrictions(ρsHistory)
+    nTimeSteps, nPopulations, _ = size(ρsHistory)
     p = plot(1:nTimeSteps, zeros(nTimeSteps), label="P1", legend=false)
     
     colors = palette(:jet, nPopulations * nPopulations)
@@ -53,7 +60,7 @@ function plotRestrictions(restrictionsHistory)
     color_index = 1
     for i in 1:nPopulations
         for j in 1:nPopulations
-            plot!(p, 1:nTimeSteps, restrictionsHistory[:, i, j], label="P($i,$j)", color=colors[color_index], ylim=(0,1))
+            plot!(p, 1:nTimeSteps, ρsHistory[:, i, j], label="P($i,$j)", color=colors[color_index], ylim=(0,1))
             color_index += 1
         end
     end
@@ -61,39 +68,39 @@ function plotRestrictions(restrictionsHistory)
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
     title!(p, "Evolution of Mobility Restrictions")
-    return p
+    return p, 400
 end
 
-function plotAvgRestrictions(restrictionsAvgHistory)
-    nTimeSteps, nPopulations = size(restrictionsAvgHistory)
+function plotAvgRestrictions(ρsAvgHistory)
+    nTimeSteps, nPopulations = size(ρsAvgHistory)
     p = plot(1:nTimeSteps, zeros(nTimeSteps), label="P1", legend=false)
     
     colors = palette(:jet, nPopulations)
     
     color_index = 1
     for i in 1:nPopulations
-        plot!(p, 1:nTimeSteps, restrictionsAvgHistory[:, i], label="P($i)", color=colors[color_index], ylim=(0,1))
+        plot!(p, 1:nTimeSteps, ρsAvgHistory[:, i], label="P($i)", color=colors[color_index], ylim=(0,1))
         color_index += 1
     end
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
     title!(p, "Evolution of Mobility Restrictions")
-    return p
+    return p, 600
 end
 
-function plotRestrictionsGrid(restrictionsHistory)
-    nTimeSteps, nPopulations, _ = size(restrictionsHistory)
+function plotRestrictionsGrid(ρsHistory)
+    nTimeSteps, nPopulations, _ = size(ρsHistory)
     layout = @layout [Plots.grid(nPopulations, nPopulations)]
     p = plot(layout=layout, size=(800, 800), framestyle=:none, ticks=nothing,legend=false)
     
     for i in 1:nPopulations
         for j in 1:nPopulations
-            plot!(p, 1:nTimeSteps, restrictionsHistory[:, i, j], label="", subplot=(i-1)*nPopulations + j,ylim=(0,1))
+            plot!(p, 1:nTimeSteps, ρsHistory[:, i, j], label="", subplot=(i-1)*nPopulations + j,ylim=(0,1))
         end
     end
     
-    return p
+    return p, 800
 end
 
 function plotInfectionIndices(data)
@@ -111,7 +118,7 @@ function plotInfectionIndices(data)
     scatter!(p, pathLengths, data["firstOrderApprox"], label="First Order Approx.", mc=:yellow)
     scatter!(p, pathLengths[2:end], spreadInfInd[2:end].-spreadInfInd[1:end-1], label="Infection rate")
     p=plot(p,legend=false)
-    return p
+    return p, 800
 end
 
 function plot_spread_rates(data::Array{Dict, 2},Ss)
@@ -144,8 +151,44 @@ function plot_spread_rates(data::Array{Dict, 2},Ss)
         scatter!(p, μs, firstOrderSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, mc=:white)
     end
     
-    return p
+    return p, 800
 end
+
+function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale::Bool=false)
+    nTimeSteps, nPopulations = size(infectedHistory)
+    p = plot()
+    colors = palette(:jet, nPopulations)
+    color_index = 1
+    for i in 1:nPopulations-1
+        plot!(p, infectedHistory[50:end,i], infectedHistory[50:end,i+1], label = "($i,$(i+1))", color = colors[color_index])
+        color_index += 1
+    end
+    xlabel!(p, "Population i infected prevalence")
+    ylabel!(p, "Population i+1 infected prevalence")
+    title!(p, "Consecutive Infecteds prevalence")
+    
+    if log_scale
+        plot!(p,xscale=:ln,yscale=:ln)
+    end
+    
+    return p, 800
+end
+
+function plot_infect_ρ(infectedHistory::Array{Float64,2},ρsHistory::Array{Float64,3})
+    nTimeSteps, nPopulations = size(infectedHistory)
+    p=plot()
+    colors = palette(:jet, nPopulations)
+    color_index=1
+    for i in 1:nPopulations-1
+        plot!(p, infectedHistory[10:end,i],ρsHistory[10:end,i+1,i], label = "($i,$(i+1))", color=colors[color_index],xscale=:log10)
+        color_index += 1
+    end
+    xlabel!(p, "Population i infected prevalence")
+    ylabel!(p, "Population i+1 infected prevalence")
+    title!(p, "Evolution of infected flow and ρ")
+    return p, 800
+end
+
 
 # function plotTotalConnectivity(POConnectivity,AveragePOConnectivity,POrder,nTimeSteps,nPopulations)
 

@@ -1,10 +1,20 @@
+@enum StrategyType begin
+    GlobalDiffRestriction
+    UniformDiffRestriction
+    IndivDiffRestriction
+end
+
 Base.@kwdef struct Strat
     λ::Float64
     mobBias::Float64
+    strategy::StrategyType
+end
+
+function globalDiffRestriction(pop,localConnections::Array{Float64,1},meta)
 end
 
 function uniformDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
-    λ = pop.strat.λ # Adaptive mobility tuning rate
+    λ = meta.S.strat.λ # Adaptive mobility tuning rate
     nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
     
     netFlowInfected = 0;
@@ -14,24 +24,24 @@ function uniformDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
         netFlowInfected += finalMobilityRate * (meta.populations[connPopInd].I)
     end
 
-    restrictionRoC = zeros(size(pop.restrictions))
+    ρRoC = zeros(size(pop.ρs))
     for i in nbrs_indices
-        restrictionRoC[i] = λ*netFlowInfected - pop.strat.mobBias * pop.restrictions[i]
+        ρRoC[i] = λ*netFlowInfected - meta.S.strat.mobBias * pop.ρs[i]
     end
 
-    return restrictionRoC
+    return ρRoC
 end
 
 function indivDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
-    λ = pop.strat.λ # Adaptive mobility tuning rate
+    λ = meta.S.strat.λ # Adaptive mobility tuning rate
     nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
-    restrictionRoC = zeros(size(pop.restrictions))
+    ρRoC = zeros(size(pop.ρs))
     
     for connPopInd in nbrs_indices
         # could be turned into array operation
         inflowInfected = meta.mobilityRates[connPopInd,pop.index] * (meta.populations[connPopInd].I)
-        restrictionRoC[connPopInd] = λ*inflowInfected - pop.strat.mobBias * pop.restrictions[connPopInd]
+        ρRoC[connPopInd] = λ*inflowInfected - meta.S.strat.mobBias * pop.ρs[connPopInd]
     end
 
-    return restrictionRoC
+    return ρRoC
 end

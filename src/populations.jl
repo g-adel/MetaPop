@@ -5,8 +5,7 @@ mutable struct Population
     size::Float64 # Total population size
     position::Point # Position of the population
     index::Int # Index number of the population
-    strat#::Strat # strategy parameters
-    restrictions::Array{Float64, 1} # Mobility rates to other populations
+    ρs::Array{Float64, 1} # Mobility rates to other populations
 end
 
 @kwdef mutable struct Metapopulation
@@ -19,7 +18,7 @@ mutable struct PopulationRoC
     dS::Float64 # Susciptible population fraction RoC
     dI::Float64 # Infected population fraction RoC
     dR::Float64 # Recovered population fraction RoC
-    restrictionsRoC::Array{Float64, 1}
+    ρsRoC::Array{Float64, 1}
 end
 
 function initializePopulations!(meta)
@@ -29,7 +28,7 @@ function initializePopulations!(meta)
     for i in 1:nPopulations
         theta = 2*π/nPopulations * (i-1)
         location = Point(r*cos(theta), r*sin(theta))
-        populations[i] = Population(1., 0., 0., 1., location, i,meta.S.strat,zeros(nPopulations))
+        populations[i] = Population(1., 0., 0., 1., location, i,zeros(nPopulations))
     end
     populations[1].I=meta.S.sim.I₀;
     populations[1].S= 1 - populations[1].I
@@ -62,10 +61,15 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
     dS = -epi.β*I*S + epi.σ*R + netFlowSusceptible # is netFlow a rate of change?
     dI =  epi.β*I*S - epi.γ*I + netFlowInfected
     dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
-
-    # restrictionsRoC = uniformDiffRestriction(pop,inConnections,meta)
-    restrictionsRoC = indivDiffRestriction(pop,inConnections,meta)
-    # restrictionsRoC = zeros(size(populations))
-    populationRoC = PopulationRoC(dS,dI,dR,restrictionsRoC) #struct
+    strategy = meta.S.strat.strategy
+    ρsRoC = empty(size(populations))
+    if strategy == GlobalDiffRestriction
+        ρsRoC == globalDiffRestriction(pop,inConnections,meta)
+    elseif strategy == UniformDiffRestriction
+        ρsRoC = uniformDiffRestriction(pop,inConnections,meta)
+    elseif strategy == IndivDiffRestriction
+        ρsRoC = indivDiffRestriction(pop,inConnections,meta)
+    end
+    populationRoC = PopulationRoC(dS,dI,dR,ρsRoC) #struct
     return populationRoC
 end

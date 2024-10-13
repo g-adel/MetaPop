@@ -1,8 +1,33 @@
-Base.@kwdef mutable struct Network
+@enum GraphTopology begin
+    PathGraph
+    DiPathGraph
+    SmallWorld
+    BarabasiAlbert
+end
+
+mutable struct Network
     nPopulations::Int
     k_bar::Int
     connections::Array{Float64,2}
     graph
+    topology::GraphTopology
+    function Network(; nPopulations::Int, k_bar::Int, topology::GraphTopology)
+        connections = Array{Float64,2}(undef, 0, 0)
+        graph = SimpleDiGraph()
+        net = new(nPopulations, k_bar, connections, graph, topology)
+
+        if topology == PathGraph
+            net.connections, net.graph = pathGraph(net; directed = false)
+        elseif topology == DiPathGraph
+            net.connections, net.graph = pathGraph(net; directed = true)
+        elseif topology == SmallWorld
+            net.connections, net.graph = smallWorldMatrix(net)
+        elseif topology == BarabasiAlbert
+            net.connections, net.graph = baraAlbert(net)
+        end
+
+        return net
+    end
 end
 
 function KRegRingMatrix(net::Network)
@@ -55,44 +80,15 @@ function KRegRingMatrix(net::Network)
     return connections
 end
 
-function updateNetwork!(meta)
-    populations = meta.populations
-    epi, sim, net = meta.S.epi, meta.S.sim, meta.S.net
-    g= net.graph
-
-    popsRoC = Array{PopulationRoC, 1}(undef, length(populations))
-    for _ in 1:sim.nTimeSteps
-        globalInfectedFlow = 0
-        for (popInd, pop) in enumerate(populations)
-            for (connPopInd, connWeight) in enumerate(net.connections[popInd,:])
-                connPop = populations[connPopInd]
-                meta.mobilityRates[popInd,connPopInd] =  connWeight * epi.μ *  (1-connPop.restrictions[pop.index]) * (1-pop.restrictions[connPopInd])
-                globalInfectedFlow += meta.mobilityRates[popInd,connPopInd]
-            end
-        end
-        # integration
-        for (i, population) in enumerate(populations)
-            # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
-            popsRoC[i] = getPopulationRoC(population, meta)
-            
-            population.S+=popsRoC[i].dS*1/sim.nTimeSteps
-            population.I+=popsRoC[i].dI*1/sim.nTimeSteps
-            population.R+=popsRoC[i].dR*1/sim.nTimeSteps
-            population.restrictions = population.restrictions .+ popsRoC[i].restrictionsRoC*1/sim.nTimeSteps
-            clamp!(populations[i].restrictions,0.0,1.0) # NEVER change these values
-        end
-    end
-end
-
-# function computePOConnectivityHistory(restrictionsHistory,infectedHistory,populations,connections,POrder)
+# function computePOConnectivityHistory(ρsHistory,infectedHistory,populations,connections,POrder)
 #     # POrder = 0, 1, or 2
-#     nTimeSteps, nPopulations, nMobility = size(restrictionsHistory)
+#     nTimeSteps, nPopulations, nMobility = size(ρsHistory)
 #     POConnectivity = zeros(nTimeSteps, nPopulations)
 #     AveragePOConnectivity = zeros(nTimeSteps)
 #     for t in 1:nTimeSteps
 #         for i in 1:nPopulations
 #             for j in 1:nMobility
-#                 POConnectivity[t, i] += restrictionsHistory[t, i, j]*restrictionsHistory[t, j, i]*connections[i,j]
+#                 POConnectivity[t, i] += ρsHistory[t, i, j]*ρsHistory[t, j, i]*connections[i,j]
 #                 if POrder > 0 POConnectivity[t, i] *= (populations[j].size - infectedHistory[t,i]) end 
 #                 if POrder > 1 POConnectivity[t, i] *= (populations[i].size-infectedHistory[t,j]) end
 #             end
