@@ -3,7 +3,6 @@ mutable struct Population
     I::Float64 # Infected population fraction
     R::Float64 # Recovered population fraction
     size::Float64 # Total population size
-    position::Point # Position of the population
     index::Int # Index number of the population
     ρs::Array{Float64, 1} # Mobility rates to other populations
 end
@@ -11,7 +10,8 @@ end
 @kwdef mutable struct Metapopulation
     S
     populations::Array{Population, 1}
-    mobilityRates::Array{Float64, 2} 
+    mobilityRates
+    day::Float64
 end
 
 mutable struct PopulationRoC
@@ -21,18 +21,33 @@ mutable struct PopulationRoC
     ρsRoC::Array{Float64, 1}
 end
 
+
+function Base.:*(scalar::Float64, popsRoC::PopulationRoC)::PopulationRoC
+    return PopulationRoC(
+        popsRoC.dS * scalar,
+        popsRoC.dI * scalar,
+        popsRoC.dR * scalar,
+        popsRoC.ρsRoC .* scalar
+    )
+end
+
+function Base.:+(popsRoC1::PopulationRoC, popsRoC2::PopulationRoC)::PopulationRoC
+    return PopulationRoC(
+        popsRoC1.dS + popsRoC2.dS,
+        popsRoC1.dI + popsRoC2.dI,
+        popsRoC1.dR + popsRoC2.dR,
+        popsRoC1.ρsRoC .+ popsRoC2.ρsRoC
+    )
+end
+
 function initializePopulations!(meta)
-    r = W/2 - 30
     populations=meta.populations
     nPopulations = meta.S.net.nPopulations
     for i in 1:nPopulations
-        theta = 2*π/nPopulations * (i-1)
-        location = Point(r*cos(theta), r*sin(theta))
-        populations[i] = Population(1., 0., 0., 1., location, i,zeros(nPopulations))
+        populations[i] = Population(1., 0., 0., 1., i,zeros(nPopulations))
     end
-    populations[1].I=meta.S.sim.I₀;
-    populations[1].S= 1 - populations[1].I
-    
+    populations[1].I = meta.S.sim.I₀;
+    populations[1].S = 1 - populations[1].I
 end
 
 
@@ -69,7 +84,10 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
         ρsRoC = uniformDiffRestriction(pop,inConnections,meta)
     elseif strategy == IndivDiffRestriction
         ρsRoC = indivDiffRestriction(pop,inConnections,meta)
+    elseif strategy == IndivLogRestriction
+        ρsRoC = indivLogRestriction(pop,inConnections,meta)
     end
+
     populationRoC = PopulationRoC(dS,dI,dR,ρsRoC) #struct
     return populationRoC
 end

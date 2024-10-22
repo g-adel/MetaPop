@@ -30,14 +30,14 @@ mutable struct Network
     end
 end
 
-function KRegRingMatrix(net::Network)
-    connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
-    for i in 1:net.nPopulations
-        columns = [mod(i+j-1, net.nPopulations)+1 for j in -net.k_bar÷2:net.k_bar÷2 if mod(i+j-1, net.nPopulations)+1 != i]
-        connections[i, columns] .= 1
-    end
-    return connections
-end
+# function KRegRingMatrix(net::Network)
+#     connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
+#     for i in 1:net.nPopulations
+#         columns = [mod(i+j-1, net.nPopulations)+1 for j in -net.k_bar÷2:net.k_bar÷2 if mod(i+j-1, net.nPopulations)+1 != i]
+#         connections[i, columns] .= 1
+#     end
+#     return connections
+# end
 
 function smallWorldMatrix(net::Network; β=.5)
     is_graph_connected = false

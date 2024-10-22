@@ -1,23 +1,25 @@
-using Plots
-
 function plotPlots(data, S;img_filename="")
+    gr()
     nPopulations = S.net.nPopulations
     plots = []
-    push!(plots, plotTimeEvolution(data["infectedHistory"],data["infectedAvgHistory"]))
-    push!(plots, plotRestrictions(data["ρsHistory"]))
+    push!(plots, plotInfEvolution(data))
+    # push!(plots, plotInfEvolution(data,log_scale=true))
+    push!(plots, plotRestrictions(data))
     # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
-    push!(plots, plotInfectionIndices(data))
-    push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
+    push!(plots, plotInfectionDays(data,S.epi))
+    push!(plots, plotSpreadRates(data))
+    # push!(plots, plot_cumulative_flow(data))
+    # push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
     push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
-    
+
     # Load the image and add it to the plots
     if img_filename != ""
         img = load(img_filename)
         img_plot = plot(img, seriestype=:image)
         push!(plots, (img_plot,800))
     end
-    
+
     # Calculate the total height
     height = sum(p[2] for p in plots)
     
@@ -30,48 +32,55 @@ function plotPlots(data, S;img_filename="")
     return combined_plot
 end
 
-function plotTimeEvolution(timeseries::Array{Float64,2},avg_infected_percent)
+function plotInfEvolution(data; log_scale::Bool=false)
+    xAxis = data["days"]
+    timeseries,avg_infected_percent = data["infectedHistory"],data["infectedAvgHistory"]
     nTimeSteps, nPopulations = size(timeseries)
 
     infected_percent = timeseries 
     colors = palette(:jet, nPopulations)
-
+    startInd = log_scale ? 2 : 1
     color_index = 1
     p = plot()
     for i in 1:nPopulations
-        plot!(p,1:nTimeSteps, infected_percent[:, i], label="Pop. $i", color=colors[color_index])
+        plot!(p,xAxis[startInd:nTimeSteps], infected_percent[startInd:end, i], label="Pop. $i", color=colors[color_index])
         color_index += 1
     end
-    plot!(p, 1:nTimeSteps, avg_infected_percent, label="Average",
+    !log_scale && plot!(p, xAxis[startInd:nTimeSteps], avg_infected_percent[startInd:end], label="Average",
      linestyle=:dash, linewidth=2, legendfontsize=6, legend=false)
+    log_scale && plot!(p, yscale=:log10)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
     title!(p,"Prevalence of Infected")
     return p, 400
 end
 
+function plotInfMob(infectedHistory,ρsHistory)
 
-function plotRestrictions(ρsHistory)
+end
+
+function plotRestrictions(data)
+    xAxis = data["days"]
+    ρsHistory = data["ρsHistory"]
     nTimeSteps, nPopulations, _ = size(ρsHistory)
-    p = plot(1:nTimeSteps, zeros(nTimeSteps), label="P1", legend=false)
+    p = plot(legend=false)
     
-    colors = palette(:jet, nPopulations * nPopulations)
+    colors = palette(:jet, nPopulations)
     
     color_index = 1
-    for i in 1:nPopulations
-        for j in 1:nPopulations
-            plot!(p, 1:nTimeSteps, ρsHistory[:, i, j], label="P($i,$j)", color=colors[color_index], ylim=(0,1))
+    for i in 1:nPopulations-1
+            plot!(p, xAxis, ρsHistory[:,i+1,i], label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
             color_index += 1
-        end
     end
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
-    title!(p, "Evolution of Mobility Restrictions")
+    title!(p, "Evolution of Path Mobility Restrictions")
     return p, 400
 end
 
 function plotAvgRestrictions(ρsAvgHistory)
+    
     nTimeSteps, nPopulations = size(ρsAvgHistory)
     p = plot(1:nTimeSteps, zeros(nTimeSteps), label="P1", legend=false)
     
@@ -90,6 +99,7 @@ function plotAvgRestrictions(ρsAvgHistory)
 end
 
 function plotRestrictionsGrid(ρsHistory)
+    
     nTimeSteps, nPopulations, _ = size(ρsHistory)
     layout = @layout [Plots.grid(nPopulations, nPopulations)]
     p = plot(layout=layout, size=(800, 800), framestyle=:none, ticks=nothing,legend=false)
@@ -103,10 +113,9 @@ function plotRestrictionsGrid(ρsHistory)
     return p, 800
 end
 
-function plotInfectionIndices(data)
+function plotInfectionDays(data,epi)
     pathLengths = data["pathLengths"]
     spreadInfInd = data["spreadInfInd"]
-    peakInfInd = data["peakInfInd"]
 
     # Create a scatter plot
     p = scatter(pathLengths, spreadInfInd, label="Spread Infection Day",
@@ -114,19 +123,55 @@ function plotInfectionIndices(data)
                 legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm,
                 mc=:blue)
     
-    scatter!(p, pathLengths, peakInfInd, label="Peak Infection Day", mc=:red)
-    scatter!(p, pathLengths, data["firstOrderApprox"], label="First Order Approx.", mc=:yellow)
-    scatter!(p, pathLengths[2:end], spreadInfInd[2:end].-spreadInfInd[1:end-1], label="Infection rate")
-    p=plot(p,legend=false)
+    epi.γ>0 && scatter!(p, pathLengths, data["peakInfInd"], label="Peak Infection Day", mc=:red)
+    scatter!(p, pathLengths, data["firstOrderSol"], label="First Order Sol.", mc=:yellow)
+    plot!(p, pathLengths, data["firstOrderApprox"], label="First Order Approx.", mc=:white)
+    
     return p, 800
 end
+
+function plotSpreadRates(data)
+    pathLengths = data["pathLengths"]
+    spreadInfInd = data["spreadInfInd"]
+
+    # Calculate the inverse of the difference of the number of days between consecutive nodes
+    inv_diff_days = 1.0 ./ (spreadInfInd[2:end] .- spreadInfInd[1:end-1])
+    inv_diff_firstOrderSol = 1.0 ./ (data["firstOrderSol"][2:end] .- data["firstOrderSol"][1:end-1])
+    inv_diff_firstOrderApprox = 1.0 ./ (data["firstOrderApprox"][2:end] .- data["firstOrderApprox"][1:end-1])
+    
+    # Create a scatter plot
+    p = scatter(pathLengths, data["1/Δt"], label="1/Δt",
+                xlabel="Path Length", ylabel="Inverse Δt", size=(1000,800),
+                legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm,
+                mc=:blue)
+    scatter!(p, pathLengths[2:end], inv_diff_firstOrderSol, label="First Order Sol.", mc=:yellow)
+    plot!(p, pathLengths[2:end], inv_diff_firstOrderApprox, label="First Order Approx.")
+    # make y-axis start from 0
+    plot!(p, ylims=(0, maximum(inv_diff_days)*1.1))
+    
+    return p, 800
+end
+
+
+function plot_cumulative_flow(data::Dict)
+    cumuInfMob =[data["cumuInfMob"][i, i+1] for i in 1:size(data["cumuInfMob"], 1)-1]
+    nPopulations = length(cumuInfMob)
+    p = scatter(1:nPopulations-1, cumuInfMob, legend=false, yscale=:log10)
+    plot!(p, xlims=(0, nPopulations))
+    xlabel!(p, "Path length")
+    ylabel!(p, "Cumulative Infected Flow")
+    title!(p, "Cumulative Infected Flow")
+    return p, 800
+end
+
 
 function plot_spread_rates(data::Array{Dict, 2},Ss)
     nRows, nCols = size(data)
     
     # Initialize arrays to store the values
     referenceSpreadRates = [[] for _ in 1:nCols]
-    firstOrderSpreadRates = [[] for _ in 1:nCols]
+    firstOrderSolSpreadRates = [[] for _ in 1:nCols]
+    firstOrderApproxSpreadRates = [[] for _ in 1:nCols]
     spreadRates = [[] for _ in 1:nCols]
     βs=[]
     μs=[]
@@ -135,7 +180,8 @@ function plot_spread_rates(data::Array{Dict, 2},Ss)
     for i in 1:nRows
         for j in 1:nCols
             push!(referenceSpreadRates[j], data[i, j]["referenceSpreadRate"])
-            push!(firstOrderSpreadRates[j], data[i, j]["firstOrderSpreadRate"])
+            push!(firstOrderSolSpreadRates[j], data[i, j]["firstOrderSolSpreadRate"])
+            push!(firstOrderApproxSpreadRates[j], 1 ./firstOrderApprox(Ss[i,j].epi))
             push!(spreadRates[j], data[i, j]["spreadRate"])
             i==1 && push!(βs,Ss[1,j].epi.β)
         end
@@ -147,20 +193,25 @@ function plot_spread_rates(data::Array{Dict, 2},Ss)
     
     for j in 1:nCols
         plot!(p, μs, spreadRates[j], label="Actual Rate (β= $(βs[j]))", lw=2, lc=:green, legendfontsize=6)
-        scatter!(p, μs, referenceSpreadRates[j], label="Ref Rate (β= $(βs[j]))", lw=2, mc=:black)
-        scatter!(p, μs, firstOrderSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, mc=:white)
+        # scatter!(p, μs, referenceSpreadRates[j], label="Ref Rate (β= $(βs[j]))", lw=2, mc=:black)
+        plot!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, lc=:red)
+        # scatter!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, mc=:red)
+        # plot!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, lc=:blue)
+        scatter!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, mc=:blue)
     end
     
     return p, 800
 end
 
 function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale::Bool=false)
+    
     nTimeSteps, nPopulations = size(infectedHistory)
     p = plot()
     colors = palette(:jet, nPopulations)
     color_index = 1
     for i in 1:nPopulations-1
-        plot!(p, infectedHistory[50:end,i], infectedHistory[50:end,i+1], label = "($i,$(i+1))", color = colors[color_index])
+        phase_shift = (i - 1)/nPopulations  # Adjust phase shift as needed
+        plot!(p, infectedHistory[2:end,i], infectedHistory[2:end,i+1], label = "($i,$(i+1))", color = colors[color_index], linestyle=:dash, phase=phase_shift)
         color_index += 1
     end
     xlabel!(p, "Population i infected prevalence")
@@ -174,40 +225,21 @@ function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale:
     return p, 800
 end
 
-function plot_infect_ρ(infectedHistory::Array{Float64,2},ρsHistory::Array{Float64,3})
+function plot_infect_ρ(infectedHistory::Array{Float64,2}, ρsHistory::Array{Float64,3})
+    
     nTimeSteps, nPopulations = size(infectedHistory)
-    p=plot()
+    p = plot()
     colors = palette(:jet, nPopulations)
-    color_index=1
+    color_index = 1
+    cleanInfectedHistory = replace(x -> x <= 0 ? NaN : x,infectedHistory)
+    cleanρsHistory = replace(x -> x <= 0 ? NaN : x, ρsHistory)
     for i in 1:nPopulations-1
-        plot!(p, infectedHistory[10:end,i],ρsHistory[10:end,i+1,i], label = "($i,$(i+1))", color=colors[color_index],xscale=:log10)
+        plot!(p, cleanInfectedHistory[2:end,i], cleanρsHistory[2:end,i+1,i], label = "($i,$(i+1))", color=colors[color_index], xscale=:log10)
         color_index += 1
     end
+    plot!(p,legend=false)
     xlabel!(p, "Population i infected prevalence")
     ylabel!(p, "Population i+1 infected prevalence")
     title!(p, "Evolution of infected flow and ρ")
     return p, 800
 end
-
-
-# function plotTotalConnectivity(POConnectivity,AveragePOConnectivity,POrder,nTimeSteps,nPopulations)
-
-#     p = plot(1:nTimeSteps, POConnectivity[:, 1], label="Pop. 1",legend=:topright, legendbg=:transparent)
-#     for i in 2:nPopulations
-#         plot!(p, 1:nTimeSteps, POConnectivity[:, i], label="Pop. $i")
-#     end
-#     plot!(p, 1:nTimeSteps, AveragePOConnectivity.*ones(nTimeSteps), label="P"*string(POrder)*"Avg. Conn.", linestyle=:dash, linewidth=2) 
-#     xlabel!(p, "Time (days)")
-#     ylabel!(p, "Total Connectivity")
-    
-#     (POrder == 0) && title!(p, "Evolution of M Connectivity")
-#     (POrder == 2) && title!(p, "Evolution of P Connectivity")
-#     p = plot!(p, legend=:topright)
-#     current_ylims = ylims(p)
-#     plot!(p, ylims=(0, max(current_ylims...)*1.1))
-#     # print ylims of plot
-
-#     return(p)
-# end
-
-

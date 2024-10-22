@@ -1,11 +1,11 @@
 using Revise, Plots
 module MetaPop
-using Graphs, Luxor, Karnak, Images, Plots, Plots.PlotMeasures
+using Graphs, SparseArrays, Luxor, Karnak, Images, Plots, Plots.PlotMeasures, Printf, PrettyTables
 
-include("epidemics.jl");include("populations.jl");include("network.jl");
-include("visualization.jl");include("plots.jl");include("strategies.jl");
-include("simulation.jl"); include("analysis.jl"); include("metaAnalysis.jl");
-include("util.jl"); include("tests.jl");
+include("epidemics.jl");    include("populations.jl");  include("network.jl");
+include("visualization.jl");include("strategies.jl");   include("simulation.jl");
+include("analysis.jl");     include("metaAnalysis.jl"); include("util.jl");
+include("plots.jl");        include("output.jl");       include("tests.jl");
 
 mutable struct Scenario
     epi::SIRS_epidemic
@@ -17,25 +17,27 @@ end
 
 function main()
     println("¡Hola!")
-    epi = SIRS_epidemic(β = 0.2,γ = 0.0, σ = .0, μ = 1/50)
-    net = Network(; nPopulations = 20, k_bar = 2, topology = PathGraph)
-    strat = Strat(; λ = 10e10, mobBias = 0.0,strategy = IndivDiffRestriction)
-    sim = Sim(; nTimeSteps =1, nDays = 500, I₀=1e-10)
+    epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 1/50)
+    net = Network(; nPopulations = 10, k_bar = 2, topology = PathGraph)
+    strat = Strat(; λ = 1e10, mobBias = 0.0,strategy = IndivDiffRestriction)
+    sim = Sim(; nTimeSteps =100, nDays = 500, I₀=1e-10, critRange = 20)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
-                         mobilityRates = zeros(Float64, net.nPopulations, net.nPopulations))
+                         mobilityRates = sparse(net.connections)*epi.μ, day = 1)
 
 
     initializePopulations!(meta)
-    data = simulateSystem(meta)
+    metaHist = simulateSystem(meta)
+    data = dataAnalytics(metaHist,S)
+    generatePrettyTable(data)
 
-    dataAnalytics!(data,S)
+    # println(meta.mobilityRates)
 
     # Ss = multiScenario(S)
     # datas = metaSimulation(Ss)
 
     # plot = plot_spread_rates(datas, Ss)
-    # return plot, datas
+    # return plot[1], datas
 
     img_file = ""
     # img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, ρsHistory)
