@@ -19,4 +19,5 @@ function generatePrettyTable(data)
     # Print the table
     println()
     pretty_table(table_data, header=header, crop = :none)
+    # println( [data["metaHist"][t].populations[2].ρs[1] for t in 1:length(data["metaHist"])]')
 end

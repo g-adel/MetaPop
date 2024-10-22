@@ -2,7 +2,7 @@ Base.@kwdef mutable struct Sim
     nTimeSteps::Float64
     nDays::Int64
     I₀::Float64
-    critRange::Int64
+    critRange::Float64
 end
 
 function simulateSystem(meta)
@@ -18,7 +18,7 @@ function simulateSystem(meta)
         (sim.critRange>0 && t > sim.critRange) && break
 
         # Check if system reached steady state
-        if t>1 && maximum([pop.S for pop in newMeta.populations])<.5
+        if t>100
             maxRestrictionChange = 0.0
             for i in 1:length(metaHist[end].populations)
                 maxRestrictionChange = max(maxRestrictionChange, maximum( 
@@ -42,18 +42,28 @@ end
 
 function updateMetapop(meta,metaCritHist)
     newMeta=deepcopy(meta)
-    sim, net = newMeta.S.sim, newMeta.S.net
-    g= net.graph
-    h = 1/sim.nTimeSteps
-
-    for t in 1:sim.nTimeSteps
-        k1 = metaRoC(newMeta)
-        k2 = metaRoC(incrementMeta(newMeta,k1,h/2))
-        k3 = metaRoC(incrementMeta(newMeta,k2,h/2))
-        k4 = metaRoC(incrementMeta(newMeta,k3,h))
-        η = 1/6 .*(k1 .+ 2.0*k2 .+ 2.0*k3 .+ k4)
-        newMeta = incrementMeta(newMeta,η,h)
-        newMeta.day+=1/sim.nTimeSteps
+    h = 1/newMeta.S.sim.nTimeSteps
+    t=0
+    k=Array{PopulationRoC, 1}(undef, length(4))
+    const c = [0,1/2,1/2,1]
+    const b = [1/6,1/3,1/3,1/6]
+    while t < 1
+        OOB2=true
+        k[1] = metaRoC(newMeta)
+        m2,OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
+        while OOB2
+            h=h/2
+            m2,OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
+            @show t h meta.day
+        end
+        k[2] = metaRoC(m2)
+        k[3] = metaRoC(incrementMeta(newMeta,k[2],c[3]*h)[1])
+        k[4] = metaRoC(incrementMeta(newMeta,k[3],c[4]*h)[1])
+        η = b .* k
+        newMeta, OOB = incrementMeta(newMeta,η,h)
+        OOB && println("solution OOB",newMeta)
+        newMeta.day+=h
+        t+=h
         newMeta.day<= meta.S.sim.critRange && push!(metaCritHist,newMeta)
     end
     return newMeta
@@ -72,29 +82,30 @@ function metaRoC(meta)
     end
     # integration
     for (i, population) in enumerate(populations)
-        globalInfectedFlow = 0
-        # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
         # meta.mobilityRates need to be computed for popsRoC
         popsRoC[i] = getPopulationRoC(population, meta)
-        # meta.day==1 && t<5 && i==2 && print(popsRoC[2].ρsRoC[1]," ")
     end
     return popsRoC
 end
 
 function incrementMeta(meta,popsRoC,timestep)
     newMeta = deepcopy(meta)
-    for (i, population) in enumerate(newMeta.populations)
+    OOB = false # Out Of Bounds in the Urn
+    for (i, pop) in enumerate(newMeta.populations)
         globalInfectedFlow = 0
         # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
         # meta.mobilityRates need to be computed for popsRoC
         
-        population.S = population.S + popsRoC[i].dS*timestep
-        population.I = population.I + popsRoC[i].dI*timestep
-        population.R = population.R + popsRoC[i].dR*timestep
-        population.ρs = population.ρs .+ popsRoC[i].ρsRoC*timestep
+        pop.S = pop.S + popsRoC[i].dS*timestep
+        pop.I = pop.I + popsRoC[i].dI*timestep
+        pop.R = pop.R + popsRoC[i].dR*timestep
+        pop.ρs = pop.ρs .+ popsRoC[i].ρsRoC*timestep
+        if maximum(pop.ρs) > 1 || max(pop.S,pop.I,pop.R)> 1 || min(pop.S,pop.I,pop.R)<0
+            OOB = true
+        end
         clamp!(newMeta.populations[i].ρs,0.0,1.0) # NEVER change these values
     end
-    return newMeta
+    return newMeta, OOB
 end
 
 

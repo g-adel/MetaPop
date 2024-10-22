@@ -14,7 +14,7 @@ end
 function globalDiffRestriction(pop,localConnections::Array{Float64,1},meta)
 end
 
-function uniformDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
+function uniformPropRestriction(pop,localConnections::Array{Float64, 1},meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
     nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
     
@@ -33,7 +33,7 @@ function uniformDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
     return ρRoC
 end
 
-function indivDiffRestriction(pop,localConnections::Array{Float64, 1},meta)
+function indivPropRestriction(pop,localConnections::Array{Float64, 1},meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
     nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
     ρRoC = zeros(size(pop.ρs))

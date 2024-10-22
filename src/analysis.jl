@@ -22,7 +22,8 @@ function dataAnalytics(metaHist,S)
         t+=1
     end
     data = Dict()
-    data["days"] = days; data["susceptibleHistory"] = susceptibleHistory[1:nPts,:];    data["infectedHistory"] = infectedHistory[1:nPts,:];
+    data["metaHist"]=metaHist;    data["days"] = days; 
+    data["susceptibleHistory"] = susceptibleHistory[1:nPts,:];    data["infectedHistory"] = infectedHistory[1:nPts,:];
     data["recoveredHistory"] = recoveredHistory[1:nPts,:];    data["ρsHistory"] = ρsHistory[1:nPts,:,:]; 
     data["cumuInfMob"] = cumuInfMob;
     net=S.net
@@ -50,8 +51,7 @@ function dataAnalytics(metaHist,S)
     data["ρsAvgHistory"] = ρsAvg
     maxInfecteds = findmax(data["infectedHistory"], dims =1)
     data["peakGlobalInfection"] = findmax(data["infectedAvgHistory"])
-    peakInfInd = [index[1] for index in maxInfecteds[2]]
-    data["peakInfInd"] = peakInfInd' # reasons
+    data["peakInfInd"] = [index[1] for index in maxInfecteds[2]]' # reasons
 
     initInf = data["infectedHistory"][1, 1]
 
@@ -134,11 +134,11 @@ function find_roots(history, val)
     end
 
     rates = zeros(size(interpolatedIndices))
-    rates[1]=1/(interpolatedIndices[2]-interpolatedIndices[1])
-    for i in 2:length(rates)-1
+    rates[1]=NaN
+    for i in 2:length(interpolatedIndices)-1
         rates[i]=2/(interpolatedIndices[i+1]-interpolatedIndices[i-1])
     end
-    rates[end]=1/(interpolatedIndices[end]-interpolatedIndices[end-1])
+    rates[end]=NaN
     return interpolatedIndices, rates
 end
 

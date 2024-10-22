@@ -3,7 +3,7 @@ function plotPlots(data, S;img_filename="")
     nPopulations = S.net.nPopulations
     plots = []
     push!(plots, plotInfEvolution(data))
-    # push!(plots, plotInfEvolution(data,log_scale=true))
+    push!(plots, plotInfEvolution(data,log_scale=true))
     push!(plots, plotRestrictions(data))
     # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
     push!(plots, plotInfectionDays(data,S.epi))
