@@ -1,6 +1,19 @@
-function plotPlots(data, S;img_filename="")
+function combinePlots(plots)
     gr()
-    nPopulations = S.net.nPopulations
+
+    # Calculate the total height
+    height = sum(p[2] for p in plots)
+    
+    # Extract the heights for the layout
+    layout_heights = [p[2] for p in plots]./height
+    layout_heights[end]=1-sum(layout_heights[1:end-1])
+    
+    l = Plots.grid(length(plots), 1, heights=layout_heights)
+    combined_plot = plot([p[1] for p in plots]..., layout=l, size=(1000, height))
+    return combined_plot
+end
+
+function plotCase(data,S;img_filename)
     plots = []
     push!(plots, plotInfEvolution(data))
     push!(plots, plotInfEvolution(data,log_scale=true))
@@ -19,17 +32,9 @@ function plotPlots(data, S;img_filename="")
         img_plot = plot(img, seriestype=:image)
         push!(plots, (img_plot,800))
     end
-
-    # Calculate the total height
-    height = sum(p[2] for p in plots)
-    
-    # Extract the heights for the layout
-    layout_heights = [p[2] for p in plots]./height
-    layout_heights[end]=1-sum(layout_heights[1:end-1])
-    
-    l = Plots.grid(length(plots), 1, heights=layout_heights)
-    combined_plot = plot([p[1] for p in plots]..., layout=l, size=(1000, height))
-    return combined_plot
+    return combinePlots(plots)
+end
+function plotEnsemble(datas,Ss)
 end
 
 function plotInfEvolution(data; log_scale::Bool=false)
@@ -69,7 +74,7 @@ function plotRestrictions(data)
     
     color_index = 1
     for i in 1:nPopulations-1
-            plot!(p, xAxis, ρsHistory[:,i+1,i], label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
+            plot!(p, xAxis, data["downstream_ρs"][i] , label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
             color_index += 1
     end
     

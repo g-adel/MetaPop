@@ -1,17 +1,16 @@
 function dataAnalytics(metaHist,S)
     nPts = length(metaHist)
     @show nPts
-    sim, net= S.sim, S.net
+    nPopulations= S.net.nPopulations
     days=zeros(Float64,nPts)
-    susceptibleHistory = zeros(Float64,nPts, net.nPopulations)
-    infectedHistory = zeros(Float64,nPts, net.nPopulations)
-    recoveredHistory = zeros(Float64,nPts, net.nPopulations)
-    ρsHistory = zeros(Float64,nPts, net.nPopulations, net.nPopulations)
-    cumuInfMob = spzeros(Float64,net.nPopulations,net.nPopulations)
-
+    susceptibleHistory = zeros(Float64,nPts, nPopulations)
+    infectedHistory = zeros(Float64,nPts, nPopulations)
+    recoveredHistory = zeros(Float64,nPts, nPopulations)
+    ρsHistory = zeros(Float64,nPts, nPopulations, nPopulations)
+    cumuInfMob = spzeros(Float64,nPopulations,nPopulations)
     t=1
     for meta in metaHist
-        for i in 1:net.nPopulations
+        for i in 1:nPopulations
             days[t] = meta.day
             susceptibleHistory[t, i] =  meta.populations[i].S
             infectedHistory[t, i] = meta.populations[i].I
@@ -21,11 +20,13 @@ function dataAnalytics(metaHist,S)
         end
         t+=1
     end
+    # plot!(p, xAxis, ρsHistory[:,i+1,i], label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
     data = Dict()
     data["metaHist"]=metaHist;    data["days"] = days; 
     data["susceptibleHistory"] = susceptibleHistory[1:nPts,:];    data["infectedHistory"] = infectedHistory[1:nPts,:];
     data["recoveredHistory"] = recoveredHistory[1:nPts,:];    data["ρsHistory"] = ρsHistory[1:nPts,:,:]; 
     data["cumuInfMob"] = cumuInfMob;
+    data["downstream_ρs"] = [ρsHistory[:,i+1,i] for i in 1:nPopulations-1]
     net=S.net
     g = net.graph
     nTimeSteps, nPopulations = size(data["infectedHistory"])

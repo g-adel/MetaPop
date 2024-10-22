@@ -53,6 +53,7 @@ function updateMetapop(meta,metaCritHist)
             0    .5  0 0;
             0    0   1 0]
     
+    # OOB2=true
     # while OOB2
     #     h=h/2
     #     m[2],OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
@@ -60,7 +61,6 @@ function updateMetapop(meta,metaCritHist)
     # end
     while t < 1
         m[1]=newMeta
-        OOB2=true
         k[1] = metaRoC(m[1])
         m[2],OOB2 = incrementMeta(m[1],k[1],a[2,1]*h)
         k[2] = metaRoC(m[2])
@@ -70,7 +70,7 @@ function updateMetapop(meta,metaCritHist)
         k[4] = metaRoC(m[4])
         η = sum(b .* k)
         newMeta, OOB = incrementMeta(newMeta,η,h)
-        OOB && println("solution OOB",newMeta)
+        OOB && @warn("solution OOB",newMeta)
         newMeta.day+=h
         t+=h
         newMeta.day<= meta.S.sim.critRange && push!(metaCritHist,newMeta)

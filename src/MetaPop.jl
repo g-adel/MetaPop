@@ -14,24 +14,27 @@ mutable struct Scenario
     sim::Sim
 end
 
-
-function main()
-    println("¡Hola!")
+function defineMeta()
     epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 1/50)
-    net = Network(; nPopulations = 20, k_bar = 2, topology = PathGraph)
+    net = Network(; nPopulations = 10, k_bar = 2, topology = PathGraph)
     strat = Strat(; λ = 1e5, mobBias = 0.0,strategy = IndivDiffRestriction)
-    sim = Sim(; nTimeSteps =10, nDays = 500, I₀=1e-5, critRange = 0)
+    sim = Sim(; nTimeSteps =50, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                          mobilityRates = sparse(net.connections)*epi.μ, day = 1)
 
+    return meta, S
+end
 
-    initializePopulations!(meta) 
+
+function main()
+    println("¡Hola!")
+    meta, S = defineMeta()
+
+    initializePopulations!(meta)
     metaHist = simulateSystem(meta)
     data = dataAnalytics(metaHist,S)
     generatePrettyTable(data)
-
-    # println(meta.mobilityRates)
 
     # Ss = multiScenario(S)
     # datas = metaSimulation(Ss)
@@ -46,7 +49,7 @@ function main()
     # println("infection Analytics",infectionAnalytics(infectedHistory))
     # println("ρs Analytics", ρsAnalytics(ρsHistory))
     # @show data
-    combinedPlot = plotPlots(data,S;img_filename=img_file)
+    combinedPlot = plotCase(data,S;img_filename=img_file)
     return combinedPlot, meta, data
 end
 
