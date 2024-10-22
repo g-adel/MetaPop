@@ -44,22 +44,31 @@ function updateMetapop(meta,metaCritHist)
     newMeta=deepcopy(meta)
     h = 1/newMeta.S.sim.nTimeSteps
     t=0
-    k=Array{PopulationRoC, 1}(undef, length(4))
-    const c = [0,1/2,1/2,1]
-    const b = [1/6,1/3,1/3,1/6]
+    k=Array{Vector{PopulationRoC}, 1}(undef, 4)
+    m=Array{Metapopulation, 1}(undef,4)
+    c = [0,1/2,1/2,1]
+    b = [1/6,1/3,1/3,1/6]
+    a = [   0    0   0 0;
+            .5   0   0 0;
+            0    .5  0 0;
+            0    0   1 0]
+    
+    # while OOB2
+    #     h=h/2
+    #     m[2],OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
+    #     @show t h meta.day
+    # end
     while t < 1
+        m[1]=newMeta
         OOB2=true
-        k[1] = metaRoC(newMeta)
-        m2,OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
-        while OOB2
-            h=h/2
-            m2,OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
-            @show t h meta.day
-        end
-        k[2] = metaRoC(m2)
-        k[3] = metaRoC(incrementMeta(newMeta,k[2],c[3]*h)[1])
-        k[4] = metaRoC(incrementMeta(newMeta,k[3],c[4]*h)[1])
-        η = b .* k
+        k[1] = metaRoC(m[1])
+        m[2],OOB2 = incrementMeta(m[1],k[1],a[2,1]*h)
+        k[2] = metaRoC(m[2])
+        m[3] = incrementMeta(m[1],k[2],a[3,1]*h)[1]
+        k[3] = metaRoC(m[3])
+        m[4] = incrementMeta(m[1],k[3],a[4,1]*h)[1]
+        k[4] = metaRoC(m[4])
+        η = sum(b .* k)
         newMeta, OOB = incrementMeta(newMeta,η,h)
         OOB && println("solution OOB",newMeta)
         newMeta.day+=h
@@ -95,7 +104,6 @@ function incrementMeta(meta,popsRoC,timestep)
         globalInfectedFlow = 0
         # updatePopulation!(populations[i], connections[i,:], populations_copy, epi)
         # meta.mobilityRates need to be computed for popsRoC
-        
         pop.S = pop.S + popsRoC[i].dS*timestep
         pop.I = pop.I + popsRoC[i].dI*timestep
         pop.R = pop.R + popsRoC[i].dR*timestep

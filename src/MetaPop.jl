@@ -18,7 +18,7 @@ end
 function main()
     println("¡Hola!")
     epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 1/50)
-    net = Network(; nPopulations = 10, k_bar = 2, topology = PathGraph)
+    net = Network(; nPopulations = 20, k_bar = 2, topology = PathGraph)
     strat = Strat(; λ = 1e5, mobBias = 0.0,strategy = IndivDiffRestriction)
     sim = Sim(; nTimeSteps =10, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
