@@ -26,9 +26,13 @@ function dataAnalytics(metaHist,S)
     data["susceptibleHistory"] = susceptibleHistory[1:nPts,:];    data["infectedHistory"] = infectedHistory[1:nPts,:];
     data["recoveredHistory"] = recoveredHistory[1:nPts,:];    data["ρsHistory"] = ρsHistory[1:nPts,:,:]; 
     data["cumuInfMob"] = cumuInfMob;
-    data["downstream_ρs"] = [ρsHistory[:,i+1,i] for i in 1:nPopulations-1]
-    net=S.net
-    g = net.graph
+    data["downstream_ρs"] = hcat([ρsHistory[:,i+1,i] for i in 1:nPopulations-1]...)
+    downstream_flows = zeros(size(data["downstream_ρs"]))
+    for i in 1:nPopulations-1
+        downstream_flows[:,i] = (1 .- data["downstream_ρs"][:,i]) .* infectedHistory[:,i]
+    end
+    data["downstream_flows"] = downstream_flows
+    g = S.net.graph
     nTimeSteps, nPopulations = size(data["infectedHistory"])
     data["infectedAvgHistory"] = sum(data["infectedHistory"], dims=2)./nPopulations # TODO make it account for het. sizes
     data["susceptibleAvgHistory"] = sum(data["susceptibleHistory"], dims=2)./nPopulations

@@ -18,12 +18,14 @@ function plotCase(data,S;img_filename)
     push!(plots, plotInfEvolution(data))
     push!(plots, plotInfEvolution(data,log_scale=true))
     push!(plots, plotRestrictions(data))
+    push!(plots, plotInfectedFlow(data))
     # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
     push!(plots, plotInfectionDays(data,S.epi))
     push!(plots, plotSpreadRates(data))
     # push!(plots, plot_cumulative_flow(data))
     # push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
     push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
+    push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
 
     # Load the image and add it to the plots
@@ -36,7 +38,7 @@ function plotCase(data,S;img_filename)
 end
 function plotEnsemble(datas,Ss)
 end
-
+# TODO create a function that unifies the functionality of all these functions
 function plotInfEvolution(data; log_scale::Bool=false)
     xAxis = data["days"]
     timeseries,avg_infected_percent = data["infectedHistory"],data["infectedAvgHistory"]
@@ -56,25 +58,21 @@ function plotInfEvolution(data; log_scale::Bool=false)
     log_scale && plot!(p, yscale=:log10)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
-    title!(p,"Prevalence of Infected")
+    title!(p, "Prevalence of Infected" * (log_scale ? " (Log Scale)" : ""))
     return p, 400
 end
 
-function plotInfMob(infectedHistory,ρsHistory)
-
-end
 
 function plotRestrictions(data)
     xAxis = data["days"]
-    ρsHistory = data["ρsHistory"]
-    nTimeSteps, nPopulations, _ = size(ρsHistory)
+    nTimeSteps, nρs= size(data["downstream_ρs"])
     p = plot(legend=false)
     
-    colors = palette(:jet, nPopulations)
+    colors = palette(:jet, nρs)
     
     color_index = 1
-    for i in 1:nPopulations-1
-            plot!(p, xAxis, data["downstream_ρs"][i] , label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
+    for i in 1:nρs
+            plot!(p, xAxis, data["downstream_ρs"][:,i] , label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
             color_index += 1
     end
     
@@ -83,6 +81,28 @@ function plotRestrictions(data)
     title!(p, "Evolution of Path Mobility Restrictions")
     return p, 400
 end
+
+function plotInfectedFlow(data)
+    xAxis = data["days"]
+    downstream_flows = data["downstream_flows"]
+    nTimeSteps, nFlows = size(downstream_flows)
+    p = plot(legend=false)
+    
+    colors = palette(:jet, nFlows)
+    cleanDownstreamFlows = replace(x -> x <= 0 ? NaN : x, downstream_flows)
+
+    color_index = 1
+    for i in 1:nFlows
+        plot!(p, xAxis, cleanDownstreamFlows[:,i], label="Flow($i,$(i+1))", color=colors[color_index],yscale=:log10)
+        color_index += 1
+    end
+    
+    xlabel!(p, "Time (days)")
+    ylabel!(p, "Infected Flow")
+    title!(p, "Evolution of Infected Flow")
+    return p, 400
+end
+
 
 function plotAvgRestrictions(ρsAvgHistory)
     
@@ -221,7 +241,7 @@ function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale:
     end
     xlabel!(p, "Population i infected prevalence")
     ylabel!(p, "Population i+1 infected prevalence")
-    title!(p, "Consecutive Infecteds prevalence")
+    title!(p, "Consecutive Infecteds prevalence" * (log_scale ? " (Log Scale)" : ""))
     
     if log_scale
         plot!(p,xscale=:ln,yscale=:ln)
@@ -246,5 +266,24 @@ function plot_infect_ρ(infectedHistory::Array{Float64,2}, ρsHistory::Array{Flo
     xlabel!(p, "Population i infected prevalence")
     ylabel!(p, "Population i+1 infected prevalence")
     title!(p, "Evolution of infected flow and ρ")
+    return p, 800
+end
+
+function plot_infect_flow(infectedHistory, downstream_flows)
+    nTimeSteps, nPopulations = size(infectedHistory)
+    p = plot()
+    colors = palette(:jet, nPopulations)
+    cleanInfectedHistory = replace(x -> x <= 0 ? NaN : x, infectedHistory)
+    cleanDownstreamFlows = replace(x -> x <= 0 ? NaN : x, downstream_flows)
+    color_index = 1
+    for i in 1:nPopulations-1
+        plot!(p,  cleanDownstreamFlows[2:end, i],infectedHistory[2:end, i+1], label = "($i,$(i+1))", color=colors[color_index], xscale=:log10,yscale=:log10)
+        color_index += 1
+    end
+    
+    plot!(p, legend=false)
+    ylabel!(p, "Population i infected prevalence")
+    xlabel!(p, "Population i+1 infected flow rate")
+    title!(p, "Evolution of infected flow rate")
     return p, 800
 end

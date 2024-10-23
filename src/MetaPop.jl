@@ -18,7 +18,7 @@ function defineMeta()
     epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 1/50)
     net = Network(; nPopulations = 10, k_bar = 2, topology = PathGraph)
     strat = Strat(; λ = 1e5, mobBias = 0.0,strategy = IndivDiffRestriction)
-    sim = Sim(; nTimeSteps =50, nDays = 500, I₀=1e-5, critRange = 0)
+    sim = Sim(; nTimeSteps =200, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                          mobilityRates = sparse(net.connections)*epi.μ, day = 1)
@@ -36,7 +36,7 @@ function main()
     data = dataAnalytics(metaHist,S)
     generatePrettyTable(data)
 
-    # Ss = multiScenario(S)
+    # Ss = multiScenario_μβ(S)
     # datas = metaSimulation(Ss)
 
     # plot = plot_spread_rates(datas, Ss)

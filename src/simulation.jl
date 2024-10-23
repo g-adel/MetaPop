@@ -53,16 +53,16 @@ function updateMetapop(meta,metaCritHist)
             0    .5  0 0;
             0    0   1 0]
     
-    # OOB2=true
-    # while OOB2
-    #     h=h/2
-    #     m[2],OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
-    #     @show t h meta.day
-    # end
+    
     while t < 1
         m[1]=newMeta
         k[1] = metaRoC(m[1])
         m[2],OOB2 = incrementMeta(m[1],k[1],a[2,1]*h)
+        while OOB2
+            h=h/2
+            m[2],OOB2 = incrementMeta(newMeta,k[1],c[2]*h)
+            # @show t h meta.day
+        end
         k[2] = metaRoC(m[2])
         m[3] = incrementMeta(m[1],k[2],a[3,1]*h)[1]
         k[3] = metaRoC(m[3])
@@ -70,7 +70,7 @@ function updateMetapop(meta,metaCritHist)
         k[4] = metaRoC(m[4])
         η = sum(b .* k)
         newMeta, OOB = incrementMeta(newMeta,η,h)
-        OOB && @warn("solution OOB",newMeta)
+        OOB && @warn("solution OOB!")
         newMeta.day+=h
         t+=h
         newMeta.day<= meta.S.sim.critRange && push!(metaCritHist,newMeta)
@@ -111,7 +111,7 @@ function incrementMeta(meta,popsRoC,timestep)
         if maximum(pop.ρs) > 1 || max(pop.S,pop.I,pop.R)> 1 || min(pop.S,pop.I,pop.R)<0
             OOB = true
         end
-        clamp!(newMeta.populations[i].ρs,0.0,1.0) # NEVER change these values
+        # clamp!(newMeta.populations[i].ρs,0.0,1.0) # NEVER change these values
     end
     return newMeta, OOB
 end
@@ -132,4 +132,20 @@ function metaSimulation(Ss)
         end
     end
     return datas
+end
+
+function metaSimulation1D(Ss)
+    datas = Array{Dict,1}(undef,size(Ss))
+    metaHists = Array{
+    for i in 1:size(Ss,1)
+        net = Ss[i].net
+        nPopulations = net.nPopulations
+        newMeta = Metapopulation(S=Ss[i], populations = Array{Population,1}(undef,nPopulations),
+                            mobilityRates = spzeros(Float64, nPopulations, nPopulations))
+        net.connections, net.graph = pathGraph(Ss[i].net;directed=false)
+        initializePopulations!(newMeta)
+        metaHist[i]=simulateSystem(newMeta)
+        dataAnalytics!(datas[i],Ss[i])
+    end
+
 end
