@@ -1,6 +1,5 @@
 function combinePlots(plots)
     gr()
-
     # Calculate the total height
     height = sum(p[2] for p in plots)
     
@@ -36,8 +35,16 @@ function plotCase(data,S;img_filename)
     end
     return combinePlots(plots)
 end
+
 function plotEnsemble(datas,Ss)
+    plots = []
+    push!(plots, plot_lambda_spread_rate(datas,Ss))
+    push!(plots, plot_lambda_spread_rates(datas,Ss))
+    
+
+    return combinePlots(plots)
 end
+
 # TODO create a function that unifies the functionality of all these functions
 function plotInfEvolution(data; log_scale::Bool=false)
     xAxis = data["days"]
@@ -190,8 +197,8 @@ function plot_cumulative_flow(data::Dict)
 end
 
 
-function plot_spread_rates(data::Array{Dict, 2},Ss)
-    nRows, nCols = size(data)
+function plot_multi_spread_rates(datas::Array{Dict, 2},Ss)
+    nRows, nCols = size(datas)
     
     # Initialize arrays to store the values
     referenceSpreadRates = [[] for _ in 1:nCols]
@@ -204,10 +211,10 @@ function plot_spread_rates(data::Array{Dict, 2},Ss)
     # Extract values from each dictionary in the 2D array
     for i in 1:nRows
         for j in 1:nCols
-            push!(referenceSpreadRates[j], data[i, j]["referenceSpreadRate"])
-            push!(firstOrderSolSpreadRates[j], data[i, j]["firstOrderSolSpreadRate"])
+            push!(referenceSpreadRates[j], datas[i, j]["referenceSpreadRate"])
+            push!(firstOrderSolSpreadRates[j], datas[i, j]["firstOrderSolSpreadRate"])
             push!(firstOrderApproxSpreadRates[j], 1 ./firstOrderApprox(Ss[i,j].epi))
-            push!(spreadRates[j], data[i, j]["spreadRate"])
+            push!(spreadRates[j], datas[i, j]["avgSpreadRate"])
             i==1 && push!(βs,Ss[1,j].epi.β)
         end
         push!(μs,Ss[i,1].epi.μ) 
@@ -227,6 +234,69 @@ function plot_spread_rates(data::Array{Dict, 2},Ss)
     
     return p, 800
 end
+
+function plot_lambda_spread_rate(datas::Array{Dict, 1}, Ss)
+    n = length(datas)
+    
+    # Initialize arrays to store the values
+    firstOrderSolSpreadRates = []
+    firstOrderApproxSpreadRates = []
+    asympSpreadRates = []
+    initSpreadRates = []
+    avgSpreadRates = []
+    λs = []
+    
+    # Extract values from each dictionary in the array
+    for i in 1:n
+        # push!(firstOrderSolSpreadRates, datas[i]["firstOrderSolSpreadRate"])
+        # push!(firstOrderApproxSpreadRates, 1 ./ firstOrderApprox(Ss[i].epi))
+        push!(asympSpreadRates, datas[i]["asympSpreadRate"])
+        push!(initSpreadRates, datas[i]["initSpreadRate"])
+        push!(avgSpreadRates, datas[i]["avgSpreadRate"])
+
+        push!(λs, Ss[i].strat.λ)
+    end
+    
+    @show λs 
+    # Create the plot
+    p = plot(xlabel="λ", ylabel="Rate (nodes/day)", title="Spread Rates", ylims=(0,.2), xscale=:log10)
+    plot!(p, λs, asympSpreadRates, label="Asymptotic Spread Rate", lw=2, lc=:green, legendfontsize=6)
+    plot!(p, λs, initSpreadRates, label="Initial Spread Rate", lw=2, lc=:blue, legendfontsize=6)
+    plot!(p, λs, avgSpreadRates, label="Average Spread Rate", lw=2, lc=:red, legendfontsize=6)
+
+    # plot!(p, λs, firstOrderSolSpreadRates, label="My Rate", lw=2, lc=:red)
+    # scatter!(p, λs, firstOrderApproxSpreadRates, label="Approx Rate", lw=2, mc=:blue)
+
+    
+    
+    return p, 800
+end
+
+function plot_lambda_spread_rates(datas::Array{Dict, 1}, Ss)
+    n = length(datas)
+    
+    λs = []
+    spreadRates = []
+    
+    # Extract values from each dictionary in the array
+    for i in 1:n
+        push!(spreadRates,datas[i]["1/Δt"])
+        push!(λs, Ss[i].strat.λ)
+    end
+
+    
+    pathLengths = datas[1]["pathLengths"]
+
+    p=plot(xlabel="Path Length", ylabel="Inverse Δt", size=(1000,800),
+    legendfontsize=15, tickfontsize=15, guidefontsize=15)
+    for i in 1:n
+        plot!(p, pathLengths[2:end], spreadRates[i][2:end], label="λ=$(λs[i])", mc=:yellow)
+    end
+    plot!(p, ylims=(0, .2))
+
+    return p, 800
+end
+
 
 function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale::Bool=false)
     

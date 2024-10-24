@@ -16,8 +16,8 @@ function multiScenario_μβ(S)
 end
 
 function multiScenario_λ(S)
-    nPtsX=5
-    λs=range(0.1,1,nPtsX)
+    nPtsX=7
+    λs= 10 .^(range(0,nPtsX*3-2,nPtsX))
     Ss=Array{Scenario,1}(undef,nPtsX)
     for i in 1:nPtsX
         strat=deepcopy(S.strat)

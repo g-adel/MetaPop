@@ -5,7 +5,7 @@
     IndivLogRestriction
 end
 
-Base.@kwdef struct Strat
+Base.@kwdef mutable struct Strat
     λ::Float64
     mobBias::Float64
     strategy::StrategyType

@@ -1,6 +1,5 @@
 function dataAnalytics(metaHist,S)
     nPts = length(metaHist)
-    @show nPts
     nPopulations= S.net.nPopulations
     days=zeros(Float64,nPts)
     susceptibleHistory = zeros(Float64,nPts, nPopulations)
@@ -67,8 +66,20 @@ function dataAnalytics(metaHist,S)
 
     distances = dijkstra_shortest_paths(g, 1).dists
     data["pathLengths"] = distances
-    data["spreadRate"] = 1/linear_regression_slope(distances,spreadInfInd) #TODO needs to be redefined for other networks
-    # data["spreadRate"] = 1/(spreadInfInd[end]-spreadInfInd[end-1])
+    # data["avgSpreadRate"] = 1/linear_regression_slope(distances,spreadInfInd) #TODO needs to be redefined for other networks
+    data["avgSpreadRate"] = sum(spreadRates)/length(spreadRates)
+    spreadRatesTotal=0
+    nonNanSpreadRates = 0
+    for spreadRate in spreadRates
+        if !isnan(spreadRate)
+            spreadRatesTotal+=spreadRate
+            nonNanSpreadRates+=1
+        end
+    end
+    data["avgSpreadRate"] = spreadRatesTotal/nonNanSpreadRates
+    data["asympSpreadRate"] = 1/(spreadInfInd[end-1]-spreadInfInd[end-2])
+    data["initSpreadRate"] = 1/(spreadInfInd[2]-spreadInfInd[1])
+    # data["avgSpreadRate"] = 1/(spreadInfInd[end]-spreadInfInd[end-1])
     data["firstOrderSol"] = [firstOrderSol(i-1,S.epi) for i in 1:nPopulations]
     data["firstOrderApprox"] = firstOrderApprox(S.epi).*(0:nPopulations-1)
     data["firstOrderSolSpreadRate"] = 1/linear_regression_slope(distances,data["firstOrderSol"])
@@ -140,10 +151,9 @@ function find_roots(history, val)
 
     rates = zeros(size(interpolatedIndices))
     rates[1]=NaN
-    for i in 2:length(interpolatedIndices)-1
-        rates[i]=2/(interpolatedIndices[i+1]-interpolatedIndices[i-1])
+    for i in 2:length(interpolatedIndices)
+        rates[i]=1/(interpolatedIndices[i]-interpolatedIndices[i-1])
     end
-    rates[end]=NaN
     return interpolatedIndices, rates
 end
 
