@@ -2,6 +2,9 @@ function combinePlots(plots)
     gr()
     # Calculate the total height
     height = sum(p[2] for p in plots)
+    for p in plots
+        plot!(p[1], left_margin=40Plots.mm, bottom_margin=10Plots.mm, tickfontsize=10, guidefontsize=15)
+    end
     
     # Extract the heights for the layout
     layout_heights = [p[2] for p in plots]./height
@@ -12,10 +15,11 @@ function combinePlots(plots)
     return combined_plot
 end
 
-function plotCase(data,S;img_filename)
+function plotCase(data,S)
     plots = []
     push!(plots, plotInfEvolution(data))
-    push!(plots, plotInfEvolution(data,log_scale=true))
+    push!(plots, plotInfEvolution(data;yLog=true))
+    push!(plots, plotInfEvolution(data;yLog=true,xLog=true))
     push!(plots, plotRestrictions(data))
     push!(plots, plotInfectedFlow(data))
     # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
@@ -28,45 +32,42 @@ function plotCase(data,S;img_filename)
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
 
     # Load the image and add it to the plots
-    if img_filename != ""
-        img = load(img_filename)
-        img_plot = plot(img, seriestype=:image)
-        push!(plots, (img_plot,800))
-    end
-    return combinePlots(plots)
-end
-
-function plotEnsemble(datas,Ss)
-    plots = []
-    push!(plots, plot_lambda_spread_rate(datas,Ss))
-    push!(plots, plot_lambda_spread_rates(datas,Ss))
     
+    # img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, ρsHistory)
+    # img_file = drawNetworkKarnak(meta, net, data)
+    # animate_network(meta.populations,meta.connections,infectedHistory, susceptibleHistory, recoveredHistory, ρsHistory)
+    # img = load(img_filename)
+    # img_plot = plot(img, seriestype=:image)
+    # push!(plots, (img_plot,800))
 
     return combinePlots(plots)
 end
+
 
 # TODO create a function that unifies the functionality of all these functions
-function plotInfEvolution(data; log_scale::Bool=false)
+function plotInfEvolution(data; yLog=false, xLog = false)
     xAxis = data["days"]
-    timeseries,avg_infected_percent = data["infectedHistory"],data["infectedAvgHistory"]
-    nTimeSteps, nPopulations = size(timeseries)
+    infected_percent,avg_infected_percent = data["infectedHistory"],data["infectedAvgHistory"]
+    nTimeSteps, nPopulations = size(infected_percent)
 
-    infected_percent = timeseries 
+    infected_cleaned = replace(x -> x <= 0 ? NaN : x, infected_percent)
     colors = palette(:jet, nPopulations)
-    startInd = log_scale ? 2 : 1
+    infected_percent = yLog ? infected_cleaned : infected_percent
     color_index = 1
     p = plot()
+    yLog && plot!(p, yscale=:log10)
+    xLog && plot!(p, xscale=:log10)
     for i in 1:nPopulations
-        plot!(p,xAxis[startInd:nTimeSteps], infected_percent[startInd:end, i], label="Pop. $i", color=colors[color_index])
+        plot!(p,xAxis, infected_percent[:, i], label="Pop. $i", color=colors[color_index])
         color_index += 1
     end
-    !log_scale && plot!(p, xAxis[startInd:nTimeSteps], avg_infected_percent[startInd:end], label="Average",
-     linestyle=:dash, linewidth=2, legendfontsize=6, legend=false)
-    log_scale && plot!(p, yscale=:log10)
+
+    plot!(p, xAxis, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
-    title!(p, "Prevalence of Infected" * (log_scale ? " (Log Scale)" : ""))
-    return p, 400
+    title!(p, "Prevalence of Infected" * (xLog ? " (Log-x)" : "") * (yLog ? " (Log-y)" : ""))
+    height = yLog ? 600 : 400
+    return p, height
 end
 
 
@@ -151,13 +152,12 @@ function plotInfectionDays(data,epi)
 
     # Create a scatter plot
     p = scatter(pathLengths, spreadInfInd, label="Spread Infection Day",
-                xlabel="Path Length", ylabel="Indices", size=(1000,800),
-                legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm,
-                mc=:blue)
+                xlabel="Path Length", ylabel="Indices", 
+                legendfontsize=12, mc=:blue)
     
     epi.γ>0 && scatter!(p, pathLengths, data["peakInfInd"], label="Peak Infection Day", mc=:red)
-    scatter!(p, pathLengths, data["firstOrderSol"], label="First Order Sol.", mc=:yellow)
-    plot!(p, pathLengths, data["firstOrderApprox"], label="First Order Approx.", mc=:white)
+    scatter!(p, pathLengths, data["firstOrderSol"], label="Unadaptive First Order Sol.", mc=:yellow)
+    plot!(p, pathLengths, data["firstOrderApprox"], label="Unadaptive Lambert W Approx.", mc=:white)
     
     return p, 800
 end
@@ -195,108 +195,6 @@ function plot_cumulative_flow(data::Dict)
     title!(p, "Cumulative Infected Flow")
     return p, 800
 end
-
-
-function plot_multi_spread_rates(datas::Array{Dict, 2},Ss)
-    nRows, nCols = size(datas)
-    
-    # Initialize arrays to store the values
-    referenceSpreadRates = [[] for _ in 1:nCols]
-    firstOrderSolSpreadRates = [[] for _ in 1:nCols]
-    firstOrderApproxSpreadRates = [[] for _ in 1:nCols]
-    spreadRates = [[] for _ in 1:nCols]
-    βs=[]
-    μs=[]
-    
-    # Extract values from each dictionary in the 2D array
-    for i in 1:nRows
-        for j in 1:nCols
-            push!(referenceSpreadRates[j], datas[i, j]["referenceSpreadRate"])
-            push!(firstOrderSolSpreadRates[j], datas[i, j]["firstOrderSolSpreadRate"])
-            push!(firstOrderApproxSpreadRates[j], 1 ./firstOrderApprox(Ss[i,j].epi))
-            push!(spreadRates[j], datas[i, j]["avgSpreadRate"])
-            i==1 && push!(βs,Ss[1,j].epi.β)
-        end
-        push!(μs,Ss[i,1].epi.μ) 
-    end
-    @show βs μs
-    # Create the plot
-    p = plot(xlabel="μ", ylabel="Rate (nodes/day)", title="Spread Rates")
-    
-    for j in 1:nCols
-        plot!(p, μs, spreadRates[j], label="Actual Rate (β= $(βs[j]))", lw=2, lc=:green, legendfontsize=6)
-        # scatter!(p, μs, referenceSpreadRates[j], label="Ref Rate (β= $(βs[j]))", lw=2, mc=:black)
-        plot!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, lc=:red)
-        # scatter!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, mc=:red)
-        # plot!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, lc=:blue)
-        scatter!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, mc=:blue)
-    end
-    
-    return p, 800
-end
-
-function plot_lambda_spread_rate(datas::Array{Dict, 1}, Ss)
-    n = length(datas)
-    
-    # Initialize arrays to store the values
-    firstOrderSolSpreadRates = []
-    firstOrderApproxSpreadRates = []
-    asympSpreadRates = []
-    initSpreadRates = []
-    avgSpreadRates = []
-    λs = []
-    
-    # Extract values from each dictionary in the array
-    for i in 1:n
-        # push!(firstOrderSolSpreadRates, datas[i]["firstOrderSolSpreadRate"])
-        # push!(firstOrderApproxSpreadRates, 1 ./ firstOrderApprox(Ss[i].epi))
-        push!(asympSpreadRates, datas[i]["asympSpreadRate"])
-        push!(initSpreadRates, datas[i]["initSpreadRate"])
-        push!(avgSpreadRates, datas[i]["avgSpreadRate"])
-
-        push!(λs, Ss[i].strat.λ)
-    end
-    
-    @show λs 
-    # Create the plot
-    p = plot(xlabel="λ", ylabel="Rate (nodes/day)", title="Spread Rates", ylims=(0,.2), xscale=:log10)
-    plot!(p, λs, asympSpreadRates, label="Asymptotic Spread Rate", lw=2, lc=:green, legendfontsize=6)
-    plot!(p, λs, initSpreadRates, label="Initial Spread Rate", lw=2, lc=:blue, legendfontsize=6)
-    plot!(p, λs, avgSpreadRates, label="Average Spread Rate", lw=2, lc=:red, legendfontsize=6)
-
-    # plot!(p, λs, firstOrderSolSpreadRates, label="My Rate", lw=2, lc=:red)
-    # scatter!(p, λs, firstOrderApproxSpreadRates, label="Approx Rate", lw=2, mc=:blue)
-
-    
-    
-    return p, 800
-end
-
-function plot_lambda_spread_rates(datas::Array{Dict, 1}, Ss)
-    n = length(datas)
-    
-    λs = []
-    spreadRates = []
-    
-    # Extract values from each dictionary in the array
-    for i in 1:n
-        push!(spreadRates,datas[i]["1/Δt"])
-        push!(λs, Ss[i].strat.λ)
-    end
-
-    
-    pathLengths = datas[1]["pathLengths"]
-
-    p=plot(xlabel="Path Length", ylabel="Inverse Δt", size=(1000,800),
-    legendfontsize=15, tickfontsize=15, guidefontsize=15)
-    for i in 1:n
-        plot!(p, pathLengths[2:end], spreadRates[i][2:end], label="λ=$(λs[i])", mc=:yellow)
-    end
-    plot!(p, ylims=(0, .2))
-
-    return p, 800
-end
-
 
 function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale::Bool=false)
     

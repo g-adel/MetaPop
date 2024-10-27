@@ -14,7 +14,6 @@ function simulateSystem(meta)
     for t in 1:sim.nDays
         newMeta = updateMetapop(newMeta,metaCritHist,h)
         push!(metaHist, deepcopy(newMeta))
-
         (sim.critRange>0 && t > sim.critRange) && break
 
         # Check if system reached steady state

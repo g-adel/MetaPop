@@ -33,21 +33,21 @@ def solve_adaptive_pop():
 
 def solve_adaptive_system():
     # Define the symbols
-    t, lambda_, mu, i0 = sp.symbols('t lambda mu i0')
-    kappa = sp.Symbol('kappa', positive=True)
+    t, mu = sp.symbols('t mu')
+    lambda_ = sp.Symbol('lambda', real=True, positive=True, nonzero=True)
+    kappa = sp.Symbol('kappa', real=True, positive=True, nonzero=True)
+    i0 = sp.Symbol('i0', real=True, positive=True, nonzero=True)
 
     rho_bar_2 = sp.Function('rho_b2')(t)
-    rho_bar_3 = sp.Function('rho_b3')(t)
     I_1 = i0 * sp.exp(kappa * t)
     I_2 = sp.Function('I_2')(t)
-    I_3 = sp.Function('I_3')(t)
     
     # Define the ODEs
-    ode1 = sp.Eq(rho_bar_2.diff(t), -lambda_ * mu * I_1)
+    ode1 = sp.Eq(rho_bar_2.diff(t), -lambda_ * rho_bar_2 * mu * I_1)
     ode2 = sp.Eq(I_2.diff(t), kappa * I_2 + mu * rho_bar_2 * I_1)
     
     # Define initial conditions
-    ics = {rho_bar_2.subs(t, 0): 1, I_2.subs(t, 0): 0, rho_bar_3.subs(t, 0): 1, I_3.subs(t, 0): 0}
+    ics = {rho_bar_2.subs(t, 0): 1, I_2.subs(t, 0): 0}
     
     # Solve the system of ODEs with initial conditions
     solutions = sp.dsolve([ode1, ode2], ics=ics)
@@ -56,8 +56,18 @@ def solve_adaptive_system():
     print("ODE2 : $$", sp.latex(ode2), "$$")
     for sol in solutions:
         print("Solution : $$", sp.latex(sol), "$$")
-
-    return solutions, ode1, ode2
+    
+    # Extract the solutions for rho_bar_2(t) and I_2(t)
+    rho_bar_2_solution = [sol.rhs for sol in solutions if sol.lhs == rho_bar_2][0]    
+    # Define f_2
+    f_2 = rho_bar_2_solution * mu * I_1
+    
+    # Compute the definite integral of f_2 from 0 to infinity
+    F_2 = sp.integrate(f_2, (t, 0, sp.oo))
+    
+    print("F_2 : $$", sp.latex(F_2), "$$")
+    
+    return solutions, ode1, ode2, F_2
 
 def solve_mock_model():
     # Define the symbols
@@ -105,5 +115,5 @@ if __name__ == "__main__":
     # print("Delta t LaTeX format:", sp.latex(unadaptive_spread_rate))
 
     # solve_mock_model()
-    # solve_adaptive_system()
-    solve_adaptive_pop()
+    solve_adaptive_system()
+    # solve_adaptive_pop()
