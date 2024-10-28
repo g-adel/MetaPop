@@ -80,9 +80,9 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
     ρsRoC = empty(size(populations))
     if strategy == GlobalDiffRestriction
         ρsRoC == globalDiffRestriction(pop,inConnections,meta)
-    elseif strategy == UniformDiffRestriction
+    elseif strategy == UniformPropRestriction
         ρsRoC = uniformPropRestriction(pop,inConnections,meta)
-    elseif strategy == IndivDiffRestriction
+    elseif strategy == IndivPropRestriction
         ρsRoC = indivPropRestriction(pop,inConnections,meta)
     elseif strategy == IndivLogRestriction
         ρsRoC = indivLogRestriction(pop,inConnections,meta)

@@ -16,13 +16,13 @@ mutable struct Scenario
 end
 
 function defineMeta()
-    epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 1/50)
+    epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 1/100)
     net = Network(; nPopulations = 8, k_bar = 2, topology = PathGraph)
-    strat = Strat(; λ = 1e10, mobBias = 0.0,strategy = IndivDiffRestriction)
-    sim = Sim(; nTimeSteps =10, nDays = 500, I₀=1e-5, critRange = 1.1)
+    strat = Strat(; λ = 1e10, mobBias = 0.0,strategy = IndivPropRestriction)
+    sim = Sim(; h =0.1,min_h=10e-10, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
-                         mobilityRates = sparse(net.connections)*epi.μ, day = 1)
+                            mobilityRates = sparse(net.connections)*epi.μ, day = 1)
 
     return meta, S
 end
@@ -37,7 +37,6 @@ function singleCaseMain()
     combinedPlot = plotCase(data,S)
     return combinedPlot, data
 end
-
 
 function multiCaseMain()
     _, S = defineMeta()

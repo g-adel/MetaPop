@@ -1,5 +1,6 @@
 Base.@kwdef mutable struct Sim
-    nTimeSteps::Float64
+    h::Float64
+    min_h::Float64
     nDays::Int64
     I₀::Float64
     critRange::Float64
@@ -10,7 +11,7 @@ function simulateSystem(meta)
     metaHist = [meta]
     metaCritHist = [meta]
     newMeta=deepcopy(meta)
-    h = 1/sim.nTimeSteps
+    h = sim.h
     for t in 1:sim.nDays
         newMeta = updateMetapop(newMeta,metaCritHist,h)
         push!(metaHist, deepcopy(newMeta))
@@ -57,7 +58,7 @@ function updateMetapop(meta,metaCritHist, h)
         firstTime = true
         h_new = h        
         # h_new=min(h,h_new/(h_scale^1))
-        while firstTime || ((OOB||OOB2||OOB3||OOB4) && h_new >= h*h_scale^20)
+        while firstTime || ((OOB||OOB2||OOB3||OOB4) && h_new >= meta.S.sim.min_h)
             # println("attempt")
             m[1] = newMeta
             k[1] = metaRoC(m[1])

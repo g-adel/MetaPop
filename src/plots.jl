@@ -19,7 +19,7 @@ function plotCase(data,S)
     plots = []
     push!(plots, plotInfEvolution(data))
     push!(plots, plotInfEvolution(data;yLog=true))
-    push!(plots, plotInfEvolution(data;yLog=true,xLog=true))
+    S.sim.critRange>0 && push!(plots, plotInfEvolution(data;yLog=true,xLog=true))
     push!(plots, plotRestrictions(data))
     push!(plots, plotInfectedFlow(data))
     # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    

@@ -1,7 +1,7 @@
 @enum StrategyType begin
     GlobalDiffRestriction
-    UniformDiffRestriction
-    IndivDiffRestriction
+    UniformPropRestriction
+    IndivPropRestriction
     IndivLogRestriction
 end
 
@@ -59,10 +59,9 @@ function indivLogRestriction(pop,localConnections::Array{Float64, 1},meta)
         # ρRoC[connPopInd] = λ*log((inflowInfected + localRate)/localRate) - meta.S.strat.mobBias * pop.ρs[connPopInd]
         ρRoC[connPopInd] = λ*log(meta.populations[connPopInd].I/pop.I) - meta.S.strat.mobBias * pop.ρs[connPopInd]
 
-        if isnan(ρRoC[connPopInd]) || isinf(ρRoC[connPopInd])
+        if isnan(ρRoC[connPopInd]) || isinf(ρRoC[connPopInd]) ||ρRoC[connPopInd]<0
             ρRoC[connPopInd] = 0
         end
     end
-
     return ρRoC
 end

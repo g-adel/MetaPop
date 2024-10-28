@@ -4,5 +4,3 @@ Base.@kwdef mutable struct SIRS_epidemic
     σ::Float64 # immunity loss rate
     μ::Float64 # external link population infection rate
 end
-
-
