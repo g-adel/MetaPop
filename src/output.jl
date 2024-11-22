@@ -14,8 +14,8 @@ function generatePrettyTable(data)
     # Create table data
     table_data = hcat(1:length(path_lengths), path_lengths, spread_inf_days, 
                     peak_inf_days,cumu_inf_mob,isolation_day, second_day_restrictions,second_day_infection)
-    header = ["Population", "Path Length", "Spread Infection Day","Peak Infection Day", 
-    "Cumulative Incoming Infected","isolation_day", "second day restriction",
+    header = ["Population", "Path Length", "Spread Day","Peak Inf. Day", 
+    "Cumu Incoming Infected","isolation_day", "second day restriction",
       "second day infection"
      ]
 

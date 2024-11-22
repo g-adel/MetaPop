@@ -240,13 +240,15 @@ where
 
 $$f_2(t)=\mu \bar \rho_2(t) I_1(t) = \mu \exp\left({c \left( 1 - e^{\kappa t} \right)}\right)i_0 e^{\kappa t} = \mu i_0 \exp\left({c \left( 1 - e^{\kappa t} \right)} +\kappa t\right)$$
 
-An analytic solution for $F$ could be found using the exponential integral $\mathrm{Ei}$ function  $\int\exp(\exp(x))\,d x=\int{\frac{\exp(u)}{u}}\,d u={\mathrm{Ei}}(u)={\mathrm{Ei}}(\exp(x))$. However, a linearization of the exponent term was found to be sufficiently accurate based on the numerical simulation. We define the expression $E(t):=\frac{i_{0} \lambda \mu}{\kappa} \left( 1 - e^{\kappa t} \right)+\kappa t$ and linearize it around $t=0$: 
+An analytic solution for $F$ could be found using the exponential integral $\mathrm{Ei}$ function  $\int\exp(\exp(x))\,d x=\int{\frac{\exp(u)}{u}}\,d u={\mathrm{Ei}}(u)={\mathrm{Ei}}(\exp(x))$. However, a linearization of the exponent term was found to be sufficiently accurate based on the numerical simulation. We define the expression $E(t):=c\left( 1 - e^{\kappa t} \right)+\kappa t$ and linearize it around $t=0$: 
 $$E(t)\approx (-c\kappa+\kappa)t = \kappa (1-c) t$$
 substituting the linearized $E(t)$ and $f_2(t)$ back into $F_2$, we get:
 $$F_2=\int_0^\infty \mu i_0 \exp\left(\kappa (1-c) t \right) dt = \frac{\mu i_0}{\kappa(c-1)}$$
 dividing the numerator and denominator by $c=\frac{i_{0} \lambda \mu}{\kappa}$:
-$$F_2=\frac{\frac{\kappa}{\lambda}}{\kappa\left( 1-\frac{1}{c} \right)}=\frac{1}{\lambda\left( 1-\frac{1}{c} \right)} $$
-For a sufficiently high value of $c$, corresponding to a high value of the adaptive proportionality constant $\lambda$, $F_2\approx\frac{1}{\lambda}$
+\begin{equation}
+F_2=\frac{\frac{\kappa}{\lambda}}{\kappa\left( 1-\frac{1}{c} \right)}=\frac{1}{\lambda\left( 1-\frac{1}{c} \right)}
+\end{equation}
+
 While $F_2$ is evaluated from $t=0$ to $\infty$, due to the super-exponential rate of $f_2$, $F_2=F_2(\infty)\approx F_2(t_{f2})$ where $t_{f2}$ is a point in time where $\bar\rho(t_{f2})\approx 0$  $I({t_{f2}})\approx F_2$. This approximation can be validated by checking the value of $I_2$ in the numerical solution of the ODE at the point in time where $\bar\rho(t)\approx 0$ and check if $I(t)\approx F_2$. 
 
 \begin{figure}[h!]
@@ -274,6 +276,27 @@ This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{
 
 It can proven that, for a sufficiently large $\lambda$, $I_3(t_{F2})=\mu/\lambda$. (I just need to write it out and validate it numerically for different combination of $\mu$ and $\lambda$.
 
+$$\dot I_2(t<t_{F2}) = f_2 = \mu i_0 e^{\kappa (1-c) t} \approx \mu i_0 e^{-\kappa c t}$$
+
+$$I_2(t<t_{F2}) = \mu i_0 \left( \frac{e^{-\kappa c t}}{-\kappa c} - \frac{1}{-\kappa c} \right) = \frac{\mu i_0}{\kappa c}\left(1 - e^{-\kappa c t}\right) = \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right) $$
+
+$$\dot{\bar{\rho}}_3 = - \lambda \mu \bar{\rho}_3 \frac{1}{\lambda}\left(1 - e^{-\kappa c t}\right) =  - \mu \bar{\rho}_3\left(1 - e^{-\kappa c t}\right)$$
+
+$$\int \frac{d{\bar \rho_3}}{\bar \rho_3} = \int \mu ( e^{-\kappa c t} -1)$$
+
+$$\ln|\bar{\rho}_3| = \frac{- \mu e^{-\kappa c t}}{\kappa c} - \mu t + C_2$$
+
+$$\bar \rho_3(t<t_{F2}) = \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right)$$
+
+% $$\bar \rho_3(t<t_{F2}) \dot{=} \exp\left( \frac{1}{\lambda i_0} + \frac{{\kappa c t}}{\lambda i_0}-\mu t\right) = \frac{1}{\lambda i_0} + \mu t - \mu t = \frac{1}{\lambda i_0} $$
+
+$$f_3(t) = \mu \bar \rho_3(t)I_2(t) = \mu \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right)$$
+
+$$f_3(t) = \frac{\mu}{\lambda} \left( \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right)$$
+
+$$f_3(t) \dot{=} \frac{\mu}{\lambda} \left( \exp\left( - \frac{{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left(  - \frac{{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right) 
+= \frac{\mu}{\lambda}\left( 1 - \exp\left(- \kappa c t\right)\right)$$
+
+$$F_3(t) = \int_0^\infty f_3(t) = \frac{\mu}{\lambda} $$
 
 \end{document}
-
