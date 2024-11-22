@@ -1,4 +1,3 @@
-# ignore svg and png files
 *.svg
 *.png
 *.gif
@@ -6,3 +5,7 @@
 *.pdf
 *.aux
 *.gz
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk

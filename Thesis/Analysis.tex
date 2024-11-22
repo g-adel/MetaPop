@@ -1,35 +1,5 @@
 
-
-\section*{List of Symbols}
-\begin{table}[!ht]
-    \centering
-    \resizebox{\textwidth}{!}{
-        \begin{tabular}{lp{11cm}} % Adjust the width as needed
-        \hline
-        Symbol & Description \\
-        \hline
-        $S_x$, $I_x$, $R_x$ & Susceptible, Infected, and Recovered individuals in subpopulation $x$ \\
-        $\beta$ & Infection rate in subpopulation $x$ \\
-        $\gamma$ & Recovery rate in subpopulation $x$ \\
-        $\mathcal{X}$ & Set of all subpopulations \\
-        $\mu$ & Mobility rate scalar between subpopulations \\
-        $\rho_{x,x'}$ & Travel restriction scalar values for individuals traveling from subpopulation $x$ to $x'$ \\
-        $\bar \rho_{x,x'}$ & Complementary of travel restriction, $\bar \rho_{x,x'} = 1-\rho_{x,x'}$\\
-        $t_x$ & Point in time in which $I_x(t) = i_0$\\
-        $\Delta t_x$ & The delay in time between $t_x$ and $t_x'$ where $x'$ is the upstream subpopulation\\
-        $W(x)$ & The Lambert W function; solution of $y\ e^y=z$\\
-        $F_2$ & Final cumulative infected flow from subpopulation 1 to subpopulation 2\\
-        $t_{f2}$ & Time at which $I_2(t) \approx F_2$ \\
-        $\lambda$ & Control parameter for travel restriction rate of change \\
-        $i_0$ & Initial condition for infected individuals in subpopulation 1\\
-        $\kappa$ & Effective growth rate coefficient of an infected population as a proportion of its 
-        current infected individuals in 1-lattice graph ($\kappa = \beta - \gamma - 2\mu$)   \\
-        c & Dimensionless constant $c=i_0 \mu \lambda / \kappa$\\
-        \hline
-        \end{tabular}
-    }
-    \end{table}
-\section*{Analysis}
+\section{Analysis}
 
 \begin{center}
 \begin{tikzpicture}
@@ -45,58 +15,58 @@
     \draw (d) -- (e);
 \end{tikzpicture}
 \end{center}
-
 Let the network have a path graph (1-lattice graph) where subpopulation 1 is at the start of the path and has an initial infection of $I_1(0)=I_0$. The governing dynamics of the infection in subpopulation 1 is:
-$$
+
+\begin{equation}
 \dot I_1(t)=(\beta S_1-\gamma)I_1+\mu I_2-2\mu I_1
-$$
+\end{equation}
 Since $I_2$ starts at zero and the susceptible fraction starts at one, a first-order approximation can be made:
-$$
+\begin{equation}
 \dot I_1 \approx (\beta-\gamma-2\mu)I_1
-$$
+\end{equation}
 For a randomly selected subpopulation $j$, the infection fraction dynamics can be represented and approximated as:
-$$
+\begin{equation}
 \dot I_j =(\beta S_j-\gamma)I_j+\mu (I_{j-1}+I_{j+1}-2\mu I_j)
-$$
+\end{equation}
 Since the diffusion of infected individuals starts from index 1 and increasing, $I_{j+1} \approx 0$ with respect to $I_j$. Similar to the above linearization:
-$$
+\begin{equation}
 \dot I_j \approx \kappa I_j+\mu I_{j-1}
-$$
+\end{equation}
 where $\kappa = \beta-\gamma-2\mu$. Solving the differential equation for the linearized $\dot I_1$:
-$$
+\begin{equation}
 I_1 = I_0 e^{\kappa t}
-$$
+\end{equation}
 Substituting for $j=2$ in the equation above:
-$$
+\begin{equation}
 \dot I_2=\kappa I_j +\mu I_0 e^{\kappa t}
-$$
+\end{equation}
 This ODE can be solved analytically which results in:
-$$
+\begin{equation}
 I_2=I_0 \mu t e^{\kappa t}  
-$$
+\end{equation}
 Consequently, for $\dot I_3$:
-$$
+\begin{equation}
 \dot I_3=\kappa I_j +\mu^2 \kappa t e^{\kappa t}
-$$
-$$
+\end{equation}
+\begin{equation}
 I_3 = I_0 \frac{\mu^2 t^2}{2} e^{\kappa t}
-$$
+\end{equation}
 Through induction, it can be found that:
-$$
+\begin{equation}
 I_j=I_0 \frac{\mu^{j-1} t^{j-1}}{(j-1)!} e^{\kappa t}
-$$
+\end{equation}
 
 To find the spread rate of the infection across the network, we solve for the time $t_{I_{j+1}=I_0} :=t_j$:
-$$
+\begin{equation}
 I_0 \frac{\mu^{j} t_j^{j}}{j!} e^{\kappa t_j} = I_0
-$$
-$$
+\end{equation}
+\begin{equation}
 \frac{\mu^{j} t_j^{j}}{j!} e^{\kappa t_j} = 1 
-$$
+\end{equation}
 This unfortunately does not have a closed-form solution. However, a unique solution is guaranteed to exist, and since the function is monotonic and the root is simple, the solution can be found very easily numerically. To alleviate the numerical instability of higher and higher powers and factorial values, the log transform of the equation is solved instead:
-$$
+\begin{equation}
 \kappa t_j + j \ln(\mu t_j) - \ln(j!) = 0
-$$
+\end{equation}
 
 where the log of the factorial has very stable methods to solve\cite{C}.
 
@@ -112,94 +82,94 @@ It was found that equation (6) was remarkably accurate in estimating the spread 
 
 Since we are interested in the spread rate of the infection, the objective is to derive the value ${\Delta t}_{j+1} := t_{j+1}-t_j$. To do so, we first use equation (7) to find $t_{j+1}$:
 
-$$
+\begin{equation}
 \kappa t_{j+1} + (j+1) \ln(\mu t_{j+1}) - \ln((j+1)!) = 0 
-$$
+\end{equation}
 
 Based on numerical results, we found that ${\Delta t}_{j}$ converges quickly to a constant value. Therefore, we apply an ansatz ${\Delta t}_{j+1} = t_{j+1} - t_j \approx {\Delta t}$ for $j \gg 1$, leading to $t_j \approx j \, \Delta t$.
 
 Subtracting equation (7) from equation (8), we get:
 
-$$
+\begin{equation}
 \kappa \Delta t + j \ln\left( \frac{t_{j+1}}{t_j} \right) + \ln\left( \frac{\mu t_{j+1}}{j+1} \right) = 0
-$$
+\end{equation}
 
 After substituting $t_j \approx j \, \Delta t$, we find:
 
-$$
+\begin{equation}
 \kappa \Delta t + j \ln\left( \frac{j+1}{j} \right) + \ln\left( \mu \Delta t \right) = 0 
-$$
+\end{equation}
 
 Taking $\lim_{j \to \infty}$, and using $\ln\left( \frac{{j+1}}{j} \right) \approx \frac{1}{j}$, we get:
 
-$$
+\begin{equation}
 \kappa \Delta t + \ln( \mu \Delta t ) + 1 = 0
-$$
+\end{equation}
 
 This is still a transcendental function. However, a known solution for this equation uses the Lambert W function. Applying it here results in:
 
-$$
+\begin{equation}
 \Delta t = \frac{1}{\kappa} W\left(\frac{\kappa}{e \mu}\right)
-$$
+\end{equation}
 
 The next step is to derive the impact of the reactivity constant $\lambda$ on the spread rate and extrapolate this spread rate on more complex network topologies such as small-world networks and scale-free networks.
 
 We again evaluate the same system but with individual restriction adaptivity, where $\bar \rho := 1 - \rho$ and $\rho(0) = 0$:
 
-$$
+\begin{equation}
 \dot \rho_{x,x'} = \lambda \mu \bar \rho (I_{x'} - I_x)
-$$
-$$
+\end{equation}
+\begin{equation}
 \dot I_x = \beta S I - \gamma I +  \sum_{x'} \mu (I_{x'} - I_x) \bar \rho_{x,x'}
-$$
+\end{equation}
 
 We also define the flow $f_{x,x'}(t)$, which is the rate of incoming infected individuals per unit time from subpopulation $x$ into $x'$, where 
 
-$$
+\begin{equation}
 f_{x,x'}(t) = \mu \bar \rho_{x,x'} I_{x'}
-$$
+\end{equation}
 
 Applying the same linearization as equation (4):
 
-$$
+\begin{equation}
 \dot I_j \approx \kappa I_j + \mu \bar \rho I_{j-1} 
-$$
+\end{equation}
 
 Substituting $I_1 = i_0 \kappa e^{\kappa t}$ in equation (13):
 
-$$
+\begin{equation}
 \dot{\bar{\rho}}_2(t) = - i_{0} \lambda \mu \bar \rho_{2}(t) e^{\kappa t}
-$$
+\end{equation}
 
 The ODE in equation (13) can be solved using separation of variables as follows:
 
-$$
+\begin{equation}
 \dot{\bar{\rho}}_2(t) = - i_{0} \lambda \mu \bar \rho_{2}(t) e^{\kappa t}
-$$
+\end{equation}
 
 With the initial condition $\bar \rho_{2}(0) = 1$, we proceed as follows:
 Dividing both sides by $\bar \rho_{2}$ and multiplying by $dt$, then integrating both sides:
 
-$$
+\begin{equation}
 \int \frac{1}{\bar \rho_{2}} \, d\bar \rho_{2} = - i_{0} \lambda \mu \int e^{\kappa t} \, dt
-$$
+\end{equation}
 
-$$
+\begin{equation}
 \ln \bar \rho_{2}(t) = - \frac{i_{0} \lambda \mu}{\kappa} e^{\kappa t} + C_1
-$$
+\end{equation}
 
 Exponentiating both sides:
 
-$$
+\begin{equation}
 \bar \rho_{2}(t) = e^{C_1} e^{-\frac{i_{0} \lambda \mu}{\kappa} e^{\kappa t}}.
-$$ 
+\end{equation}
 
 Using $\bar \rho_{2}(0) = 1$ to find $C_1$:
 
-$$
+\begin{equation}
 \bar \rho_{2}(t) = e^{\frac{i_{0} \lambda \mu}{\kappa}} e^{-\frac{i_{0} \lambda \mu}{\kappa} e^{\kappa t}}
  = \exp\left(\frac{i_{0} \lambda \mu}{\kappa} \left( 1 - e^{\kappa t} \right)\right) 
-$$
+\end{equation}
 
 where $c := i_{0} \lambda \mu / \kappa$ is a dimensionless constant.
 

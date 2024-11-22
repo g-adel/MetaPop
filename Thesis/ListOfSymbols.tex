@@ -1,0 +1,29 @@
+\section*{List of Symbols}
+\begin{table}[!ht]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{lp{11cm}} % Adjust the width as needed
+        \hline
+        Symbol & Description \\
+        \hline
+        $S_x$, $I_x$, $R_x$ & Susceptible, Infected, and Recovered individuals in subpopulation $x$ \\
+        $\beta$ & Infection rate in subpopulation $x$ \\
+        $\gamma$ & Recovery rate in subpopulation $x$ \\
+        $\mathcal{X}$ & Set of all subpopulations \\
+        $\mu$ & Mobility rate scalar between subpopulations \\
+        $\rho_{x,x'}$ & Travel restriction scalar values for individuals traveling from subpopulation $x$ to $x'$ \\
+        $\bar \rho_{x,x'}$ & Complementary of travel restriction, $\bar \rho_{x,x'} = 1-\rho_{x,x'}$\\
+        $t_x$ & Point in time in which $I_x(t) = i_0$\\
+        $\Delta t_x$ & The delay in time between $t_x$ and $t_x'$ where $x'$ is the upstream subpopulation\\
+        $W(x)$ & The Lambert W function; solution of $y\ e^y=z$\\
+        $F_2$ & Final cumulative infected flow from subpopulation 1 to subpopulation 2\\
+        $t_{f2}$ & Time at which $I_2(t) \approx F_2$ \\
+        $\lambda$ & Control parameter for travel restriction rate of change \\
+        $i_0$ & Initial condition for infected individuals in subpopulation 1\\
+        $\kappa$ & Effective growth rate coefficient of an infected population as a proportion of its 
+        current infected individuals in 1-lattice graph ($\kappa = \beta - \gamma - 2\mu$)   \\
+        c & Dimensionless constant $c=i_0 \mu \lambda / \kappa$\\
+        \hline
+        \end{tabular}
+    }
+    \end{table}
