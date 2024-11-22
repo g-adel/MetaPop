@@ -2,3 +2,7 @@
 *.svg
 *.png
 *.gif
+*.log
+*.pdf
+*.aux
+*.gz

@@ -1,13 +1,7 @@
-\documentclass{article}
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage{tikz}
-\usepackage[a4paper, margin=3cm]{geometry}
 
-\begin{document}
 
 \section*{List of Symbols}
-\begin{table}[h!]
+\begin{table}[!ht]
     \centering
     \resizebox{\textwidth}{!}{
         \begin{tabular}{lp{11cm}} % Adjust the width as needed
@@ -108,7 +102,7 @@ where the log of the factorial has very stable methods to solve\cite{C}.
 
 To test this solution, the expected time for $I_j = I_0$ was found numerically through simulation of the ODEs for a path graph network and also computed numerically from equation (7).
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Pasted image 20240923204231.png}
     \caption{\small Simulation vs. analytical results for infection spread day. It can be seen that the time between $I_x(t)=i_0$ and $I_x(t)=sup(I_x(t))$ converges to a constant delay. Though this relationship, the spread infection days can be used to find the peak infection days.}
@@ -211,7 +205,7 @@ where $c := i_{0} \lambda \mu / \kappa$ is a dimensionless constant.
 
 This shows that the rate of decay for the first applied restriction based on this adaptive strategy is super-exponential. This is an intuitive outcome of having the rate of change of $\rho$ be proportional to the incoming infected, which itself grows exponentially due to the internal infection rate. When simulating this system with sufficiently large $\lambda$, a somewhat unexpected result appears: it is found that adaptivity only delays the global infection spread instead of slowing down the spread rate. This can be seen in the infected evolution in all nodes in a simple SI epidemic model.
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Pasted image 20241026164447.png}
     \caption{\small Evolution of infected population in an adaptive SI model on a 1-lattice graph 
@@ -219,7 +213,7 @@ This shows that the rate of decay for the first applied restriction based on thi
     delay between the infection in the first subpopulation (the one with an initial infected prevalence $i_0$, and the rest of the metapopulation. The spread rate among the rest of the network is the same as with no adaptivity.}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Pasted image 20241026170947.png}
     \caption{\small The same plot of the infected evolution in log-y scale. 
@@ -228,7 +222,7 @@ This shows that the rate of decay for the first applied restriction based on thi
     $i_0=1e-5$ and the grows exponentially, which can be seen by the constant-slope line of the evolution with a slope $1/\kappa$. This same exponential evolution can also be seen for subpopulation 2, quickly reaches the value of $F_2$ when $\rho_{2,1}$ reaches 1. A later figure will show the growth towards this value. Interestingly, the remainder of the subpopulations have a non-linear slope until it reaches the same threshold $F_2$ at which point their respective restriction completely shut down and their behavior turns purely exponential}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Pasted image 20241026192049.png}
     \caption{\small Evolution of mobility restrictions. It is worthy of note here that most $\rho$ values reach 1 significantly before the populaiton's corresponsponding infected prevalence reaches any significant value. It can be also seen from this plot that $\rho_2$ reaches 1 before the second day of the scenario, while $rho_3$ has a non-zero initial growth rate.}
@@ -251,7 +245,7 @@ F_2=\frac{\frac{\kappa}{\lambda}}{\kappa\left( 1-\frac{1}{c} \right)}=\frac{1}{\
 
 While $F_2$ is evaluated from $t=0$ to $\infty$, due to the super-exponential rate of $f_2$, $F_2=F_2(\infty)\approx F_2(t_{f2})$ where $t_{f2}$ is a point in time where $\bar\rho(t_{f2})\approx 0$  $I({t_{f2}})\approx F_2$. This approximation can be validated by checking the value of $I_2$ in the numerical solution of the ODE at the point in time where $\bar\rho(t)\approx 0$ and check if $I(t)\approx F_2$. 
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Pasted image 20241027144236.png}
     \caption{\small Validation of $I_2$ approximation at $t \approx t_{f2}$. The $F_2$ Estimate is $1/\lambda$ which in a log-log scale has a slope of $-1$. As can be seen here, this approximation is only valid for $\lambda>1/i_0$. Before this threshold, there is approximately no dependency of $F_2$ on $\lambda$ }
@@ -268,7 +262,7 @@ solving for $t_2$:
 $$t_2=\frac{\ln(i_0 \lambda)}{\kappa}$$
 This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there is very diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$:
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Pasted image 20241027155933.png}
     \caption{\small Evaluation of $t_2$ for different $\lambda$ and $\kappa$ values with the $t_2$ approximation in a log-x scale. The straight line in this plot correponds to a logarithmic dependency of $t_2$ on $\lambda$, as was found in the analytical approximation. The approximation is only valid for $\lambda > i_0$, which is $10^5$ in this case. It can be seen that before this threshold, the impact of $\lambda$ is negligible and $t_2$ has the same value as if there was no adaptivity.}
@@ -298,5 +292,3 @@ $$f_3(t) \dot{=} \frac{\mu}{\lambda} \left( \exp\left( - \frac{{-\kappa c t}}{\l
 = \frac{\mu}{\lambda}\left( 1 - \exp\left(- \kappa c t\right)\right)$$
 
 $$F_3(t) = \int_0^\infty f_3(t) = \frac{\mu}{\lambda} $$
-
-\end{document}
