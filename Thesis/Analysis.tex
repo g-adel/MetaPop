@@ -1,4 +1,10 @@
+\documentclass{article}
+\usepackage{graphicx} % if you need to include graphics
+\usepackage{amsmath}  % if you need advanced math formatting
+\usepackage{tikz}
+\usepackage[a4paper, margin=3cm]{geometry}
 
+\begin{document}
 \section{Analysis}
 
 \begin{center}
@@ -250,15 +256,49 @@ $$\int \frac{d{\bar \rho_3}}{\bar \rho_3} = \int \mu ( e^{-\kappa c t} -1)$$
 
 $$\ln|\bar{\rho}_3| = \frac{- \mu e^{-\kappa c t}}{\kappa c} - \mu t + C_2$$
 
-$$\bar \rho_3(t<t_{F2}) = \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right)$$
+$$\bar \rho_3(t<t_{F2}) = \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) = \exp\left(\frac{1-e^{\kappa c t}}{\lambda i_0} - \mu t \right)$$
 
 % $$\bar \rho_3(t<t_{F2}) \dot{=} \exp\left( \frac{1}{\lambda i_0} + \frac{{\kappa c t}}{\lambda i_0}-\mu t\right) = \frac{1}{\lambda i_0} + \mu t - \mu t = \frac{1}{\lambda i_0} $$
 
-$$f_3(t) = \mu \bar \rho_3(t)I_2(t) = \mu \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right)$$
+% $$f_3(t) = \mu \bar \rho_3(t)I_2(t) = \mu \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right)$$
 
-$$f_3(t) = \frac{\mu}{\lambda} \left( \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right)$$
+% $$f_3(t) = \frac{\mu}{\lambda} \left( \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right)$$
 
-$$f_3(t) \dot{=} \frac{\mu}{\lambda} \left( \exp\left( - \frac{{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left(  - \frac{{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right) 
-= \frac{\mu}{\lambda}\left( 1 - \exp\left(- \kappa c t\right)\right)$$
+% $$f_3(t) \dot{=} \frac{\mu}{\lambda} \left( \exp\left( - \frac{{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left(  - \frac{{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right) 
+% = \frac{\mu}{\lambda}\left( 1 - \exp\left(- \kappa c t\right)\right)$$
 
-$$F_3(t) = \int_0^\infty f_3(t) = \frac{\mu}{\lambda} $$
+
+%% ALTERNATIVE
+Since $\lambda i_0 >>0$, the expression $\frac{1-e^{\kappa c t}}{\lambda i_0} \approx 0$. Hence, $$\bar \rho_3(t<t_{F2}) \approx e^{-\mu t}$$.
+
+Substituting $\bar \rho_3$ into $f_3(t)=\mu \bar \rho_3(t) I_3(t)$, we get:
+$$f_3(t)=\mu e^{-\mu t} \frac{1}{\lambda} \left(1-e^{-\kappa c t}\right) = \frac{\mu}{\lambda} e^{-\mu t}  \left(1-e^{-\mu \lambda i_0 t}\right)$$
+Finding the indefinite integral of $f_3(t)$ $F_3(T) = \int_0^T f_3(t) dt$ (see appendix for integration)
+\[
+F_3(t) = \frac{1}{\lambda} \left( 1 - e^{-\mu t} - \frac{1}{1 + \lambda i_0} \left( 1 - e^{-\mu(1 + \lambda i_0) t} \right) \right) \approx \frac{1}{\lambda} \left( 1 - e^{-\mu t} \right).
+\]
+
+to find $t_3$, the time at which $I_3(t_3) = i_0$, we first integrate  $\dot I_3(t)$ for $I_3(t)<1/lambda$ where most of the growth is from incoming flow and then again for $1/\lambda<I_3(t)<i_0$.
+
+$$\dot I_3(t) = \kappa I_3(t) + f_3(t) = \kappa I_3(t) +\frac{\mu}{\lambda} e^{-\mu t}  \left(1-e^{-\mu \lambda i_0 t}\right)$$
+
+This can be solved for $I_3(t)$ (see appendix)
+
+\[
+I_3(t) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t} - e^{-\mu t} \right).
+\]
+
+with which we can solve for $t_{F_3}$ where $I_3(t)=F_3(\infty) = 1/\lambda$
+$$I_3(t_{F_3}) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}} \right) \stackrel{!}{=}  \frac{1}{\lambda}$$
+$$e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}} =\frac{\mu + \kappa}{\mu}$$
+
+Since $\dot I_3(t) \approx \kappa I_3(t)$ for $t>t_{F_3}$, which has the same evolution as $I_2(t)$, then $t_3 = t_2 + t_{F_3}$. Hence 
+$ \Delta t_3 = t_{F_3}$
+While one cannot solve explicitly for $t$ in this equation, it is important to observe that this approximation of $t_{F_3}$ is not a function of $\lambda$, which means that one cannot decrease the spread rate of infection for the third and onwards downstream neighbors. This result was confirmed to be sufficiently accurate through numerical testing. It was found that the spread rates of the third neighbor and beyond quickly converged to the infection spread rate of the non-adaptive case. This can be seen in the analytic approximation for large values of $t_{F_3}$ where $e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}}  \approx e^{\kappa t_{F_3}}$
+
+$$\Delta t_3 = t_{F_3} \approx \frac{1}{\kappa} \ln(1+\frac{ \kappa}{\mu})$$
+
+This expression for $\Delta t_3$ is very close to equation (19) in the nonadaptive system, since $W(x) \approx ln(1+x)$. It is numerically found that in the adaptive system, for sufficiently large $i$, $$\Delta t_i \approx \frac{1}{\kappa} W(\frac{\kappa}{\mu})$$ 
+Which further cements the finding that adaptivity only introduces a delay in infection spread in the immediate neighborhood of the first infected subpopulation while the remaining metapopulation network suffers from approximately the same infection spread rate as the unadaptive system. 
+
+\end{document}

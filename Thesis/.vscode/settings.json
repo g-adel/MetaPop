@@ -1,2 +1,13 @@
-{
+{"editor.wordWrap": "on",
+"files.exclude": {
+    "**/*.aux": true,
+    "**/*.log": true,
+    "**/*.out": true,
+    "**/*.synctex.gz": true,
+    "**/*.bbl": true,
+    "**/*.blg": true,
+    "**/*.fdb_latexmk": true,
+    "**/*.fls": true,
+    "**/*.toc": true,
+}
 }

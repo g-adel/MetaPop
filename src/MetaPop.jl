@@ -16,7 +16,7 @@ mutable struct Scenario
 end
 
 function defineMeta()
-    epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 1/50)
+    epi = SIRS_epidemic(β = 0.125,γ = 0.0, σ = .0, μ = 0.01)
     net = Network(; nPopulations = 5, k_bar = 2, topology = PathGraph)
     strat = Strat(; λ = 1e10, mobBias = 0.0,strategy = IndivPropRestriction)
     sim = Sim(; h =0.01,min_h=10e-10, nDays = 500, I₀=1e-5, critRange = 0)

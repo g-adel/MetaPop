@@ -1,3 +1,10 @@
+% \documentclass{article}
+% \usepackage{graphicx} % if you need to include graphics
+% \usepackage{amsmath}  % if you need advanced math formatting
+% \usepackage{tikz}
+% \usepackage[a4paper, margin=3cm]{geometry}
+
+% \begin{document}
 \section{Introduction}
 
 During the SARS-COV-2 pandemic, epidemic models were shown to fail in accounting for human behavior and the heterogeneous structure of the contact network, both of which significantly impact epidemic dynamics \cite{Lewis2021wrong}. Non-pharmaceutical interventions such as travel restrictions have proven essential in preventing the spread of the virus. However, the efficiency and restraint in implementing such restrictions must consider economic costs and potential societal backlash due to prolonged quarantine periods.
@@ -5,3 +12,4 @@ During the SARS-COV-2 pandemic, epidemic models were shown to fail in accounting
 Epidemic models started with focusing on just a single homogeneously mixed population, which was known to be a severe simplification of the typically heterogeneously structured contact patterns of social networks. To account for this, extensions of epidemic models have been made by applying them to complex networks, which take into account the irregular degree distribution of most social networks. Recently, a more hybrid model has been explored, termed metapopulation network, where a network of subpopulations have a network topology connecting them. Individuals in a subpopulation interact homogeneously with each other and migrate along the links to neighboring subpopulations with a mobility rate. Such a network is called a reaction-diffusion metapopulation network. This model is especially useful in systems that have sufficient network modularity where it can be accurately represented as a group of exclusive communities. Such examples of this are districts, cities, or even countries. 
 \\
 In this study, we introduce an extension to the existing model by incorporating adaptive mobility in the network. Subpopulations can restrict the mobility of incoming and outgoing individuals based on the prevalence of infections in incoming individuals from neighboring subpopulations.
+% \end{document}

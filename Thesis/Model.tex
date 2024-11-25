@@ -1,3 +1,5 @@
+
+
 \section{Model}
 
 To model the epidemic dynamics within each subpopulation, we use a mean-field compartmental model, assuming homogeneous mixing of individuals. Specifically, we employ the SIR model (Susceptible, Infected, and Recovered/Removed), which is commonly used as a simple epidemic model. The model follows a deterministic Poisson process where individuals can transition between compartments based on predefined rules. In the SIR model, the transition rules are: \( S + I \rightarrow 2I \) (an infected individual infects a susceptible individual) and \( I \rightarrow R \) (an infected individual recovers). No immunization loss process is considered in this model, focusing on a single-wave scenario. The model for each subpopulation \( x \) is described by the following set of ordinary differential equations (ODEs):
