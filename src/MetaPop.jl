@@ -19,12 +19,24 @@ function defineMeta()
     epi = SIRS_epidemic(β = 0.125,γ = 0.0, σ = .0, μ = 0.01)
     net = Network(; nPopulations = 5, k_bar = 2, topology = PathGraph)
     strat = Strat(; λ = 1e10, mobBias = 0.0,strategy = IndivPropRestriction)
-    sim = Sim(; h =0.01,min_h=10e-10, nDays = 500, I₀=1e-5, critRange = 0)
+    sim = Sim(; h =0.01,min_h=10e-6, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                             mobilityRates = sparse(net.connections)*epi.μ, day = 1)
 
     return meta, S
+end
+
+function metaParamsString(meta::Metapopulation)
+    S = meta.S
+    epi = S.epi
+    net = S.net
+    strat = S.strat
+    sim = S.sim
+
+    params_str = "β$(epi.β)_γ$(epi.γ)_σ$(epi.σ)_μ$(epi.μ)_nPop$(net.nPopulations)_kbar$(net.k_bar)_λ$(strat.λ)_mobBias$(strat.mobBias)_h$(sim.h)_minh$(sim.min_h)_nDays$(sim.nDays)_I0$(sim.I₀)_critRange$(sim.critRange)"
+    
+    return params_str
 end
 
 function singleCaseMain()
@@ -33,28 +45,29 @@ function singleCaseMain()
     metaHist = simulateSystem(meta)
     data = dataAnalytics(metaHist,S)
     generatePrettyTable(data)
+    print(metaParamsString(meta))
 
-    combinedPlot = plotCase(data,S)
-    return combinedPlot, data
+    combinedPlot = plotCase(data,S,meta;save=false)
+    return combinedPlot, data, meta
 end
 
 function multiCaseMain()
-    _, S = defineMeta()
+    meta, S = defineMeta()
     Ss = multiScenario_λ(S)
     datas = multiSimulation1D(Ss)
 
-    combinedPlot = plotEnsemble(datas, Ss)
+    combinedPlot = plotEnsemble(datas, Ss,meta;save=true)
     return combinedPlot, datas
 end
 
 export multiCaseMain, singleCaseMain
 
-
 end
 
 println("¡Hola!")
 
-combinedPlot, data = MetaPop.singleCaseMain()
-# combinedPlot, datas = MetaPop.multiCaseMain()
+# combinedPlot, data, meta = MetaPop.singleCaseMain()
+
+combinedPlot, datas = MetaPop.multiCaseMain()
 
 plot(combinedPlot)

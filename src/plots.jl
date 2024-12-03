@@ -1,6 +1,5 @@
-function combinePlots(plots)
+function alignAndCombinePlots(plots)
     gr()
-    # Calculate the total height
     height = sum(p[2] for p in plots)
     for p in plots
         plot!(p[1], left_margin=40Plots.mm, bottom_margin=10Plots.mm, tickfontsize=10, guidefontsize=15)
@@ -15,7 +14,22 @@ function combinePlots(plots)
     return combined_plot
 end
 
-function plotCase(data,S)
+function savePlots(plots, meta)
+    # Ensure the directory exists
+    dir = ".\\Thesis\\Figures"
+    isdir(dir) || mkpath(dir)
+
+    # Get the meta params string
+    params_str = metaParamsString(meta)
+
+    # Save each plot with a unique name
+    for (i, plot) in enumerate(plots)
+        filename = joinpath(dir, "$(plot[3])_$(params_str).pdf")
+        savefig(plot[1], filename)
+    end
+end
+
+function plotCase(data,S,meta;save=false)
     plots = []
     push!(plots, plotInfEvolution(data))
     push!(plots, plotInfEvolution(data;yLog=true))
@@ -39,8 +53,11 @@ function plotCase(data,S)
     # img = load(img_filename)
     # img_plot = plot(img, seriestype=:image)
     # push!(plots, (img_plot,800))
-
-    return combinePlots(plots)
+    combinedPlots = alignAndCombinePlots(plots)
+    if save
+        savePlots(plots, meta)
+    end
+    return combinedPlots
 end
 
 
@@ -65,9 +82,10 @@ function plotInfEvolution(data; yLog=false, xLog = false)
     plot!(p, xAxis, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
-    title!(p, "Prevalence of Infected" * (xLog ? " (Log-x)" : "") * (yLog ? " (Log-y)" : ""))
+    title = "Prevalence of Infected" * (xLog ? " (Log-x)" : "") * (yLog ? " (Log-y)" : "")
+    title!(p, title)
     height = yLog ? 600 : 400
-    return p, height
+    return p, height, title
 end
 
 
@@ -80,14 +98,16 @@ function plotRestrictions(data)
     
     color_index = 1
     for i in 1:nρs
-            plot!(p, xAxis, data["downstream_ρs"][:,i] , label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
+            plot!(p, xAxis, data["downstream_ρs"][:,i] , label="P($i,$(i+1))",
+             color=colors[color_index], ylim=(0,1))
             color_index += 1
     end
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
-    title!(p, "Evolution of Path Mobility Restrictions")
-    return p, 400
+    title = "Evolution of Path Mobility Restrictions"
+    title!(p, title)
+    return p, 400, title
 end
 
 function plotInfectedFlow(data)
@@ -107,8 +127,9 @@ function plotInfectedFlow(data)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Infected Flow")
-    title!(p, "Evolution of Infected Flow")
-    return p, 400
+    title = "Evolution of Infected Flow"
+    title!(p, title)
+    return p, 400, title
 end
 
 
@@ -127,8 +148,9 @@ function plotAvgRestrictions(ρsAvgHistory)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
-    title!(p, "Evolution of Mobility Restrictions")
-    return p, 600
+    title = "Evolution of Mobility Restrictions"
+    title!(p, title)
+    return p, 600, title
 end
 
 function plotRestrictionsGrid(ρsHistory)
@@ -143,7 +165,7 @@ function plotRestrictionsGrid(ρsHistory)
         end
     end
     
-    return p, 800
+    return p, 800, ""
 end
 
 function plotInfectionDays(data,epi)
@@ -158,8 +180,9 @@ function plotInfectionDays(data,epi)
     epi.γ>0 && scatter!(p, pathLengths, data["peakInfInd"], label="Peak Infection Day", mc=:red)
     scatter!(p, pathLengths, data["firstOrderSol"], label="Unadaptive First Order Sol.", mc=:yellow)
     plot!(p, pathLengths, data["firstOrderApprox"], label="Unadaptive Lambert W Approx.", mc=:white)
-    
-    return p, 800
+    title = "Spread and Peak Infection Days"
+    title!(p, title)
+    return p, 800, title
 end
 
 function plotSpreadRates(data)
@@ -180,8 +203,9 @@ function plotSpreadRates(data)
     plot!(p, pathLengths[2:end], inv_diff_firstOrderApprox, label="First Order Approx.")
     # make y-axis start from 0
     plot!(p, ylims=(0, maximum(inv_diff_days)*1.1))
-    
-    return p, 800
+    title = "Spread Rates"
+    title!(p, title)
+    return p, 800, title
 end
 
 
@@ -192,8 +216,9 @@ function plot_cumulative_flow(data::Dict)
     plot!(p, xlims=(0, nPopulations))
     xlabel!(p, "Path length")
     ylabel!(p, "Cumulative Infected Flow")
-    title!(p, "Cumulative Infected Flow")
-    return p, 800
+    title= "Cumulative Infected Flow"
+    title!(p, title)
+    return p, 800, title
 end
 
 function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale::Bool=false)
@@ -209,13 +234,14 @@ function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale:
     end
     xlabel!(p, "Population i infected prevalence")
     ylabel!(p, "Population i+1 infected prevalence")
-    title!(p, "Consecutive Infecteds prevalence" * (log_scale ? " (Log Scale)" : ""))
+    title = "Consecutive Infecteds prevalence" * (log_scale ? " (Log Scale)" : "")
+    title!(p, title)
     
     if log_scale
         plot!(p,xscale=:ln,yscale=:ln)
     end
     
-    return p, 800
+    return p, 800, title
 end
 
 function plot_infect_ρ(infectedHistory::Array{Float64,2}, ρsHistory::Array{Float64,3})
@@ -233,8 +259,9 @@ function plot_infect_ρ(infectedHistory::Array{Float64,2}, ρsHistory::Array{Flo
     plot!(p,legend=false)
     xlabel!(p, "Population i infected prevalence")
     ylabel!(p, "Population i+1 infected prevalence")
-    title!(p, "Evolution of infected flow and ρ")
-    return p, 800
+    title = "Evolution of infected prevalence and ρ"
+    title!(p, title)
+    return p, 800, title
 end
 
 function plot_infect_flow(infectedHistory, downstream_flows)
@@ -252,6 +279,7 @@ function plot_infect_flow(infectedHistory, downstream_flows)
     plot!(p, legend=false)
     ylabel!(p, "Population i infected prevalence")
     xlabel!(p, "Population i+1 infected flow rate")
-    title!(p, "Evolution of infected flow rate")
-    return p, 800
+    title = "Evolution of infected flow rate"
+    title!(p, title)
+    return p, 800, title
 end

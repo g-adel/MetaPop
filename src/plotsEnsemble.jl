@@ -1,15 +1,18 @@
-function plotEnsemble(datas,Ss)
+function plotEnsemble(datas,Ss,meta;save=false)
     plots = []
     push!(plots, plot_lambda_avg_spread_rate(datas,Ss))
     push!(plots, plot_lambda_path_spread_rates(datas,Ss))
-    push!(plots, plot_lambda_F_2(datas,Ss))
-    push!(plots, plot_lambda_t_2(datas,Ss))
-
-    return combinePlots(plots)
+    push!(plots, plot_lambda_F₂(datas,Ss))
+    push!(plots, plot_lambda_t₂(datas,Ss))
+    # combinedPlots = 
+    if save
+        savePlots(plots, meta)
+    end
+    return alignAndCombinePlots(plots)
 end
 
 
-function plot_multi_spread_rates(datas::Array{Dict, 2},Ss)
+function plot_beta_mu_spread_rates(datas::Array{Dict, 2},Ss)
     nRows, nCols = size(datas)
     
     # Initialize arrays to store the values
@@ -36,15 +39,17 @@ function plot_multi_spread_rates(datas::Array{Dict, 2},Ss)
     p = plot(xlabel="μ", ylabel="Rate (nodes/day)", title="Spread Rates")
     
     for j in 1:nCols
-        plot!(p, μs, spreadRates[j], label="Actual Rate (β= $(βs[j]))", lw=2, lc=:green, legendfontsize=6)
+        plot!(p, μs, spreadRates[j], label="Actual Rate (β= $(βs[j]))", lw=2, lc=:green, legendfontsize=10)
         # scatter!(p, μs, referenceSpreadRates[j], label="Ref Rate (β= $(βs[j]))", lw=2, mc=:black)
         plot!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, lc=:red)
         # scatter!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, mc=:red)
         # plot!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, lc=:blue)
         scatter!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, mc=:blue)
     end
-    
-    return p, 800
+    title = "Spread Rates"
+    title!(p, title)
+
+    return p, 800, title
 end
 
 function plot_lambda_avg_spread_rate(datas::Array{Dict, 1}, Ss)
@@ -59,21 +64,24 @@ function plot_lambda_avg_spread_rate(datas::Array{Dict, 1}, Ss)
         push!(asympSpreadRates, datas[i]["asympSpreadRate"])
         push!(initSpreadRates, datas[i]["initSpreadRate"])
         push!(avgSpreadRates, datas[i]["avgSpreadRate"])
-
         push!(λs, Ss[i].strat.λ)
     end
     
-    @show λs 
-    # Create the plot
-    p = plot(xlabel="λ", ylabel="Rate (nodes/day)", title="Spread Rates", ylims=(0,.2), xscale=:log10)
-    plot!(p, λs, asympSpreadRates, label="Asymptotic Spread Rate", lw=2, lc=:green, legendfontsize=6)
-    plot!(p, λs, initSpreadRates, label="Initial Spread Rate", lw=2, lc=:blue, legendfontsize=6)
-    plot!(p, λs, avgSpreadRates, label="Average Spread Rate", lw=2, lc=:red, legendfontsize=6)
+    # @show λs 
+    p = plot(xlabel="λ", ylabel="Rate (nodes/day)", title="Spread Rates", ylims=(0,.2), xscale=:log10, legendfontsize=10)
+    plot!(p, λs, asympSpreadRates, lw=1, lc=:green, linestyle=:dash, label="")
+    scatter!(p, λs, asympSpreadRates, label="Asymptotic Spread Rate",lw=2, mc=:green)
+    plot!(p, λs, initSpreadRates, lw=1, lc=:blue, linestyle=:dash, label="")
+    scatter!(p, λs, initSpreadRates, label="Initial Spread Rate", lw=2, mc=:blue)
+    plot!(p, λs, avgSpreadRates, lw=1, lc=:red, linestyle=:dash, label="")
+    scatter!(p, λs, avgSpreadRates, label="Average Spread Rate", lw=2, mc=:red)
 
     # plot!(p, λs, firstOrderSolSpreadRates, label="My Rate", lw=2, lc=:red)
     # scatter!(p, λs, firstOrderApproxSpreadRates, label="Approx Rate", lw=2, mc=:blue)
-    
-    return p, 800
+    title = "Spread Rates"
+    title!(p, title)
+
+    return p, 800, title
 end
 
 function plot_lambda_path_spread_rates(datas::Array{Dict, 1}, Ss)
@@ -90,61 +98,71 @@ function plot_lambda_path_spread_rates(datas::Array{Dict, 1}, Ss)
     
     pathLengths = datas[1]["pathLengths"]
 
-    p=plot(xlabel="Path Length", ylabel="Inverse Δt", size=(1000,800),
-    legendfontsize=15, tickfontsize=15, guidefontsize=15)
-    for i in 1:n
-        plot!(p, pathLengths[2:end], spreadRates[i][2:end], label="λ=$(λs[i])", mc=:yellow)
-    end
-    plot!(p, ylims=(0, .2))
+    colors = palette(:jet, n)
+    color_index = 1
 
-    return p, 800
+    p= scatter(legendfontsize=10,xlabel="Path Length", ylabel="Inverse Δt", size=(1000,800))
+    for i in 1:n
+        plot!(p,pathLengths[2:end], spreadRates[i][2:end], lw=1,lc=colors[color_index], linestyle=:dash, label="")
+        scatter!(p, pathLengths[2:end], spreadRates[i][2:end], label="λ=$(λs[i])", mc=colors[color_index])
+        color_index += 1
+    end
+    scatter!(p, ylims=(0, .2))
+    title =  "Inverse Δt vs Path Length"
+    title!(p, title)
+    return p, 800, title
 end
 
 
-function plot_lambda_F_2(datas::Array{Dict, 1}, Ss)
+function plot_lambda_F₂(datas::Array{Dict, 1}, Ss)
     n = length(datas)
     
     λs = []
-    F_2s = []
+    F₂s = []
     cs=[]
     
     for i in 1:n
         S=Ss[i]
-        push!(F_2s,datas[i]["infectedHistory"][2,2])
+        push!(F₂s,datas[i]["infectedHistory"][2,2])
         push!(λs, S.strat.λ)
-        # push!(F_2Estimates,1/λs[i])
+        # push!(F₂Estimates,1/λs[i])
         cs=push!(cs,S.strat.λ*S.epi.μ*S.sim.I₀/S.epi.β)
     end
-    F_2Estimates = 1 ./ λs
-    F_2_low_c = 1 ./ (λs .+ 1 ./ cs)
-    @show F_2_low_c
-    p=plot(xlabel="λ", ylabel="F_2",legendfontsize=15, xscale=:log10, yscale=:log10)
-    plot!(p, λs,F_2Estimates,label="F_2 Estimate", lw=4)
-    scatter!(p, λs, F_2s,label="F_2", mc=:yellow)
-    title!(p, "F_2 vs λ (log-log) ")
-    return p, 800
+    F₂Estimates = 1 ./ λs
+    # F₂_low_c = 1 ./ (λs .+ 1 ./ cs)
+    # @show F₂_low_c
+    p = plot(legendfontsize=15, xscale=:log10, yscale=:log10)
+    scatter!(p, λs, F₂s,label="F₂", mc=:yellow)
+    plot!(p, xlabel="λ", ylabel="F₂")
+    plot!(p, λs,F₂Estimates,label="F₂ Estimate", lw=4)
+
+    title = "F₂ vs λ (log-log)"
+    title!(p, title)
+
+    return p, 800, title
 end
 
-function plot_lambda_t_2(datas::Array{Dict, 1}, Ss)
+function plot_lambda_t₂(datas::Array{Dict, 1}, Ss)
     n = length(datas)
     
     λs = []
-    t_2s = []
-    t_2Estimates = []
+    t₂s = []
+    t₂Estimates = []
     
     for i in 1:n
         S=Ss[i]
-        push!(t_2s,datas[i]["spreadInfInd"][2])
+        push!(t₂s,datas[i]["spreadInfInd"][2])
         push!(λs, S.strat.λ)
-        push!(t_2Estimates, log(S.sim.I₀ * S.strat.λ)/(S.epi.β))
+        push!(t₂Estimates, log(S.sim.I₀ * S.strat.λ)/(S.epi.β))
     end
-    @show t_2Estimates t_2s
-    t_2s_cleaned = [t_2 <= 0 ? NaN : t_2 for t_2 in t_2s]
-    t_2Estimates_cleaned = [t_2Estimates[i] <= 0 ? NaN : t_2Estimates[i] for i in 1:n]
-
-    p=plot(xlabel="λ", ylabel="t_2",legendfontsize=15, legend=:topleft, xscale=:log10)
-    plot!(p, λs,t_2Estimates_cleaned ,label="t_2 Estimate", lw=4)
-    scatter!(p, λs, t_2s_cleaned,label="t_2", mc=:yellow)
-    title!(p, "F_2 vs λ (log-x) ")
-    return p, 800
+    @show t₂Estimates t₂s
+    t₂s_cleaned = [t₂ <= 0 ? NaN : t₂ for t₂ in t₂s]
+    t₂Estimates_cleaned = [t₂Estimates[i] <= 0 ? NaN : t₂Estimates[i] for i in 1:n]
+    p = plot()
+    scatter!(p, λs, t₂s_cleaned,label="t₂", mc=:yellow)
+    plot!(p,xlabel="λ", ylabel="t₂",legendfontsize=15, legend=:topleft, xscale=:log10)
+    plot!(p, λs,t₂Estimates_cleaned ,label="t₂ Estimate", lw=4)
+    title = "t₂ vs λ (log-x)"
+    title!(p, title)
+    return p, 800, title
 end

@@ -183,7 +183,7 @@ This shows that the rate of decay for the first applied restriction based on thi
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=120mm]{Figures/Pasted image 20241026164447.png}
+    \includegraphics[width=120mm]{Figures/Prevalence of Infected_β0.125_γ0.0_σ0.0_μ0.01_nPop5_kbar2_λ1.0e10_mobBias0.0_h0.01_minh1.0e-7_nDays500_I01.0e-5_critRange0.0.pdf}
     \caption{\small Evolution of infected population in an adaptive SI model on a 1-lattice graph 
     (path graph) with $\lambda = 1e10$ and $i_0 = 1e-5$. It can be seen that there is a significant 
     delay between the infection in the first subpopulation (the one with an initial infected prevalence $i_0$, and the rest of the metapopulation. The spread rate among the rest of the network is the same as with no adaptivity.}
@@ -191,7 +191,7 @@ This shows that the rate of decay for the first applied restriction based on thi
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=120mm]{Figures/Pasted image 20241026170947.png}
+    \includegraphics[width=120mm]{Figures/Prevalence of Infected (Log-y)_β0.125_γ0.0_σ0.0_μ0.01_nPop5_kbar2_λ1.0e10_mobBias0.0_h0.01_minh1.0e-7_nDays500_I01.0e-5_critRange0.0.pdf}
     \caption{\small The same plot of the infected evolution in log-y scale. 
     Zero-values of infection have been omitted from this plot, all of which exist at day 1. 
     This scale helps show that the first subpopulation starts at an initial infected prevalence of 
@@ -200,20 +200,20 @@ This shows that the rate of decay for the first applied restriction based on thi
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=120mm]{Figures/Pasted image 20241026192049.png}
+    \includegraphics[width=120mm]{Figures/Evolution of Path Mobility Restrictions_β0.125_γ0.0_σ0.0_μ0.01_nPop5_kbar2_λ1.0e10_mobBias0.0_h0.01_minh1.0e-7_nDays500_I01.0e-5_critRange0.0.pdf}
     \caption{\small Evolution of mobility restrictions. It is worthy of note here that most $\rho$ values reach 1 significantly before the populaiton's corresponsponding infected prevalence reaches any significant value. It can be also seen from this plot that $\rho_2$ reaches 1 before the second day of the scenario, while $rho_3$ has a non-zero initial growth rate.}
 \end{figure}
 
 It is also worth noting that due to this super-exponential growth, $\rho_{2,1}$ decays down to zero much faster than the internal infection spread $I_2$. This difference in rates can be used to analytically approximate the delay in infection spread $t_2$ in subpopulation 2 from subpopulation 1. This can be done by first finding the final cumulative amount of incoming infecteds $F_2$ where 
-$$F_2:=\int_0^\infty f_2(t)dt$$
+\begin{equation}F_2:=\int_0^\infty f_2(t)dt\end{equation}
 where 
 
-$$f_2(t)=\mu \bar \rho_2(t) I_1(t) = \mu \exp\left({c \left( 1 - e^{\kappa t} \right)}\right)i_0 e^{\kappa t} = \mu i_0 \exp\left({c \left( 1 - e^{\kappa t} \right)} +\kappa t\right)$$
+\begin{equation}f_2(t)=\mu \bar \rho_2(t) I_1(t) = \mu \exp\left({c \left( 1 - e^{\kappa t} \right)}\right)i_0 e^{\kappa t} = \mu i_0 \exp\left({c \left( 1 - e^{\kappa t} \right)} +\kappa t\right)\end{equation}
 
 An analytic solution for $F$ could be found using the exponential integral $\mathrm{Ei}$ function  $\int\exp(\exp(x))\,d x=\int{\frac{\exp(u)}{u}}\,d u={\mathrm{Ei}}(u)={\mathrm{Ei}}(\exp(x))$. However, a linearization of the exponent term was found to be sufficiently accurate based on the numerical simulation. We define the expression $E(t):=c\left( 1 - e^{\kappa t} \right)+\kappa t$ and linearize it around $t=0$: 
-$$E(t)\approx (-c\kappa+\kappa)t = \kappa (1-c) t$$
+\begin{equation}E(t)\approx (-c\kappa+\kappa)t = \kappa (1-c) t\end{equation}
 substituting the linearized $E(t)$ and $f_2(t)$ back into $F_2$, we get:
-$$F_2=\int_0^\infty \mu i_0 \exp\left(\kappa (1-c) t \right) dt = \frac{\mu i_0}{\kappa(c-1)}$$
+\begin{equation}F_2=\int_0^\infty \mu i_0 \exp\left(\kappa (1-c) t \right) dt = \frac{\mu i_0}{\kappa(c-1)}\end{equation}
 dividing the numerator and denominator by $c=\frac{i_{0} \lambda \mu}{\kappa}$:
 \begin{equation}
 F_2=\frac{\frac{\kappa}{\lambda}}{\kappa\left( 1-\frac{1}{c} \right)}=\frac{1}{\lambda\left( 1-\frac{1}{c} \right)}
@@ -223,56 +223,55 @@ While $F_2$ is evaluated from $t=0$ to $\infty$, due to the super-exponential ra
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=120mm]{Figures/Pasted image 20241027144236.png}
+    \includegraphics[width=120mm]{Figures/F₂ vs λ (log-log)_β0.125_γ0.0_σ0.0_μ0.01_nPop5_kbar2_λ1.0e10_mobBias0.0_h0.01_minh1.0e-5_nDays500_I01.0e-5_critRange0.0.pdf}
     \caption{\small Validation of $I_2$ approximation at $t \approx t_{f2}$. The $F_2$ Estimate is $1/\lambda$ which in a log-log scale has a slope of $-1$. As can be seen here, this approximation is only valid for $\lambda>1/i_0$. Before this threshold, there is approximately no dependency of $F_2$ on $\lambda$ }
 
 \end{figure}
 
 This observation allows us to solve a simplified version of the ODE $\dot I_2(t)$ starting from $t=t_f$, with the initial conditions at that point in time.
-$$ I_2(t) = \int_{t_{f2}}^t \left(i_{0} \mu \bar \rho_{2}{(t)} e^{\kappa t} + \kappa I_{2}{\left(t \right)}\right) dt$$
+\begin{equation} I_2(t) = \int_{t_{f2}}^t \left(i_{0} \mu \bar \rho_{2}{(t)} e^{\kappa t} + \kappa I_{2}{\left(t \right)}\right) dt\end{equation}
 since $\bar \rho \approx 0$ for $t\ge t_{f2}$ 
-$$I_2(t) = \int_{t_{f2}}^t  \kappa I_{2}{\left(t \right)} dt = I_2(t_{f_2})e^{\kappa t} = F_2 e^{\kappa t} =\frac{e^{\kappa t}}{\lambda}$$
+\begin{equation}I_2(t) = \int_{t_{f2}}^t  \kappa I_{2}{\left(t \right)} dt = I_2(t_{f_2})e^{\kappa t} = F_2 e^{\kappa t} =\frac{e^{\kappa t}}{\lambda}\end{equation}
 to find $t_2$, the value at which $I_2(t)=i_0$, 
-$$I_2(t) =\frac{e^{\kappa t_2}}{\lambda}=i_0$$
+\begin{equation}I_2(t) =\frac{e^{\kappa t_2}}{\lambda}=i_0\end{equation}
 solving for $t_2$:
-$$t_2=\frac{\ln(i_0 \lambda)}{\kappa}$$
-This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there is very diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$:
+\begin{equation}t_2=\frac{\ln(i_0 \lambda)}{\kappa}\end{equation}
+This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there are diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$. As Figure~\ref{fig:t_2 vs lambda} shows, the appoximated relationship matches the numerical results when $\lambda$ is sufficiently higher than $1/i_0$. 
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=120mm]{Figures/Pasted image 20241027155933.png}
+    \includegraphics[width=120mm]{Figures/t₂ vs λ (log-x)_β0.125_γ0.0_σ0.0_μ0.01_nPop5_kbar2_λ1.0e10_mobBias0.0_h0.01_minh1.0e-5_nDays500_I01.0e-5_critRange0.0.pdf}
     \caption{\small Evaluation of $t_2$ for different $\lambda$ and $\kappa$ values with the $t_2$ approximation in a log-x scale. The straight line in this plot correponds to a logarithmic dependency of $t_2$ on $\lambda$, as was found in the analytical approximation. The approximation is only valid for $\lambda > i_0$, which is $10^5$ in this case. It can be seen that before this threshold, the impact of $\lambda$ is negligible and $t_2$ has the same value as if there was no adaptivity.}
+    \label{fig:t_2 vs lambda}
 \end{figure}
 
-It can proven that, for a sufficiently large $\lambda$, $I_3(t_{F2})=\mu/\lambda$. (I just need to write it out and validate it numerically for different combination of $\mu$ and $\lambda$.
 
-$$\dot I_2(t<t_{F2}) = f_2 = \mu i_0 e^{\kappa (1-c) t} \approx \mu i_0 e^{-\kappa c t}$$
+\begin{equation}\dot I_2(t<t_{F2}) = f_2 = \mu i_0 e^{\kappa (1-c) t} \approx \mu i_0 e^{-\kappa c t}\end{equation}
 
-$$I_2(t<t_{F2}) = \mu i_0 \left( \frac{e^{-\kappa c t}}{-\kappa c} - \frac{1}{-\kappa c} \right) = \frac{\mu i_0}{\kappa c}\left(1 - e^{-\kappa c t}\right) = \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right) $$
+\begin{equation}I_2(t<t_{F2}) = \mu i_0 \left( \frac{e^{-\kappa c t}}{-\kappa c} - \frac{1}{-\kappa c} \right) = \frac{\mu i_0}{\kappa c}\left(1 - e^{-\kappa c t}\right) = \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right) \end{equation}
 
-$$\dot{\bar{\rho}}_3 = - \lambda \mu \bar{\rho}_3 \frac{1}{\lambda}\left(1 - e^{-\kappa c t}\right) =  - \mu \bar{\rho}_3\left(1 - e^{-\kappa c t}\right)$$
+\begin{equation}\dot{\bar{\rho}}_3 = - \lambda \mu \bar{\rho}_3 \frac{1}{\lambda}\left(1 - e^{-\kappa c t}\right) =  - \mu \bar{\rho}_3\left(1 - e^{-\kappa c t}\right)\end{equation}
 
-$$\int \frac{d{\bar \rho_3}}{\bar \rho_3} = \int \mu ( e^{-\kappa c t} -1)$$
+\begin{equation}\int \frac{d{\bar \rho_3}}{\bar \rho_3} = \int \mu ( e^{-\kappa c t} -1)\end{equation}
 
-$$\ln|\bar{\rho}_3| = \frac{- \mu e^{-\kappa c t}}{\kappa c} - \mu t + C_2$$
+\begin{equation}\ln|\bar{\rho}_3| = \frac{- \mu e^{-\kappa c t}}{\kappa c} - \mu t + C_2\end{equation}
 
-$$\bar \rho_3(t<t_{F2}) = \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) = \exp\left(\frac{1-e^{\kappa c t}}{\lambda i_0} - \mu t \right)$$
+\begin{equation}\bar \rho_3(t<t_{F2}) = \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) = \exp\left(\frac{1-e^{\kappa c t}}{\lambda i_0} - \mu t \right)\end{equation}
 
-% $$\bar \rho_3(t<t_{F2}) \dot{=} \exp\left( \frac{1}{\lambda i_0} + \frac{{\kappa c t}}{\lambda i_0}-\mu t\right) = \frac{1}{\lambda i_0} + \mu t - \mu t = \frac{1}{\lambda i_0} $$
+% $$\bar \rho_3(t<t_{F2}) \dot{=} \exp\left( \frac{1}{\lambda i_0} + \frac{{\kappa c t}}{\lambda i_0}-\mu t\right) = \frac{1}{\lambda i_0} + \mu t - \mu t = \frac{1}{\lambda i_0} \end{equation}
 
-% $$f_3(t) = \mu \bar \rho_3(t)I_2(t) = \mu \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right)$$
+% $$f_3(t) = \mu \bar \rho_3(t)I_2(t) = \mu \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right)\end{equation}
 
-% $$f_3(t) = \frac{\mu}{\lambda} \left( \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right)$$
+% $$f_3(t) = \frac{\mu}{\lambda} \left( \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right)\end{equation}
 
 % $$f_3(t) \dot{=} \frac{\mu}{\lambda} \left( \exp\left( - \frac{{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left(  - \frac{{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right) 
-% = \frac{\mu}{\lambda}\left( 1 - \exp\left(- \kappa c t\right)\right)$$
+% = \frac{\mu}{\lambda}\left( 1 - \exp\left(- \kappa c t\right)\right)\end{equation}
 
 
-%% ALTERNATIVE
 Since $\lambda i_0 >>0$, the expression $\frac{1-e^{\kappa c t}}{\lambda i_0} \approx 0$. Hence, $$\bar \rho_3(t<t_{F2}) \approx e^{-\mu t}$$.
 
 Substituting $\bar \rho_3$ into $f_3(t)=\mu \bar \rho_3(t) I_3(t)$, we get:
-$$f_3(t)=\mu e^{-\mu t} \frac{1}{\lambda} \left(1-e^{-\kappa c t}\right) = \frac{\mu}{\lambda} e^{-\mu t}  \left(1-e^{-\mu \lambda i_0 t}\right)$$
+\begin{equation}f_3(t)=\mu e^{-\mu t} \frac{1}{\lambda} \left(1-e^{-\kappa c t}\right) = \frac{\mu}{\lambda} e^{-\mu t}  \left(1-e^{-\mu \lambda i_0 t}\right)\end{equation}
 Finding the indefinite integral of $f_3(t)$ $F_3(T) = \int_0^T f_3(t) dt$ (see appendix for integration)
 \[
 F_3(t) = \frac{1}{\lambda} \left( 1 - e^{-\mu t} - \frac{1}{1 + \lambda i_0} \left( 1 - e^{-\mu(1 + \lambda i_0) t} \right) \right) \approx \frac{1}{\lambda} \left( 1 - e^{-\mu t} \right).
@@ -280,7 +279,7 @@ F_3(t) = \frac{1}{\lambda} \left( 1 - e^{-\mu t} - \frac{1}{1 + \lambda i_0} \le
 
 to find $t_3$, the time at which $I_3(t_3) = i_0$, we first integrate  $\dot I_3(t)$ for $I_3(t)<1/lambda$ where most of the growth is from incoming flow and then again for $1/\lambda<I_3(t)<i_0$.
 
-$$\dot I_3(t) = \kappa I_3(t) + f_3(t) = \kappa I_3(t) +\frac{\mu}{\lambda} e^{-\mu t}  \left(1-e^{-\mu \lambda i_0 t}\right)$$
+\begin{equation}\dot I_3(t) = \kappa I_3(t) + f_3(t) = \kappa I_3(t) +\frac{\mu}{\lambda} e^{-\mu t}  \left(1-e^{-\mu \lambda i_0 t}\right)\end{equation}
 
 This can be solved for $I_3(t)$ (see appendix)
 
@@ -289,16 +288,16 @@ I_3(t) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t} - e^{-\mu 
 \]
 
 with which we can solve for $t_{F_3}$ where $I_3(t)=F_3(\infty) = 1/\lambda$
-$$I_3(t_{F_3}) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}} \right) \stackrel{!}{=}  \frac{1}{\lambda}$$
-$$e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}} =\frac{\mu + \kappa}{\mu}$$
+\begin{equation}I_3(t_{F_3}) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}} \right) \stackrel{!}{=}  \frac{1}{\lambda}\end{equation}
+\begin{equation}e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}} =\frac{\mu + \kappa}{\mu}\end{equation}
 
 Since $\dot I_3(t) \approx \kappa I_3(t)$ for $t>t_{F_3}$, which has the same evolution as $I_2(t)$, then $t_3 = t_2 + t_{F_3}$. Hence 
 $ \Delta t_3 = t_{F_3}$
 While one cannot solve explicitly for $t$ in this equation, it is important to observe that this approximation of $t_{F_3}$ is not a function of $\lambda$, which means that one cannot decrease the spread rate of infection for the third and onwards downstream neighbors. This result was confirmed to be sufficiently accurate through numerical testing. It was found that the spread rates of the third neighbor and beyond quickly converged to the infection spread rate of the non-adaptive case. This can be seen in the analytic approximation for large values of $t_{F_3}$ where $e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}}  \approx e^{\kappa t_{F_3}}$
 
-$$\Delta t_3 = t_{F_3} \approx \frac{1}{\kappa} \ln(1+\frac{ \kappa}{\mu})$$
+\begin{equation}\Delta t_3 = t_{F_3} \approx \frac{1}{\kappa} \ln(1+\frac{ \kappa}{\mu})\end{equation}
 
 This expression for $\Delta t_3$ is very close to equation (19) in the nonadaptive system, since $W(x) \approx ln(1+x)$. It is numerically found that in the adaptive system, for sufficiently large $i$, $$\Delta t_i \approx \frac{1}{\kappa} W(\frac{\kappa}{\mu})$$ 
-Which further cements the finding that adaptivity only introduces a delay in infection spread in the immediate neighborhood of the first infected subpopulation while the remaining metapopulation network suffers from approximately the same infection spread rate as the unadaptive system. 
+Which further confirms the finding that adaptivity only introduces a delay in infection spread in the immediate neighborhood of the first infected subpopulation while the remaining metapopulation network suffers from approximately the same infection spread rate as the unadaptive system. 
 
 \end{document}

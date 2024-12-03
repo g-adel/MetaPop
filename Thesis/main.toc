@@ -1,0 +1,6 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{}%
+\contentsline {section}{\numberline {2}Model}{4}{}%
+\contentsline {section}{\numberline {3}Strategies}{5}{}%
+\contentsline {subsection}{\numberline {3.1}Global proportional travel restriction}{6}{}%
+\contentsline {subsection}{\numberline {3.2}Uniform proportional travel restriction}{6}{}%
+\contentsline {subsection}{\numberline {3.3}Connection proportional travel restriction}{6}{}%
