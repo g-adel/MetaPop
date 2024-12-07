@@ -9,5 +9,9 @@
     "**/*.fdb_latexmk": true,
     "**/*.fls": true,
     "**/*.toc": true,
-}
+},
+"[latex]": {
+    "editor.wordBasedSuggestions": "off",
+},
+"latex-workshop.message.badbox.show" : "none",
 }

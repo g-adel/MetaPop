@@ -1,10 +1,10 @@
-\documentclass{article}
-\usepackage{graphicx} % if you need to include graphics
-\usepackage{amsmath}  % if you need advanced math formatting
-\usepackage{tikz}
-\usepackage[a4paper, margin=3cm]{geometry}
+% \documentclass{article}
+% \usepackage{graphicx} % if you need to include graphics
+% \usepackage{amsmath}  % if you need advanced math formatting
+% \usepackage{tikz}
+% \usepackage[a4paper, margin=3cm]{geometry}
+% \begin{document}
 
-\begin{document}
 \section{Analysis}
 
 \begin{center}
@@ -118,6 +118,14 @@ This is still a transcendental function. However, a known solution for this equa
 \Delta t = \frac{1}{\kappa} W\left(\frac{\kappa}{e \mu}\right)
 \end{equation}
 
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=120mm]{Figures/Spread Rates for different μ and β_β0.125_γ0.0_σ0.0_μ0.01_nPop10_kbar2_λ0.0_mobBias0.0_h0.1_minh1.0e-5_nDays500_I01.0e-5_critRange0.0.pdf}
+    \caption{\small The spread rates of infection across a 1-lattice network (path graph) for far away neighbors. Value are found both numerically and approximated analytically for different values of $\mu$ and $\beta$. It can be seen that both the equation solution and the lambert W limit funciton closely approximate the spread rate for the relevant epidemic and mobility parameters.}
+    \label{}
+\end{figure}
+
+
 The next step is to derive the impact of the reactivity constant $\lambda$ on the spread rate and extrapolate this spread rate on more complex network topologies such as small-world networks and scale-free networks.
 
 We again evaluate the same system but with individual restriction adaptivity, where $\bar \rho := 1 - \rho$ and $\rho(0) = 0$:
@@ -206,7 +214,7 @@ This shows that the rate of decay for the first applied restriction based on thi
 
 It is also worth noting that due to this super-exponential growth, $\rho_{2,1}$ decays down to zero much faster than the internal infection spread $I_2$. This difference in rates can be used to analytically approximate the delay in infection spread $t_2$ in subpopulation 2 from subpopulation 1. This can be done by first finding the final cumulative amount of incoming infecteds $F_2$ where 
 \begin{equation}F_2:=\int_0^\infty f_2(t)dt\end{equation}
-where 
+ 
 
 \begin{equation}f_2(t)=\mu \bar \rho_2(t) I_1(t) = \mu \exp\left({c \left( 1 - e^{\kappa t} \right)}\right)i_0 e^{\kappa t} = \mu i_0 \exp\left({c \left( 1 - e^{\kappa t} \right)} +\kappa t\right)\end{equation}
 
@@ -233,10 +241,10 @@ This observation allows us to solve a simplified version of the ODE $\dot I_2(t)
 since $\bar \rho \approx 0$ for $t\ge t_{f2}$ 
 \begin{equation}I_2(t) = \int_{t_{f2}}^t  \kappa I_{2}{\left(t \right)} dt = I_2(t_{f_2})e^{\kappa t} = F_2 e^{\kappa t} =\frac{e^{\kappa t}}{\lambda}\end{equation}
 to find $t_2$, the value at which $I_2(t)=i_0$, 
-\begin{equation}I_2(t) =\frac{e^{\kappa t_2}}{\lambda}=i_0\end{equation}
+\begin{equation}I_2(t) =\frac{e^{\kappa t_2}}{\lambda}\stackrel{!}{=} i_0\end{equation}
 solving for $t_2$:
 \begin{equation}t_2=\frac{\ln(i_0 \lambda)}{\kappa}\end{equation}
-This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there are diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$. As Figure~\ref{fig:t_2 vs lambda} shows, the appoximated relationship matches the numerical results when $\lambda$ is sufficiently higher than $1/i_0$. 
+This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there are diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$. As Figure~\ref{fig:t_2 vs lambda} shows, the appoximated relationship matches the numerical results when $\lambda$ is sufficiently higher than $1/i_0$ such that $\lambda i_0 >>1$ 
 
 \begin{figure}[!ht]
     \centering
@@ -245,28 +253,22 @@ This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{
     \label{fig:t_2 vs lambda}
 \end{figure}
 
+\begin{equation}\dot I_2(t<t_{F2}) \approx f_2 = \mu i_0 e^{\kappa (1-c) t} \approx \mu i_0 e^{-\kappa c t}\end{equation}
 
-\begin{equation}\dot I_2(t<t_{F2}) = f_2 = \mu i_0 e^{\kappa (1-c) t} \approx \mu i_0 e^{-\kappa c t}\end{equation}
+Solving for $I_2(t)$, where $t<t_{F_2}$,
 
 \begin{equation}I_2(t<t_{F2}) = \mu i_0 \left( \frac{e^{-\kappa c t}}{-\kappa c} - \frac{1}{-\kappa c} \right) = \frac{\mu i_0}{\kappa c}\left(1 - e^{-\kappa c t}\right) = \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right) \end{equation}
 
+After finding this approximation of $I_2$, we can then derive the evolution of $\bar \rho_3$. 
+
 \begin{equation}\dot{\bar{\rho}}_3 = - \lambda \mu \bar{\rho}_3 \frac{1}{\lambda}\left(1 - e^{-\kappa c t}\right) =  - \mu \bar{\rho}_3\left(1 - e^{-\kappa c t}\right)\end{equation}
 
-\begin{equation}\int \frac{d{\bar \rho_3}}{\bar \rho_3} = \int \mu ( e^{-\kappa c t} -1)\end{equation}
+Seperating the variables and integrating, we arrive at the solution for $\bar \rho_3(t<t_{F2})$ 
+% \begin{equation}\int \frac{d{\bar \rho_3}}{\bar \rho_3} = \int \mu ( e^{-\kappa c t} -1)\end{equation}
 
-\begin{equation}\ln|\bar{\rho}_3| = \frac{- \mu e^{-\kappa c t}}{\kappa c} - \mu t + C_2\end{equation}
+% \begin{equation}\ln|\bar{\rho}_3| = \frac{- \mu e^{-\kappa c t}}{\kappa c} - \mu t + C_2\end{equation}
 
 \begin{equation}\bar \rho_3(t<t_{F2}) = \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) = \exp\left(\frac{1-e^{\kappa c t}}{\lambda i_0} - \mu t \right)\end{equation}
-
-% $$\bar \rho_3(t<t_{F2}) \dot{=} \exp\left( \frac{1}{\lambda i_0} + \frac{{\kappa c t}}{\lambda i_0}-\mu t\right) = \frac{1}{\lambda i_0} + \mu t - \mu t = \frac{1}{\lambda i_0} \end{equation}
-
-% $$f_3(t) = \mu \bar \rho_3(t)I_2(t) = \mu \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) \frac{1}{\lambda}\left(1-e^{-\kappa c t}\right)\end{equation}
-
-% $$f_3(t) = \frac{\mu}{\lambda} \left( \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left( \frac{1}{\lambda i_0} - \frac{e^{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right)\end{equation}
-
-% $$f_3(t) \dot{=} \frac{\mu}{\lambda} \left( \exp\left( - \frac{{-\kappa c t}}{\lambda i_0}-\mu t\right) - \exp\left(  - \frac{{-\kappa c t}}{\lambda i_0}-\mu t - \kappa c t\right) \right) 
-% = \frac{\mu}{\lambda}\left( 1 - \exp\left(- \kappa c t\right)\right)\end{equation}
-
 
 Since $\lambda i_0 >>0$, the expression $\frac{1-e^{\kappa c t}}{\lambda i_0} \approx 0$. Hence, $$\bar \rho_3(t<t_{F2}) \approx e^{-\mu t}$$.
 
@@ -297,7 +299,10 @@ While one cannot solve explicitly for $t$ in this equation, it is important to o
 
 \begin{equation}\Delta t_3 = t_{F_3} \approx \frac{1}{\kappa} \ln(1+\frac{ \kappa}{\mu})\end{equation}
 
-This expression for $\Delta t_3$ is very close to equation (19) in the nonadaptive system, since $W(x) \approx ln(1+x)$. It is numerically found that in the adaptive system, for sufficiently large $i$, $$\Delta t_i \approx \frac{1}{\kappa} W(\frac{\kappa}{\mu})$$ 
+This expression for $\Delta t_3$ is very close to equation (19) in the nonadaptive system, since $W(x) \approx \ln(1+x)$. It is numerically found that in the adaptive system, for sufficiently large $i$, 
+\[
+\lim_{i \to \infty} \Delta t_i \approx \frac{1}{\kappa} W\left(\frac{\kappa}{\mu}\right)
+\]
 Which further confirms the finding that adaptivity only introduces a delay in infection spread in the immediate neighborhood of the first infected subpopulation while the remaining metapopulation network suffers from approximately the same infection spread rate as the unadaptive system. 
 
-\end{document}
+% \end{document}

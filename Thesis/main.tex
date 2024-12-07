@@ -5,8 +5,13 @@
 \usepackage[a4paper, margin=4cm]{geometry}
 
 \numberwithin{equation}{section}
-\nocite{*}
+\setlength{\parindent}{0pt}
 
+\nocite{*}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
 \begin{document}
 \include{Preface}
 \tableofcontents
