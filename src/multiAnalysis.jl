@@ -45,7 +45,7 @@ end
 
 function multiScenario_μβ(S)
     nPtsX=nPtsY=5
-    βs=range(0.1,1,nPtsX)
+    βs=range(0.2,1,nPtsX)
     μs=range(0.01,0.1,nPtsY)
     Ss=Array{Scenario,2}(undef,nPtsX,nPtsY)
     for i in 1:nPtsX

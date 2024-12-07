@@ -131,24 +131,6 @@ function metaRoC(meta)
 end
 
 
-function multiSimulation(Ss)
-    datas=Array{Dict,2}(undef,size(Ss))
-    metaHists = Array{Metapopulation,2}(undef,size(Ss))
-    
-    for i in 1:size(Ss,1)
-        for j in 1:size(Ss,1)
-            net=Ss[i,j].net
-            newMeta= Metapopulation(S = Ss[i,j], populations=Array{Population, 1}(undef, net.nPopulations),
-                         mobilityRates = spzeros(Float64, net.nPopulations, net.nPopulations))
-            net.connections, net.graph = pathGraph(net;directed=false)
-            initializePopulations!(newMeta)
-            metaHists[i,j]=simulateSystem(newMeta)
-            datas[i,j] = dataAnalytics(metaHists[i,j],Ss[i,j])
-        end
-    end
-    return datas
-end
-
 function multiSimulation1D(Ss)
     datas = Array{Dict,1}(undef,size(Ss))
     metaHists = []
@@ -161,6 +143,24 @@ function multiSimulation1D(Ss)
         initializePopulations!(newMeta)
         push!(metaHists,simulateSystem(newMeta))
         datas[i] = dataAnalytics(metaHists[i],Ss[i])
+    end
+    return datas
+end
+
+function multiSimulation2D(Ss)
+    datas=Array{Dict,2}(undef,size(Ss))
+    metaHists = Array{Vector{Metapopulation},2}(undef,size(Ss))
+    
+    for i in 1:size(Ss,1)
+        for j in 1:size(Ss,1)
+            net=Ss[i,j].net
+            newMeta= Metapopulation(S = Ss[i,j], populations=Array{Population, 1}(undef, net.nPopulations),
+                         mobilityRates = spzeros(Float64, net.nPopulations, net.nPopulations),day = 1)
+            net.connections, net.graph = pathGraph(net;directed=false)
+            initializePopulations!(newMeta)
+            metaHists[i,j]=simulateSystem(newMeta)
+            datas[i,j] = dataAnalytics(metaHists[i,j],Ss[i,j])
+        end
     end
     return datas
 end

@@ -82,7 +82,8 @@ function dataAnalytics(metaHist,S)
     # data["avgSpreadRate"] = 1/(spreadInfInd[end]-spreadInfInd[end-1])
     data["firstOrderSol"] = [firstOrderSol(i-1,S.epi) for i in 1:nPopulations]
     data["firstOrderApprox"] = firstOrderApprox(S.epi).*(0:nPopulations-1)
-    data["firstOrderSolSpreadRate"] = 1/linear_regression_slope(distances,data["firstOrderSol"])
+    # data["firstOrderSolSpreadRate"] = 1/linear_regression_slope(distances,data["firstOrderSol"])
+    data["firstOrderSolSpreadRate"] = 1/(data["firstOrderSol"][end-1]-data["firstOrderSol"][end-2])
     data["referenceSpreadRate"] = 2.2√(S.epi.μ*(S.epi.β-S.epi.γ))
     data["second_day_restrictions"] = [ data["ρsHistory"][2,1,2] ; [data["ρsHistory"][2,i+1,i] for i=1:nPopulations-1] ]
     return data

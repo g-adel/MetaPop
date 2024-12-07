@@ -17,9 +17,9 @@ end
 
 function defineMeta()
     epi = SIRS_epidemic(β = 0.125,γ = 0.0, σ = .0, μ = 0.01)
-    net = Network(; nPopulations = 5, k_bar = 2, topology = PathGraph)
-    strat = Strat(; λ = 1e10, mobBias = 0.0,strategy = IndivPropRestriction)
-    sim = Sim(; h =0.01,min_h=10e-6, nDays = 500, I₀=1e-5, critRange = 0)
+    net = Network(; nPopulations = 10, k_bar = 2, topology = PathGraph)
+    strat = Strat(; λ = 0e0, mobBias = 0.0,strategy = IndivPropRestriction)
+    sim = Sim(; h =0.1,min_h=10e-6, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                             mobilityRates = sparse(net.connections)*epi.μ, day = 1)
@@ -53,10 +53,12 @@ end
 
 function multiCaseMain()
     meta, S = defineMeta()
-    Ss = multiScenario_λ(S)
-    datas = multiSimulation1D(Ss)
+    # Ss = multiScenario_λ(S)
+    # datas = multiSimulation1D(Ss)
+    Ss = multiScenario_μβ(S)
+    datas = multiSimulation2D(Ss)
 
-    combinedPlot = plotEnsemble(datas, Ss,meta;save=true)
+    combinedPlot = plotEnsemble(datas, Ss,meta;save=false)
     return combinedPlot, datas
 end
 

@@ -1,9 +1,11 @@
 function plotEnsemble(datas,Ss,meta;save=false)
     plots = []
-    push!(plots, plot_lambda_avg_spread_rate(datas,Ss))
-    push!(plots, plot_lambda_path_spread_rates(datas,Ss))
-    push!(plots, plot_lambda_F₂(datas,Ss))
-    push!(plots, plot_lambda_t₂(datas,Ss))
+    push!(plots, plot_beta_mu_spread_rates(datas,Ss))
+    push!(plots, plot_beta_mu_spread_rates(datas,Ss))
+    # push!(plots, plot_lambda_avg_spread_rate(datas,Ss))
+    # push!(plots, plot_lambda_path_spread_rates(datas,Ss))
+    # push!(plots, plot_lambda_F₂(datas,Ss))
+    # push!(plots, plot_lambda_t₂(datas,Ss))
     # combinedPlots = 
     if save
         savePlots(plots, meta)
@@ -18,7 +20,9 @@ function plot_beta_mu_spread_rates(datas::Array{Dict, 2},Ss)
     # Initialize arrays to store the values
     referenceSpreadRates = [[] for _ in 1:nCols]
     firstOrderSolSpreadRates = [[] for _ in 1:nCols]
-    firstOrderApproxSpreadRates = [[] for _ in 1:nCols]
+    LambertApproxSpreadRates = [[] for _ in 1:nCols]
+    
+
     spreadRates = [[] for _ in 1:nCols]
     βs=[]
     μs=[]
@@ -28,25 +32,48 @@ function plot_beta_mu_spread_rates(datas::Array{Dict, 2},Ss)
         for j in 1:nCols
             push!(referenceSpreadRates[j], datas[i, j]["referenceSpreadRate"])
             push!(firstOrderSolSpreadRates[j], datas[i, j]["firstOrderSolSpreadRate"])
-            push!(firstOrderApproxSpreadRates[j], 1 ./firstOrderApprox(Ss[i,j].epi))
+            push!(LambertApproxSpreadRates[j], 1 ./firstOrderApprox(Ss[i,j].epi))
             push!(spreadRates[j], datas[i, j]["avgSpreadRate"])
             i==1 && push!(βs,Ss[1,j].epi.β)
         end
         push!(μs,Ss[i,1].epi.μ) 
     end
     @show βs μs
-    # Create the plot
-    p = plot(xlabel="μ", ylabel="Rate (nodes/day)", title="Spread Rates")
-    
+
+    min_μ = μs[1]
+    max_μ = μs[end]
+    μs_cont = range(min_μ, max_μ, length=100)
+    epis = [[deepcopy(Ss[1,1].epi) for _ in eachindex(μs_cont)]]
+    for j in 2:nCols
+        push!(epis,[deepcopy(Ss[1,j].epi) for _ in eachindex(μs_cont)])
+    end
+    Lambert_cont = zeros(Float64,nCols,100)
+    for i in 1:100
+        for j in 1:nCols
+            epis[j][i].μ=μs_cont[i]
+            Lambert_cont[j,i] = 1/firstOrderApprox(epis[j][i])
+        end
+    end
+
+    p = plot(xlabel="μ", ylabel="Rate (nodes/day)", title="Spread Rates",legendfontsize=10)
+    labels = ["Actual Rate","Equation Sol.","Lambert W"]
     for j in 1:nCols
-        plot!(p, μs, spreadRates[j], label="Actual Rate (β= $(βs[j]))", lw=2, lc=:green, legendfontsize=10)
+        if j>1 labels=["","",""] end
+
+        β = round(βs[j], digits=1)
+        plot!(p, μs, spreadRates[j], lw=2, lc=:green,linestyle=:dash,label="")
+        scatter!(p, μs, spreadRates[j], label=labels[1], lw=2, mc=:green)
         # scatter!(p, μs, referenceSpreadRates[j], label="Ref Rate (β= $(βs[j]))", lw=2, mc=:black)
-        plot!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, lc=:red)
+        plot!(p, μs, firstOrderSolSpreadRates[j],linestyle=:dash, lc=:red,label="")
+        scatter!(p, μs, firstOrderSolSpreadRates[j], label=labels[2], lw=2, mc=:red)
         # scatter!(p, μs, firstOrderSolSpreadRates[j], label="My Rate (β= $(βs[j]))", lw=2, mc=:red)
         # plot!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, lc=:blue)
-        scatter!(p, μs, firstOrderApproxSpreadRates[j], label="Approx Rate (β= $(βs[j]))", lw=2, mc=:blue)
+        plot!(p, μs_cont,Lambert_cont[j,:], label=labels[3], lw=2, lc=:blue)
+        annotate!(μs[end]*.8, spreadRates[j][end]*1, "β=$(β)")
+
     end
-    title = "Spread Rates"
+    
+    title = "Spread Rates for different μ and β"
     title!(p, title)
 
     return p, 800, title
@@ -163,6 +190,31 @@ function plot_lambda_t₂(datas::Array{Dict, 1}, Ss)
     plot!(p,xlabel="λ", ylabel="t₂",legendfontsize=15, legend=:topleft, xscale=:log10)
     plot!(p, λs,t₂Estimates_cleaned ,label="t₂ Estimate", lw=4)
     title = "t₂ vs λ (log-x)"
+    title!(p, title)
+    return p, 800, title
+end
+
+function plot_lambda_t₃(datas::Array{Dict, 1}, Ss)
+    n = length(datas)
+    
+    λs = []
+    t₃s = []
+    t₃Estimates = []
+    
+    for i in 1:n
+        S=Ss[i]
+        push!(t₃s,datas[i]["spreadInfInd"][2])
+        push!(λs, S.strat.λ)
+        push!(t₃Estimates, log(S.sim.I₀ * S.strat.λ)/(S.epi.β))
+    end
+    
+    t₃s_cleaned = [t₃ <= 0 ? NaN : t₃ for t₃ in t₃s]
+    t₃Estimates_cleaned = [t₃Estimates[i] <= 0 ? NaN : t₃Estimates[i] for i in 1:n]
+    p = plot()
+    scatter!(p, λs, t₃s_cleaned,label="t₃", mc=:yellow)
+    plot!(p,xlabel="λ", ylabel="t₃",legendfontsize=15, legend=:topleft, xscale=:log10)
+    plot!(p, λs,t₃Estimates_cleaned ,label="t₃ Estimate", lw=4)
+    title = "t₃ vs λ (log-x)"
     title!(p, title)
     return p, 800, title
 end
