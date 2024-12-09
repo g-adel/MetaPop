@@ -104,7 +104,6 @@ function firstOrderSol(j, epi)
     # Solve the equation numerically
     t_solution = find_zero(equation, 1.0)  # Initial guess is 1.0
     
-    # Verify the solution
     is_correct = abs(equation(t_solution)) < 1e-3
     !is_correct && error("The solution is incorrect")
     

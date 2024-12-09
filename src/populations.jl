@@ -2,9 +2,9 @@ mutable struct Population
     S::Float64 # Susciptible population fraction
     I::Float64 # Infected population fraction
     R::Float64 # Recovered population fraction
+    ρs::Array{Float64, 1} # Mobility rates to other populations
     size::Float64 # Total population size
     index::Int # Index number of the population
-    ρs::Array{Float64, 1} # Mobility rates to other populations
 end
 
 @kwdef mutable struct Metapopulation
@@ -15,9 +15,9 @@ end
 end
 
 mutable struct PopulationRoC
-    dS::Float64 # Susciptible population fraction RoC
-    dI::Float64 # Infected population fraction RoC
-    dR::Float64 # Recovered population fraction RoC
+    dS::Float64 # Susciptible RoC
+    dI::Float64 # Infected RoC
+    dR::Float64 # Recovered RoC
     ρsRoC::Array{Float64, 1}
 end
 

@@ -2,7 +2,7 @@ function alignAndCombinePlots(plots)
     gr()
     height = sum(p[2] for p in plots)
     for p in plots
-        plot!(p[1], left_margin=40Plots.mm, bottom_margin=10Plots.mm, tickfontsize=10, guidefontsize=15)
+        plot!(p[1], left_margin=20Plots.mm, bottom_margin=10Plots.mm, tickfontsize=10, guidefontsize=15)
     end
     
     # Extract the heights for the layout
@@ -10,7 +10,7 @@ function alignAndCombinePlots(plots)
     layout_heights[end]=1-sum(layout_heights[1:end-1])
     
     l = Plots.grid(length(plots), 1, heights=layout_heights)
-    combined_plot = plot([p[1] for p in plots]..., layout=l, size=(1000, height))
+    combined_plot = plot([p[1] for p in plots]..., layout=l, size=(800, height))
     return combined_plot
 end
 
@@ -29,40 +29,42 @@ function savePlots(plots, meta)
     end
 end
 
-function plotCase(data,S,meta;save=false)
+function plotCase(data,S,meta;save=false,adaptive=false)
     plots = []
     push!(plots, plotInfEvolution(data))
     push!(plots, plotInfEvolution(data;yLog=true))
     S.sim.critRange>0 && push!(plots, plotInfEvolution(data;yLog=true,xLog=true))
-    push!(plots, plotRestrictions(data))
-    push!(plots, plotInfectedFlow(data))
+    # push!(plots, plotInfectedFlow(data))
     # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
     push!(plots, plotInfectionDays(data,S.epi))
     push!(plots, plotSpreadRates(data))
     # push!(plots, plot_cumulative_flow(data))
     # push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
-    push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
-    push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
+    if adaptive
+        push!(plots, plotRestrictions(data))
+        push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
+    end
+        # push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
 
     # Load the image and add it to the plots
     
     # img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, ρsHistory)
-    # img_file = drawNetworkKarnak(meta, net, data)
+    img_file = drawNetworkKarnak(meta, data)
     # animate_network(meta.populations,meta.connections,infectedHistory, susceptibleHistory, recoveredHistory, ρsHistory)
     # img = load(img_filename)
     # img_plot = plot(img, seriestype=:image)
     # push!(plots, (img_plot,800))
-    combinedPlots = alignAndCombinePlots(plots)
     if save
         savePlots(plots, meta)
     end
-    return combinedPlots
+    return alignAndCombinePlots(plots)
 end
 
 
 # TODO create a function that unifies the functionality of all these functions
 function plotInfEvolution(data; yLog=false, xLog = false)
+    title = "Prevalence of Infected" * (xLog ? " (Log-x)" : "") * (yLog ? " (Log-y)" : "")
     xAxis = data["days"]
     infected_percent,avg_infected_percent = data["infectedHistory"],data["infectedAvgHistory"]
     nTimeSteps, nPopulations = size(infected_percent)
@@ -82,7 +84,6 @@ function plotInfEvolution(data; yLog=false, xLog = false)
     plot!(p, xAxis, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
-    title = "Prevalence of Infected" * (xLog ? " (Log-x)" : "") * (yLog ? " (Log-y)" : "")
     title!(p, title)
     height = yLog ? 600 : 400
     return p, height, title
@@ -90,6 +91,7 @@ end
 
 
 function plotRestrictions(data)
+    title = "Evolution of Path Mobility Restrictions"
     xAxis = data["days"]
     nTimeSteps, nρs= size(data["downstream_ρs"])
     p = plot(legend=false)
@@ -105,12 +107,12 @@ function plotRestrictions(data)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
-    title = "Evolution of Path Mobility Restrictions"
     title!(p, title)
     return p, 400, title
 end
 
 function plotInfectedFlow(data)
+    title = "Evolution of Infected Flow"
     xAxis = data["days"]
     downstream_flows = data["downstream_flows"]
     nTimeSteps, nFlows = size(downstream_flows)
@@ -127,13 +129,13 @@ function plotInfectedFlow(data)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Infected Flow")
-    title = "Evolution of Infected Flow"
     title!(p, title)
     return p, 400, title
 end
 
 
 function plotAvgRestrictions(ρsAvgHistory)
+    title = "Evolution of Mobility Restrictions"
     
     nTimeSteps, nPopulations = size(ρsAvgHistory)
     p = plot(1:nTimeSteps, zeros(nTimeSteps), label="P1", legend=false)
@@ -148,7 +150,6 @@ function plotAvgRestrictions(ρsAvgHistory)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
-    title = "Evolution of Mobility Restrictions"
     title!(p, title)
     return p, 600, title
 end
@@ -169,18 +170,16 @@ function plotRestrictionsGrid(ρsHistory)
 end
 
 function plotInfectionDays(data,epi)
-    pathLengths = data["pathLengths"]
-    spreadInfInd = data["spreadInfInd"]
-
-    # Create a scatter plot
-    p = scatter(pathLengths, spreadInfInd, label="Spread Infection Day",
-                xlabel="Path Length", ylabel="Indices", 
-                legendfontsize=12, mc=:blue)
-    
-    epi.γ>0 && scatter!(p, pathLengths, data["peakInfInd"], label="Peak Infection Day", mc=:red)
-    scatter!(p, pathLengths, data["firstOrderSol"], label="Unadaptive First Order Sol.", mc=:yellow)
-    plot!(p, pathLengths, data["firstOrderApprox"], label="Unadaptive Lambert W Approx.", mc=:white)
     title = "Spread and Peak Infection Days"
+
+    pathLengths = data["pathLengths"]
+
+    p = plot(xlabel="Path Length", ylabel="day", 
+                legendfontsize=12, mc=:blue,width=800, size=(800,600))
+    scatter!(p,pathLengths, data["spreadInfInd"], label="Spread Infection Day")
+    epi.γ>0 && scatter!(p, pathLengths, data["peakInfInd"], label="Peak Infection Day", mc=:red)
+    scatter!(p, pathLengths, data["firstOrderSol"], label="First Order Sol.", mc=:yellow)
+    plot!(p, pathLengths, data["firstOrderApprox"], label="Lambert W rate", mc=:white)
     title!(p, title)
     return p, 800, title
 end
@@ -196,7 +195,7 @@ function plotSpreadRates(data)
     
     # Create a scatter plot
     p = scatter(pathLengths, data["1/Δt"], label="1/Δt",
-                xlabel="Path Length", ylabel="Inverse Δt", size=(1000,800),
+                xlabel="Path Length", ylabel="Inverse Δt", size=(800,600),
                 legendfontsize=15, tickfontsize=15, guidefontsize=15, left_margin=10Plots.mm,
                 mc=:blue)
     scatter!(p, pathLengths[2:end], inv_diff_firstOrderSol, label="First Order Sol.", mc=:yellow)
@@ -205,7 +204,7 @@ function plotSpreadRates(data)
     plot!(p, ylims=(0, maximum(inv_diff_days)*1.1))
     title = "Spread Rates"
     title!(p, title)
-    return p, 800, title
+    return p, 600, title
 end
 
 

@@ -16,7 +16,7 @@ mutable struct Scenario
 end
 
 function defineMeta()
-    epi = SIRS_epidemic(β = 0.125,γ = 0.0, σ = .0, μ = 0.01)
+    epi = SIRS_epidemic(β = 0.125,γ = 0.02, σ = .0, μ = 0.01)
     net = Network(; nPopulations = 10, k_bar = 2, topology = PathGraph)
     strat = Strat(; λ = 0e0, mobBias = 0.0,strategy = IndivPropRestriction)
     sim = Sim(; h =0.01,min_h=10e-10, nDays = 500, I₀=1e-5, critRange = 0)
@@ -45,9 +45,8 @@ function singleCaseMain()
     metaHist = simulateSystem(meta)
     data = dataAnalytics(metaHist,S)
     generatePrettyTable(data)
-    print(metaParamsString(meta))
 
-    combinedPlot = plotCase(data,S,meta;save=false)
+    combinedPlot = plotCase(data,S,meta;save=false,adaptive=S.strat.λ>0)
     return combinedPlot, data, meta
 end
 
@@ -68,8 +67,8 @@ end
 
 println("¡Hola!")
 
-# combinedPlot, data, meta = MetaPop.singleCaseMain()
+combinedPlot, data, meta = MetaPop.singleCaseMain()
 
-combinedPlot, datas = MetaPop.multiCaseMain()
+# combinedPlot, datas = MetaPop.multiCaseMain()
 
 plot(combinedPlot)

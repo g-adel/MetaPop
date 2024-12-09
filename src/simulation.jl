@@ -56,7 +56,7 @@ function updateMetapop(meta,metaCritHist, h)
         OOB=OOB2=OOB3=OOB4=true
         iterMeta=undef
         firstTime = true
-        h_new = h        
+        h_new = h
         # h_new=min(h,h_new/(h_scale^1))
         while firstTime || ((OOB||OOB2||OOB3||OOB4) && h_new >= meta.S.sim.min_h)
             # println("attempt")

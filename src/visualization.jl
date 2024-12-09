@@ -163,10 +163,10 @@ function drawNetworkPNG(populations,connections,infectedHistory, susceptibleHist
     return filename
 end
 
-function drawNetworkKarnak(meta, net, data; filename = "Network.png")
+function drawNetworkKarnak(meta, data; filename = "Network.png")
     spreadTimes = data["spreadInfInd"].-1 # if time=-1 means not found
     peakTimes = data["peakInfInd"].-data["peakInfInd"][1]
-    g = net.graph
+    g = meta.S.net.graph
     @png begin
         background("white")
         sethue("black")
