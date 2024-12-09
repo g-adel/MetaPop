@@ -50,8 +50,8 @@ function plotCase(data,S,meta;save=false,adaptive=false)
     # Load the image and add it to the plots
     
     # img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, ρsHistory)
-    img_file = drawNetworkKarnak(meta, data)
-    # animate_network(meta.populations,meta.connections,infectedHistory, susceptibleHistory, recoveredHistory, ρsHistory)
+    # img_file = drawNetworkKarnak(meta, data)
+    # animate_network(meta.populations,convert(Matrix{Float64}, adjacency_matrix(meta.S.net.graph)),infectedHistory, susceptibleHistory, recoveredHistory, ρsHistory)
     # img = load(img_filename)
     # img_plot = plot(img, seriestype=:image)
     # push!(plots, (img_plot,800))

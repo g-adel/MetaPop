@@ -11,13 +11,14 @@ Base.@kwdef mutable struct Strat
     strategy::StrategyType
 end
 
-function globalDiffRestriction(pop,localConnections::Array{Float64,1},meta)
+function globalDiffRestriction(pop,meta)
 end
 
-function uniformPropRestriction(pop,localConnections::Array{Float64, 1},meta)
+function uniformPropRestriction(pop,meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
-    nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
-    
+    g=meta.S.net.graph
+    nbrs_indices = neighbors(g,pop.index)
+
     netFlowInfected = 0;
     for connPopInd in nbrs_indices
         # could be turned into array operation
@@ -33,9 +34,10 @@ function uniformPropRestriction(pop,localConnections::Array{Float64, 1},meta)
     return ρRoC
 end
 
-function indivPropRestriction(pop,localConnections::Array{Float64, 1},meta)
+function indivPropRestriction(pop,meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
-    nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
+    g=meta.S.net.graph
+    nbrs_indices = neighbors(g,pop.index)
     ρRoC = zeros(size(pop.ρs))
     
     for connPopInd in nbrs_indices
@@ -47,10 +49,11 @@ function indivPropRestriction(pop,localConnections::Array{Float64, 1},meta)
     return ρRoC
 end
 
-function indivLogRestriction(pop,localConnections::Array{Float64, 1},meta)
+function indivLogRestriction(pop,meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
-    nbrs_indices = findall(x -> x > 0, localConnections) # TODO: store as sparse matrix
-    ρRoC = zeros(size(pop.ρs))
+    g=meta.S.net.graph
+    nbrs_indices = neighbors(g,pop.index)
+    ρRoC = spzeros(size(pop.ρs)) # TODO: Change to sparse
     
     for connPopInd in nbrs_indices
         # could be turned into array operation

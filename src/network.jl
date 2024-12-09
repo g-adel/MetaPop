@@ -8,36 +8,26 @@ end
 mutable struct Network
     nPopulations::Int
     k_bar::Int
-    connections::Array{Float64,2}
     graph
     topology::GraphTopology
     function Network(; nPopulations::Int, k_bar::Int, topology::GraphTopology)
-        connections = Array{Float64,2}(undef, 0, 0)
         graph = SimpleDiGraph()
-        net = new(nPopulations, k_bar, connections, graph, topology)
+        net = new(nPopulations, k_bar, graph, topology)
 
         if topology == PathGraph
-            net.connections, net.graph = pathGraph(net; directed = false)
+            net.graph = pathGraph(net; directed = false)
         elseif topology == DiPathGraph
-            net.connections, net.graph = pathGraph(net; directed = true)
+            net.graph = pathGraph(net; directed = true)
         elseif topology == SmallWorld
-            net.connections, net.graph = smallWorldMatrix(net)
+            net.graph = smallWorldMatrix(net)
         elseif topology == BarabasiAlbert
-            net.connections, net.graph = baraAlbert(net)
+            net.graph = baraAlbert(net)
         end
 
         return net
     end
 end
 
-# function KRegRingMatrix(net::Network)
-#     connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
-#     for i in 1:net.nPopulations
-#         columns = [mod(i+j-1, net.nPopulations)+1 for j in -net.k_bar÷2:net.k_bar÷2 if mod(i+j-1, net.nPopulations)+1 != i]
-#         connections[i, columns] .= 1
-#     end
-#     return connections
-# end
 
 function smallWorldMatrix(net::Network; β=.5)
     is_graph_connected = false
@@ -47,13 +37,13 @@ function smallWorldMatrix(net::Network; β=.5)
         is_graph_connected = Graphs.is_connected(g)
     end
     adj = convert(Matrix{Float64}, adjacency_matrix(g))
-    return adj, g
+    return g
 end
 
 function baraAlbert(net::Network)
     g = barabasi_albert(net.nPopulations, net.k_bar)
     adj = convert(Matrix{Float64}, adjacency_matrix(g))
-    return adj, g
+    return g
 end
 
 
@@ -67,18 +57,18 @@ function pathGraph(net::Network; directed=false)
         adj = convert(Matrix{Float64}, adjacency_matrix(g))
     end
 
-    return adj, g
+    return g
 end
 
 
-function KRegRingMatrix(net::Network)
-    connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
-    for i in 1:net.nPopulations
-        columns = [mod(i+j-1, net.nPopulations)+1 for j in -net.k_bar÷2:net.k_bar÷2 if mod(i+j-1, net.nPopulations)+1 != i]
-        connections[i, columns] .= 1
-    end
-    return connections
-end
+# function KRegRingMatrix(net::Network)
+#     connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)
+#     for i in 1:net.nPopulations
+#         columns = [mod(i+j-1, net.nPopulations)+1 for j in -net.k_bar÷2:net.k_bar÷2 if mod(i+j-1, net.nPopulations)+1 != i]
+#         connections[i, columns] .= 1
+#     end
+#     return connections
+# end
 
 # function computePOConnectivityHistory(ρsHistory,infectedHistory,populations,connections,POrder)
 #     # POrder = 0, 1, or 2

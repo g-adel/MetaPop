@@ -44,7 +44,7 @@ function initializePopulations!(meta)
     populations=meta.populations
     nPopulations = meta.S.net.nPopulations
     for i in 1:nPopulations
-        populations[i] = Population(1., 0., 0., 1., i,zeros(nPopulations))
+        populations[i] = Population(1., 0., 0., zeros(nPopulations),1., i)
     end
     populations[1].I = meta.S.sim.I₀;
     populations[1].S = 1 - populations[1].I
@@ -53,11 +53,10 @@ end
 
 function getPopulationRoC(pop::Population,meta::Metapopulation)
     net, populations, epi = meta.S.net, meta.populations, meta.S.epi;
+    g=net.graph
     S = pop.S; I = pop.I; R = pop.R
-    inConnections = net.connections[:,pop.index]
-    outConnections = net.connections[pop.index,:]
     netFlowInfected = netFlowSusceptible = netFlowRecovered = 0
-    for (connPopInd, connWeight) in enumerate(inConnections)
+    for connPopInd in inneighbors(g,pop.index)
         connPop = populations[connPopInd]
         finalMobilityRate = meta.mobilityRates[pop.index,connPopInd]
 
@@ -65,7 +64,7 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
         netFlowInfected += finalMobilityRate * (connPop.I)
         netFlowRecovered += finalMobilityRate * (connPop.R)
     end
-    for (connPopInd, connWeight) in enumerate(outConnections)
+    for connPopInd in outneighbors(g,pop.index)
         connPop = populations[connPopInd]
         finalMobilityRate = meta.mobilityRates[connPopInd, pop.index]
 
@@ -73,19 +72,20 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
         netFlowInfected += finalMobilityRate    * (- I)
         netFlowRecovered += finalMobilityRate   * (- R)
     end
+
     dS = -epi.β*I*S + epi.σ*R + netFlowSusceptible # is netFlow a rate of change?
     dI =  epi.β*I*S - epi.γ*I + netFlowInfected
     dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
     strategy = meta.S.strat.strategy
     ρsRoC = empty(size(populations))
     if strategy == GlobalDiffRestriction
-        ρsRoC == globalDiffRestriction(pop,inConnections,meta)
+        ρsRoC == globalDiffRestriction(pop,meta)
     elseif strategy == UniformPropRestriction
-        ρsRoC = uniformPropRestriction(pop,inConnections,meta)
+        ρsRoC = uniformPropRestriction(pop,meta)
     elseif strategy == IndivPropRestriction
-        ρsRoC = indivPropRestriction(pop,inConnections,meta)
+        ρsRoC = indivPropRestriction(pop,meta)
     elseif strategy == IndivLogRestriction
-        ρsRoC = indivLogRestriction(pop,inConnections,meta)
+        ρsRoC = indivLogRestriction(pop,meta)
     end
 
     populationRoC = PopulationRoC(dS,dI,dR,ρsRoC) #struct

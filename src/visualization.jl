@@ -112,7 +112,7 @@ function drawConnection(i,j,populations; PNG = false)
     end
 end
 
-function drawConnections(populations,connections;PNG = false)
+function drawConnections(populations,connections,meta;PNG = false)
     setline(2) # Set line width
     sethue("black") # Set line color
     nPopulations = length(populations)

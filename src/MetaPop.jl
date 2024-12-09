@@ -22,7 +22,7 @@ function defineMeta()
     sim = Sim(; h =0.01,min_h=10e-10, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
-                            mobilityRates = sparse(net.connections)*epi.μ, day = 1)
+                            mobilityRates = Graphs.LinAlg.adjacency_matrix(net.graph,Float64)*epi.μ, day = 1)
 
     return meta, S
 end

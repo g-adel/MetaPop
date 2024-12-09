@@ -45,7 +45,7 @@ function dataAnalytics(metaHist,S)
         ρPath[:,i+1] = data["ρsHistory"][:,i+1,i]
     end
 
-    nodeStrength = sum(S.net.connections, dims=2)
+    nodeStrength = degree(g) # Not weighted!!
     for t in 1:nTimeSteps
         for p in 1:nPopulations
             ρsAvg[t, p] = sum(data["ρsHistory"][t, p, :])./nodeStrength[p]
