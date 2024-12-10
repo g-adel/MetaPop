@@ -47,6 +47,23 @@ The utilization of structs came in especially useful when implementing multistep
 The graph structure is stored in the form of a sparse weighted adjacency matrix in the form of a Compressed Sparse Column (CSC).  CSC is composed of 3 arrays of element values, row indices array and column pointers array. CSC was chosed and not Compressed Sparse Row, because Julia is column-major. The storage size of this format is linearly proportional to the number of elements in the adjacency matrix and hence to the network link density. Even though this matrix is symmetrical and thus would only require the storage of the lower rectangular region, the entire matrix is stored with both its symmetric sides. This is to improve the retrieval time to attain the indices of neighboring subpopulations. In a CSC adjacency matrix, values in each column are stored contiguously, and hence are quick to read from memory. However, to maintain this advantage, each column has to be fully stored so that each subpopulation can quickly find all its neighbors.\\
 
 Following the simulation, we are interested in the history of all the dynamic variables. One could store an array copies of the metapopulation, one for each time iteration. However, this data structure would have poor data contiguency. As in the data analysis we will mostly process each variable independently (e.g. looking at the evolution of infected in each subpopulation). Instead, seperate arrays for each of the variables were assigned and appended to with every time step. For the travel restrictions, an array of sparse matrices was stored, where each matrix is the travel restrictions applied from every subpopulation to every other subpopulation. This has the disadvantage that when looking solely on travel restrictions between two subpopulations over time, there is a relatively large span between consecutive time values. However, it was found that reordering the data structure to be a sparse matrix of arrays (where each element is the travel restriction history of a pair of subpopulations) took more time to create than just reading from the array of sparse matrices.\\
+
+\subsubsection{Integration Scheme}
+
+Selecting an appropriate integration scheme is vital for accurately solving the system of ordinary differential equations (ODEs) governing the epidemic dynamics and adaptive travel restrictions. Initially, the Explicit Euler method was employed due to its simplicity. However, it required impractically small time steps to maintain stability and accuracy, especially in the presence of stiffness and nonlinearities in the system.
+
+To improve accuracy without significantly increasing computational complexity, the classical fourth-order Runge-Kutta (RK4) method was implemented. The RK4 method provides a good balance between computational efficiency and accuracy by calculating intermediate stages within each time step to achieve fourth-order accuracy. The implementation of RK4 for advancing the solution from time ( $t$ ) to ( $t + \Delta t$ ) is as follows:
+
+\begin{align*} 
+	k_1 &= f\left(y_t,, t\right), \\ k_2 &= f\left(y_t + \tfrac{1}{2}\Delta t, k_1,, t + \tfrac{1}{2}\Delta t\right), \\ k_3 &= f\left(y_t + \tfrac{1}{2}\Delta t, k_2,, t + \tfrac{1}{2}\Delta t\right), \\ k_4 &= f\left(y_t + \Delta t, k_3,, t + \Delta t\right), \\ y_{t + \Delta t} &= y_t + \tfrac{1}{6}\Delta t\left(k_1 + 2k_2 + 2k_3 + k_4\right), \end{align*}
+
+where ( $y_t$ ) is the state vector at time ( $t$ ), and ( $f$ ) represents the ODE system.
+
+Despite the improvements, the RK4 method still faced challenges with stiffness and ensuring that dynamic variables remained within their realistic bounds (e.g., compartment sizes staying non-negative and not exceeding total population sizes). To address these issues, an adaptive Runge-Kutta-Fehlberg (RK45) method with adaptive time stepping was implemented.
+
+The RK45 method dynamically adjusts the time step based on the estimated local truncation error, allowing for efficient handling of varying timescales in the system. This adaptivity enables larger time steps when the solution changes slowly and smaller steps during rapid transitions, improving computational efficiency without compromising accuracy. Additionally, the adaptive scheme includes boundary checks to ensure that variables remain within permissible limits, thereby preventing non-physical results.
+
+By employing the adaptive RK45 method, the simulation effectively balances accuracy and efficiency, handling stiffness in the ODE system while maintaining the physical realism of the solution throughout the simulation.
 \subsubsection{Algorithms}
 
 \subsubsection{Visualization}

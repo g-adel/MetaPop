@@ -53,25 +53,25 @@ function drawPopulation(pop::Population;radiusScale = 15)
     origin()
 end
 
-function drawPopulationHistory(pop, popSusceptibleHistory, popInfectedHistory,)
-    nTimeSteps = length(popSusceptibleHistory)
-    popC = deepcopy(pop)
-    nPts = 40
-    Luxor.translate(pop.position+Point(-nPts/2,-nPts/2))
-    for r in 1:nPts
-        S = popSusceptibleHistory[floor(Int,r*nTimeSteps/nPts)]
-        I = popInfectedHistory[floor(Int,r*nTimeSteps/nPts)]
-        R = 1 - S - I
-        setcolor(0,0,1)
-        rect(Point(r,0),1.5,nPts*S,:fill)
-        setcolor("green")
-        rect(Point(r,nPts*(S)),1.5,nPts*R,:fill)
-        setcolor("red")
-        rect(Point(r,nPts*(S+R)),1.5,nPts*I,:fill)
+# function drawPopulationHistory(pop, popSusceptibleHistory, popInfectedHistory,)
+#     nTimeSteps = length(popSusceptibleHistory)
+#     popC = deepcopy(pop)
+#     nPts = 40
+#     Luxor.translate(pop.position+Point(-nPts/2,-nPts/2))
+#     for r in 1:nPts
+#         S = popSusceptibleHistory[floor(Int,r*nTimeSteps/nPts)]
+#         I = popInfectedHistory[floor(Int,r*nTimeSteps/nPts)]
+#         R = 1 - S - I
+#         setcolor(0,0,1)
+#         rect(Point(r,0),1.5,nPts*S,:fill)
+#         setcolor("green")
+#         rect(Point(r,nPts*(S)),1.5,nPts*R,:fill)
+#         setcolor("red")
+#         rect(Point(r,nPts*(S+R)),1.5,nPts*I,:fill)
         
-    end
-    origin()
-end 
+#     end
+#     origin()
+# end 
 
 function drawConnection(i,j,populations; PNG = false)
     if (j>i)
@@ -150,18 +150,18 @@ function frame(scene::Scene, framenumber::Int, populations,infectedHistory, susc
 end
 
 
-function drawNetworkPNG(populations,connections,infectedHistory, susceptibleHistory,ρsHistory;filename = "MetaPopNet.png")
-    @png begin
-        background("white")
-        origin()
-        drawConnections(populations,connections;PNG = true)
-        for pop in populations
-            drawPopulationHistory(pop, susceptibleHistory[:,pop.index], infectedHistory[:,pop.index])
-        end
-        finish()
-    end 400 400 filename
-    return filename
-end
+# function drawNetworkPNG(populations,connections,infectedHistory, susceptibleHistory,ρsHistory;filename = "MetaPopNet.png")
+#     @png begin
+#         background("white")
+#         origin()
+#         drawConnections(populations,connections;PNG = true)
+#         for pop in populations
+#             drawPopulationHistory(pop, susceptibleHistory[:,pop.index], infectedHistory[:,pop.index])
+#         end
+#         finish()
+#     end 400 400 filename
+#     return filename
+# end
 
 function drawNetworkKarnak(meta, data; filename = "Network.png")
     spreadTimes = data["spreadInfInd"].-1 # if time=-1 means not found

@@ -40,10 +40,8 @@ end
 function updateMetapop(meta,metaCritHist, h)
     newMeta=deepcopy(meta)
     h_scale = 0.1
-    h_new = h
-    t=0
-    k=Array{Vector{PopulationRoC}, 1}(undef, 4)
-    m=Array{Metapopulation, 1}(undef,4)
+    k = Array{Vector{PopulationRoC}, 1}(undef, 4)
+    m = Array{Metapopulation, 1}(undef,4)
     c = [0,1/2,1/2,1]
     b = [1/6,1/3,1/3,1/6]
     a = [   0    0   0 0;
@@ -51,33 +49,34 @@ function updateMetapop(meta,metaCritHist, h)
             0    .5  0 0;
             0    0   1 0]
     
-    
+    t = 0
     while t < 1
-        iterMeta=undef
-        firstTime = true;  OOB=false
         h_new = h
         # h_new=min(h,h_new/(h_scale^1))
-        while firstTime || (OOB && h_new >= meta.S.sim.min_h)
+        while true
             # println("attempt")
             m[1] = newMeta
             k[1] = metaRoC(m[1])
             m[2], OOB1 = incrementMeta(m[1],k[1],a[2,1]*h_new)
             k[2] = metaRoC(m[2])
-            m[3], OOB2 = incrementMeta(m[1],k[2],a[3,1]*h_new)
+            m[3], OOB2 = incrementMeta(m[1],k[2],a[3,2]*h_new)
             k[3] = metaRoC(m[3])
-            m[4], OOB3 = incrementMeta(m[1],k[3],a[4,1]*h_new)
+            m[4], OOB3 = incrementMeta(m[1],k[3],a[4,3]*h_new)
             k[4] = metaRoC(m[4])
             η = sum(b .* k)
             iterMeta, OOB4 = incrementMeta(newMeta,η,h_new)
-            OOB = (OOB1||OOB2||OOB3||OOB4)
-            h_new = OOB ? h_new*h_scale : h_new
-            
-            firstTime = false
+            OOB = OOB1||OOB2||OOB3||OOB4
+            # @show OOB1 OOB2 OOB3 OOB4 h_new
+            if OOB && h_new >= meta.S.sim.min_h
+                h_new*=h_scale
+            else   
+                newMeta=iterMeta 
+                break   
+            end
         end
         # iterMeta.day<2 && println("OOB: ", OOB ," ρ21: ", iterMeta.populations[2].ρs[1], ", h: ", h_new, ", t: ", t)
-        newMeta=iterMeta
-        (h_new<h) && @printf("h: %.0f, t: %.9f, ρ21: %.9f, ρ32: %.9f \n "
-                            , log10(h_new), t,newMeta.populations[2].ρs[1],newMeta.populations[3].ρs[2])
+        # (h_new<h) && @printf("h: %.0f, d+t: %.9f, ρ21: %.9f, ρ32: %.9f \n "
+        #                     , log10(h_new), newMeta.day+t,newMeta.populations[2].ρs[1],newMeta.populations[3].ρs[2])
         # h_new<h && print(h_new," ")
         # OOB && @warn("solution OOB! at day $(newMeta.day), t=$t, h=$h_new")
         newMeta.day+=h_new
