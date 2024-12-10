@@ -26,45 +26,45 @@ function uniformPropRestriction(pop,meta)
         netFlowInfected += finalMobilityRate * (meta.populations[connPopInd].I)
     end
 
-    ρRoC = zeros(size(pop.ρs))
+    ρsRoC = spzeros(meta.net.nPopulations)
     for i in nbrs_indices
-        ρRoC[i] = λ*netFlowInfected - meta.S.strat.mobBias * pop.ρs[i]
+        ρsRoC[i] = λ*netFlowInfected - meta.S.strat.mobBias * pop.ρs[i]
     end
 
-    return ρRoC
+    return ρsRoC
 end
 
 function indivPropRestriction(pop,meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
     g=meta.S.net.graph
     nbrs_indices = neighbors(g,pop.index)
-    ρRoC = zeros(size(pop.ρs))
+    ρsRoC = spzeros(meta.S.net.nPopulations)
     
     for connPopInd in nbrs_indices
         # could be turned into array operation
         inflowInfected = meta.mobilityRates[connPopInd,pop.index] * (meta.populations[connPopInd].I)
-        ρRoC[connPopInd] = λ*inflowInfected - meta.S.strat.mobBias * pop.ρs[connPopInd]
+        ρsRoC[connPopInd] = λ*inflowInfected - meta.S.strat.mobBias * pop.ρs[connPopInd]
     end
 
-    return ρRoC
+    return ρsRoC
 end
 
 function indivLogRestriction(pop,meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
     g=meta.S.net.graph
     nbrs_indices = neighbors(g,pop.index)
-    ρRoC = spzeros(size(pop.ρs)) # TODO: Change to sparse
+    ρsRoC = spzeros(meta.S.net.nPopulations) # TODO: Change to sparse
     
     for connPopInd in nbrs_indices
         # could be turned into array operation
         inflowInfected = meta.mobilityRates[connPopInd,pop.index] * (meta.populations[connPopInd].I)
         localRate = (meta.S.epi.β - meta.S.epi.γ) * pop.I
         # ρRoC[connPopInd] = λ*log((inflowInfected + localRate)/localRate) - meta.S.strat.mobBias * pop.ρs[connPopInd]
-        ρRoC[connPopInd] = λ*log(meta.populations[connPopInd].I/pop.I) - meta.S.strat.mobBias * pop.ρs[connPopInd]
+        ρsRoC[connPopInd] = λ*log(meta.populations[connPopInd].I/pop.I) - meta.S.strat.mobBias * pop.ρs[connPopInd]
 
-        if isnan(ρRoC[connPopInd]) || isinf(ρRoC[connPopInd]) ||ρRoC[connPopInd]<0
-            ρRoC[connPopInd] = 0
+        if isnan(ρsRoC[connPopInd]) || isinf(ρsRoC[connPopInd]) ||ρsRoC[connPopInd]<0
+            ρsRoC[connPopInd] = 0
         end
     end
-    return ρRoC
+    return ρsRoC
 end

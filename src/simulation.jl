@@ -53,30 +53,30 @@ function updateMetapop(meta,metaCritHist, h)
     
     
     while t < 1
-        OOB=OOB2=OOB3=OOB4=true
         iterMeta=undef
-        firstTime = true
+        firstTime = true;  OOB=false
         h_new = h
         # h_new=min(h,h_new/(h_scale^1))
-        while firstTime || ((OOB||OOB2||OOB3||OOB4) && h_new >= meta.S.sim.min_h)
+        while firstTime || (OOB && h_new >= meta.S.sim.min_h)
             # println("attempt")
             m[1] = newMeta
             k[1] = metaRoC(m[1])
-            m[2], OOB2 = incrementMeta(m[1],k[1],a[2,1]*h_new)
+            m[2], OOB1 = incrementMeta(m[1],k[1],a[2,1]*h_new)
             k[2] = metaRoC(m[2])
-            m[3], OOB3 = incrementMeta(m[1],k[2],a[3,1]*h_new)
+            m[3], OOB2 = incrementMeta(m[1],k[2],a[3,1]*h_new)
             k[3] = metaRoC(m[3])
-            m[4], OOB4 = incrementMeta(m[1],k[3],a[4,1]*h_new)
+            m[4], OOB3 = incrementMeta(m[1],k[3],a[4,1]*h_new)
             k[4] = metaRoC(m[4])
             η = sum(b .* k)
-            iterMeta, OOB = incrementMeta(newMeta,η,h_new)
+            iterMeta, OOB4 = incrementMeta(newMeta,η,h_new)
+            OOB = (OOB1||OOB2||OOB3||OOB4)
             h_new = OOB ? h_new*h_scale : h_new
             
             firstTime = false
         end
         # iterMeta.day<2 && println("OOB: ", OOB ," ρ21: ", iterMeta.populations[2].ρs[1], ", h: ", h_new, ", t: ", t)
         newMeta=iterMeta
-        (h_new<h && newMeta.day>2) && @printf("h: %.0f, t: %.9f, ρ21: %.9f, ρ32: %.9f \n "
+        (h_new<h) && @printf("h: %.0f, t: %.9f, ρ21: %.9f, ρ32: %.9f \n "
                             , log10(h_new), t,newMeta.populations[2].ρs[1],newMeta.populations[3].ρs[2])
         # h_new<h && print(h_new," ")
         # OOB && @warn("solution OOB! at day $(newMeta.day), t=$t, h=$h_new")
@@ -84,6 +84,101 @@ function updateMetapop(meta,metaCritHist, h)
         t+=h_new
         newMeta.day<= meta.S.sim.critRange && push!(metaCritHist,newMeta)
     end
+    return newMeta
+end
+
+function updateMetapopRK45(meta, metaCritHist, h)
+    newMeta = deepcopy(meta)
+    h_new = h
+    t = 0.0
+    min_h = meta.S.sim.min_h
+    max_h = h
+    tol = 1e-6  # Error tolerance
+
+    # Dormand-Prince coefficients
+    c = [0.0, 1/5, 3/10, 4/5, 8/9, 1.0]
+    a = [
+        [],
+        [1/5],
+        [3/40, 9/40],
+        [44/45, -56/15, 32/9],
+        [19372/6561, -25360/2187, 64448/6561, -212/729],
+        [9017/3168, -355/33, 46732/5247, 49/176, -5103/18656]
+    ]
+    b = [35/384, 0.0, 500/1113, 125/192, -2187/6784, 11/84]
+    b_star = [5179/57600, 0.0, 7571/16695, 393/640, -92097/339200, 187/2100]
+
+    while t < 1.0
+        h_new = min(h_new, 1.0 - t)  # Prevent overshooting
+        OOB = false
+
+        # Initialize k and m arrays
+        k = Vector{PopulationRoC}[]
+        m = Metapopulation[]
+
+        # Stage 1
+        m_1 = newMeta
+        k_1 = metaRoC(m_1)
+        push!(k, k_1)
+        push!(m, m_1)
+
+        # Stages 2 to 6
+        for i in 2:6
+            sum_a_k = zero(k_1)
+            for j in 1:i-1
+                sum_a_k += a[i][j] * k[j]
+            end
+            temp_meta, OOB_stage = incrementMeta(newMeta, sum_a_k, h_new)
+            OOB = OOB || OOB_stage
+            temp_k = metaRoC(temp_meta)
+            push!(k, temp_k)
+            push!(m, temp_meta)
+        end
+
+        # Compute high-order and low-order increments
+        η = zero(k_1)
+        η_star = zero(k_1)
+        for i in 1:6
+            η += b[i] * k[i]
+            η_star += b_star[i] * k[i]
+        end
+
+        # Compute the next Metapopulations
+        iterMeta, OOB_iter = incrementMeta(newMeta, η, h_new)
+        iterMeta_star, OOB_star = incrementMeta(newMeta, η_star, h_new)
+        OOB = OOB || OOB_iter || OOB_star
+
+        # Estimate error
+        error = norm(η - η_star)
+
+        # Adaptive step size control
+        if error <= tol || h_new <= min_h
+            # Accept the step
+            newMeta = iterMeta
+            newMeta.day += h_new
+            t += h_new
+            if newMeta.day <= meta.S.sim.critRange
+                push!(metaCritHist, newMeta)
+            end
+
+            # Update step size
+            if error == 0.0
+                s = 2.0
+            else
+                s = 0.9 * (tol / error)^(1/5)
+            end
+            h_new = clamp(s * h_new, min_h, max_h)
+        else
+            # Reject the step and reduce h_new
+            h_new = max(h_new * 0.5, min_h)
+        end
+
+        if OOB
+            @warn("Solution out of bounds at time t = $t")
+            break
+        end
+    end
+
     return newMeta
 end
 
@@ -123,7 +218,6 @@ function metaRoC(meta)
             # globalInfectedFlow += meta.mobilityRates[popInd,connPopInd] # WRONG
         end
     end
-    # integration
     for (i, population) in enumerate(populations)
         # meta.mobilityRates need to be computed for popsRoC
         popsRoC[i] = getPopulationRoC(population, meta)

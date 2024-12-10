@@ -18,8 +18,8 @@ end
 function defineMeta()
     epi = SIRS_epidemic(β = 0.125,γ = 0.02, σ = .0, μ = 0.01)
     net = Network(; nPopulations = 10, k_bar = 2, topology = PathGraph)
-    strat = Strat(; λ = 0e0, mobBias = 0.0,strategy = IndivPropRestriction)
-    sim = Sim(; h =0.01,min_h=10e-10, nDays = 500, I₀=1e-5, critRange = 0)
+    strat = Strat(; λ = 1e10, mobBias = 0.0,strategy = IndivPropRestriction)
+    sim = Sim(; h =0.1,min_h=10e-9, nDays = 500, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                             mobilityRates = Graphs.LinAlg.adjacency_matrix(net.graph,Float64)*epi.μ, day = 1)
@@ -42,7 +42,7 @@ end
 function singleCaseMain()
     meta, S = defineMeta()
     initializePopulations!(meta)
-    metaHist = simulateSystem(meta)
+    @time metaHist = simulateSystem(meta)
     data = dataAnalytics(metaHist,S)
     generatePrettyTable(data)
 

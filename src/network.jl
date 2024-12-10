@@ -69,22 +69,3 @@ end
 #     end
 #     return connections
 # end
-
-# function computePOConnectivityHistory(ρsHistory,infectedHistory,populations,connections,POrder)
-#     # POrder = 0, 1, or 2
-#     nTimeSteps, nPopulations, nMobility = size(ρsHistory)
-#     POConnectivity = zeros(nTimeSteps, nPopulations)
-#     AveragePOConnectivity = zeros(nTimeSteps)
-#     for t in 1:nTimeSteps
-#         for i in 1:nPopulations
-#             for j in 1:nMobility
-#                 POConnectivity[t, i] += ρsHistory[t, i, j]*ρsHistory[t, j, i]*connections[i,j]
-#                 if POrder > 0 POConnectivity[t, i] *= (populations[j].size - infectedHistory[t,i]) end 
-#                 if POrder > 1 POConnectivity[t, i] *= (populations[i].size-infectedHistory[t,j]) end
-#             end
-#             AveragePOConnectivity[t]+=POConnectivity[t, i]
-#         end
-#     end
-#     AveragePOConnectivity = AveragePOConnectivity./nPopulations
-#     return POConnectivity, AveragePOConnectivity
-# end

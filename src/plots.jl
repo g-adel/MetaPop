@@ -3,6 +3,7 @@ function alignAndCombinePlots(plots)
     height = sum(p[2] for p in plots)
     for p in plots
         plot!(p[1], left_margin=20Plots.mm, bottom_margin=10Plots.mm, tickfontsize=10, guidefontsize=15)
+        title!(p[1],p[3])
     end
     
     # Extract the heights for the layout
@@ -84,7 +85,6 @@ function plotInfEvolution(data; yLog=false, xLog = false)
     plot!(p, xAxis, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
-    title!(p, title)
     height = yLog ? 600 : 400
     return p, height, title
 end
@@ -107,7 +107,6 @@ function plotRestrictions(data)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
-    title!(p, title)
     return p, 400, title
 end
 
@@ -129,7 +128,6 @@ function plotInfectedFlow(data)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Infected Flow")
-    title!(p, title)
     return p, 400, title
 end
 
@@ -150,7 +148,6 @@ function plotAvgRestrictions(ρsAvgHistory)
     
     xlabel!(p, "Time (days)")
     ylabel!(p, "Mobility Restrictions")
-    title!(p, title)
     return p, 600, title
 end
 
@@ -180,7 +177,6 @@ function plotInfectionDays(data,epi)
     epi.γ>0 && scatter!(p, pathLengths, data["peakInfInd"], label="Peak Infection Day", mc=:red)
     scatter!(p, pathLengths, data["firstOrderSol"], label="First Order Sol.", mc=:yellow)
     plot!(p, pathLengths, data["firstOrderApprox"], label="Lambert W rate", mc=:white)
-    title!(p, title)
     return p, 800, title
 end
 
@@ -203,24 +199,24 @@ function plotSpreadRates(data)
     # make y-axis start from 0
     plot!(p, ylims=(0, maximum(inv_diff_days)*1.1))
     title = "Spread Rates"
-    title!(p, title)
     return p, 600, title
 end
 
 
 function plot_cumulative_flow(data::Dict)
+    title= "Cumulative Infected Flow"
     cumuInfMob =[data["cumuInfMob"][i, i+1] for i in 1:size(data["cumuInfMob"], 1)-1]
     nPopulations = length(cumuInfMob)
     p = scatter(1:nPopulations-1, cumuInfMob, legend=false, yscale=:log10)
     plot!(p, xlims=(0, nPopulations))
     xlabel!(p, "Path length")
     ylabel!(p, "Cumulative Infected Flow")
-    title= "Cumulative Infected Flow"
-    title!(p, title)
+    
     return p, 800, title
 end
 
 function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale::Bool=false)
+    title = "Consecutive Infecteds prevalence" * (log_scale ? " (Log Scale)" : "")
     
     nTimeSteps, nPopulations = size(infectedHistory)
     p = plot()
@@ -233,8 +229,7 @@ function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale:
     end
     xlabel!(p, "Population i infected prevalence")
     ylabel!(p, "Population i+1 infected prevalence")
-    title = "Consecutive Infecteds prevalence" * (log_scale ? " (Log Scale)" : "")
-    title!(p, title)
+
     
     if log_scale
         plot!(p,xscale=:ln,yscale=:ln)
@@ -244,6 +239,7 @@ function plot_consecutive_infected(infectedHistory::Array{Float64,2}; log_scale:
 end
 
 function plot_infect_ρ(infectedHistory::Array{Float64,2}, ρsHistory::Array{Float64,3})
+    title = "Evolution of infected prevalence and ρ"
     
     nTimeSteps, nPopulations = size(infectedHistory)
     p = plot()
@@ -258,12 +254,11 @@ function plot_infect_ρ(infectedHistory::Array{Float64,2}, ρsHistory::Array{Flo
     plot!(p,legend=false)
     xlabel!(p, "Population i infected prevalence")
     ylabel!(p, "Population i+1 infected prevalence")
-    title = "Evolution of infected prevalence and ρ"
-    title!(p, title)
     return p, 800, title
 end
 
 function plot_infect_flow(infectedHistory, downstream_flows)
+    title = "Evolution of infected flow rate"
     nTimeSteps, nPopulations = size(infectedHistory)
     p = plot()
     colors = palette(:jet, nPopulations)
@@ -278,7 +273,5 @@ function plot_infect_flow(infectedHistory, downstream_flows)
     plot!(p, legend=false)
     ylabel!(p, "Population i infected prevalence")
     xlabel!(p, "Population i+1 infected flow rate")
-    title = "Evolution of infected flow rate"
-    title!(p, title)
     return p, 800, title
 end
