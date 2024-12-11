@@ -6,7 +6,8 @@ This chapter outlines the numerical methods employed to analyze the system's dyn
 Furthermore, efficient data structures and algorithms were developed to address scaling challenges posed by large networks. This requirement was amplified by multi-step integration schemes, which necessitate managing multiple concurrent states of the network. The combined focus on accuracy and efficiency ensures that the simulations can effectively support the analysis of adaptive epidemic containment strategies.\\
 
 \subsection{ODE System Properties}
-When solving an ODE, it is critical to first understand its type and properties, as different require different integration or solver schemes. The entire system of ODE system is represented in the set of infection dynamics and travel restriction equations [insert equation numbers here].\\
+When solving an ODE, it is critical to first understand its type and properties, as different require different integration or solver schemes. The entire system of ODE system is represented in the set of infection dynamics and travel restriction equations [insert equation numbers here]. Although the system of ODEs is not time-dependent, it is still of-interest to keep accurate record of the elapsed time as the state of the system changes, as the main focus of this study is to find the spread rate of infection in the system, which requires knowledge of when different populations hit their infection peak. 
+\\
 
 Based on the design of the model, it is expected that at all times, the sum of all compartments of individuals in all subpopulations should remain constant. Furthermore, due to the formulation of the mobility rates between subpopulations, it is expected that the total number of individuals at each subpopulation is also conserved. \\
 
@@ -33,7 +34,9 @@ Another property of the ODE to take into consideration is high variance in rates
 The Julia programming language was used for the computational aspect of this project. The main known advantage of Julia is its out-of-the-box speed in scientific computation due to its  Just-in-time compiler. This gives a head-start in computational speed compared to C++ and Python which require significantly more complex setups. However, Julia has several other positive aspects that make it especially useful for this project. This includes its strong variable typing, multiple dispatch, and strong support for functional programming. It also incorporates many mathematical tools dealing with matrix operations and numerical equations. For dealing with networks, Graphs.jl was used for generating network classes, such as the Barabasi-Albert and the Watts-Strogatz networks, and for typical graph functionality such as finding path length and nearest neighbors. Karnak.jl was used for network visualization and Plots.jl was used for all the plots in this report.
 \subsubsection{Data Structure}
 In designing an efficient and scalable data pipeline for epidemic simulations, the choice of data structures plays a critical role. These structures must support both static and dynamic components of the simulation while ensuring memory efficiency and computational speed. This subsection delves into the underlying principles guiding these choices, such as the use of structs, the importance of memory contiguity, and the modularization of code for optimizing computational performance.\\
-
+\\
+\includegraphics[width=120mm]{Figures/structs.png}
+\\\\
 The aspect that taken under consideration the most in the data structure is Memory contiguity, which refers to the arrangement of data in sequential memory locations. This is important because modern computer architectures leverage caching mechanisms to speed up data retrieval. Contiguous memory allows processors to fetch adjacent data elements in fewer operations, significantly boosting performance for tasks that iterate over large datasets. For epidemic simulations, where data structures like adjacency matrices and population compartments are frequently accessed, maintaining memory contiguity minimizes latency and ensures efficient computational workflows.\\
 
 The struct (short for structure) was used extensively in this project. It is a user-defined composite data type that groups related variables under a single name, allowing them to be accessed and managed as a unit. They play a more bare-bones analog to classes in object-oriented programming. Structs enhance readability, ensure logical grouping, and facilitate passing complex data efficiently between functions while reducing the risk of accidental modifications. However, the most crucial benefit of structs is that they can be static, immutable and of preallocated size. This allows for great compiler optimizations as the reading and writing processes can be streamlined.\\
@@ -42,29 +45,79 @@ The usage of structs allows for Modularization in code design, which ensures tha
 
 There are two types of data in this sytem: the static parameters and properties of the metapopulation, such as the mobility rate and link weights, and the dynamic data such as the number of infected individuals in each subpopulation and travel restrictions which change with time. The static parameters were stored in a collection of immutable structs such as epidemic and network properties. This grouping allows for safe and efficient passing of constants to functions. It's worthy to note that while there is different link weights between nodes, the network overall is still sparse such that the majority of links between any two nodes are zero-valued. The dynamic variables in this system all happen locally in relation to the subpopulations. The two aspects of this dynamics for any given subpopulation are the sizes of the different epidemiological states and the travel restrictions applied towards all of its neighbors. These dynamic data were stored in structs representing each subpopulation. These include the population compartmental variables and the travel restricitions applied by the subpopulation towards all neighboring populations.\\
 
-The utilization of structs came in especially useful when implementing multistep integration schemes. Since they require the multiplication and scaling of the system at different timesteps, special definitions for scaling and adding metapopulations are needed. Julia's multi-dispatch(?) was utilized here for streamlined manipulation of system variables. In addition to struct definions of the system itself, a special struct was defined that stores the rate of change of each subpopulation as well.
+The utilization of structs came in especially useful when implementing multistep integration schemes. Since they require the multiplication and scaling of the system at different timesteps, special definitions for scaling and adding metapopulations are needed. Julia's multi-dispatch was utilized here for streamlined manipulation of system variables. In addition to struct definions of the system itself, a special struct was defined that stores the rate of change of each subpopulation as well.
 
 The graph structure is stored in the form of a sparse weighted adjacency matrix in the form of a Compressed Sparse Column (CSC).  CSC is composed of 3 arrays of element values, row indices array and column pointers array. CSC was chosed and not Compressed Sparse Row, because Julia is column-major. The storage size of this format is linearly proportional to the number of elements in the adjacency matrix and hence to the network link density. Even though this matrix is symmetrical and thus would only require the storage of the lower rectangular region, the entire matrix is stored with both its symmetric sides. This is to improve the retrieval time to attain the indices of neighboring subpopulations. In a CSC adjacency matrix, values in each column are stored contiguously, and hence are quick to read from memory. However, to maintain this advantage, each column has to be fully stored so that each subpopulation can quickly find all its neighbors.\\
+\usetikzlibrary{matrix}
+\usetikzlibrary{positioning}
+\begin{figure}[htbp]
+	\centering
+	\begin{tikzpicture}
+	  % Draw the sparse matrix
+	  \matrix[matrix of math nodes, left delimiter={(}, right delimiter={)}] (A)
+	  {
+		0 & 5 & 0 & 0 \\
+		3 & 0 & 0 & 7 \\
+		0 & 0 & 4 & 0 \\
+		0 & 1 & 0 & 0 \\
+	  };
+	
+	  % Highlight non-zero elements
+	  \foreach \i/\j in {2/1,1/2,4/2,3/3,2/4} {
+		\draw[red, very thick] (A-\i-\j.north west) rectangle (A-\i-\j.south east);
+	  }
+	
+	  % Draw arrays for CSC representation
+	  % Values array
+	  \node[right=3cm of A, yshift=1cm] (values) {Values: [3, 5, 1, 4, 7]};
+	  % Row Indices array
+	  \node[below=0.2cm of values] (row_indices) {Row Indices: [2, 1, 4, 3, 2]};
+	  % Column Pointers array
+	  \node[below=0.2cm of row_indices] (col_pointers) {Column Pointers: [1, 2, 4, 5, 6]};
+	
+	  % Arrows from matrix to Values array
+	%   \draw[->] (A-2-1) to[out=0,in=180] (values.west);
+	%   \draw[->] (A-1-2) to[out=0,in=180] (values.west);
+	%   \draw[->] (A-4-2) to[out=0,in=180] (values.west);
+	%   \draw[->] (A-3-3) to[out=0,in=180] (values.west);
+	%   \draw[->] (A-2-4) to[out=0,in=180] (values.west);
+	\end{tikzpicture}
+
+	\caption{Illustration of Compressed Sparse Column (CSC) storage format. Sparse one-dimensional arrays are stored in a similar manner except without the need for column pointers.}
+	\end{figure}
 
 Following the simulation, we are interested in the history of all the dynamic variables. One could store an array copies of the metapopulation, one for each time iteration. However, this data structure would have poor data contiguency. As in the data analysis we will mostly process each variable independently (e.g. looking at the evolution of infected in each subpopulation). Instead, seperate arrays for each of the variables were assigned and appended to with every time step. For the travel restrictions, an array of sparse matrices was stored, where each matrix is the travel restrictions applied from every subpopulation to every other subpopulation. This has the disadvantage that when looking solely on travel restrictions between two subpopulations over time, there is a relatively large span between consecutive time values. However, it was found that reordering the data structure to be a sparse matrix of arrays (where each element is the travel restriction history of a pair of subpopulations) took more time to create than just reading from the array of sparse matrices.\\
 
 \subsubsection{Integration Scheme}
 
-Selecting an appropriate integration scheme is vital for accurately solving the system of ordinary differential equations (ODEs) governing the epidemic dynamics and adaptive travel restrictions. Initially, the Explicit Euler method was employed due to its simplicity. However, it required impractically small time steps to maintain stability and accuracy, especially in the presence of stiffness and nonlinearities in the system.
+Selecting an appropriate integration scheme is vital for accurately solving the system of ODEs governing the epidemic dynamics and adaptive travel restrictions. Initially, the Explicit Euler method was employed due to its simplicity. However, it required impractically small time steps to maintain stability and accuracy, especially in the presence of stiffness and nonlinearities in the system.
 
-To improve accuracy without significantly increasing computational complexity, the classical fourth-order Runge-Kutta (RK4) method was implemented. The RK4 method provides a good balance between computational efficiency and accuracy by calculating intermediate stages within each time step to achieve fourth-order accuracy. The implementation of RK4 for advancing the solution from time ( $t$ ) to ( $t + \Delta t$ ) is as follows:
+To improve accuracy without significantly increasing computational complexity, the classical fourth-order Runge-Kutta (RK4) method was implemented. The RK4 method provides a good balance between computational efficiency and accuracy by calculating intermediate stages within each time step to achieve fourth-order accuracy. The implementation of RK4 for advancing the solution from time $t$ to ( $t + \Delta t$ ) is as follows:
 
 \begin{align*} 
 	k_1 &= f\left(y_t,, t\right), \\ k_2 &= f\left(y_t + \tfrac{1}{2}\Delta t, k_1,, t + \tfrac{1}{2}\Delta t\right), \\ k_3 &= f\left(y_t + \tfrac{1}{2}\Delta t, k_2,, t + \tfrac{1}{2}\Delta t\right), \\ k_4 &= f\left(y_t + \Delta t, k_3,, t + \Delta t\right), \\ y_{t + \Delta t} &= y_t + \tfrac{1}{6}\Delta t\left(k_1 + 2k_2 + 2k_3 + k_4\right), \end{align*}
 
-where ( $y_t$ ) is the state vector at time ( $t$ ), and ( $f$ ) represents the ODE system.
+where $y_t$ is the state vector at time $t$, and $f$ represents the ODE system.
 
-Despite the improvements, the RK4 method still faced challenges with stiffness and ensuring that dynamic variables remained within their realistic bounds (e.g., compartment sizes staying non-negative and not exceeding total population sizes). To address these issues, an adaptive Runge-Kutta-Fehlberg (RK45) method with adaptive time stepping was implemented.
+Despite the improvements, the RK4 method still faced challenges with stiffness and ensuring that dynamic variables remained within their realistic bounds (e.g., compartment sizes staying non-negative and not exceeding total population sizes). To address these issues, an adaptive Runge-Kutta-Fehlberg RK4(5) method with adaptive time stepping was implemented.
 
-The RK45 method dynamically adjusts the time step based on the estimated local truncation error, allowing for efficient handling of varying timescales in the system. This adaptivity enables larger time steps when the solution changes slowly and smaller steps during rapid transitions, improving computational efficiency without compromising accuracy. Additionally, the adaptive scheme includes boundary checks to ensure that variables remain within permissible limits, thereby preventing non-physical results.
+The RK4(5) method dynamically adjusts the time step based on:
+\begin{itemize}
+	\item \textbf{The estimated local truncation error:} Allowing for efficient handling of varying timescales in the system. This adaptivity enables larger time steps when the solution changes slowly and smaller steps during rapid transitions, improving computational efficiency without compromising accuracy.
+	\item \textbf{Existance within the solution domain.} Since the system has very clear-cut boundaries of the system variables, it is easy to check when any one steps beyond its theoretical limit. Simply reducing the step size until no variable steps out-of-bound was sufficient. The checks were not only done at each integration step but each individual derivative evaluation, to eliminate errroneous derivative contribution to the integration step.
+\end{itemize}  
 
-By employing the adaptive RK45 method, the simulation effectively balances accuracy and efficiency, handling stiffness in the ODE system while maintaining the physical realism of the solution throughout the simulation.
+By employing the adaptive RK4(5) method, the simulation effectively balances accuracy and efficiency, handling stiffness in the ODE system while maintaining the physical realism of the solution throughout the simulation.
 \subsubsection{Algorithms}
 
 \subsubsection{Visualization}
+Typically, visualizing dynamics on networks and especially dynamics of network without animation can be quite challenging, as there is a lot of temporal information that needs to be conveyed in a single or a few still graphs. However, certain dynamical invariances can be made use of to reduce the amount of information that can communicated the temporal information. In this case, it has been observed that the evolution of the SIR compartmental sizes all follow a nearly-identical trajectory, at least in linear space (which is typically the one of interest in decision making), where the only major difference is the time offset of this trajectory. The objective is now to clearly communicated the time (in days) at which each subpopulation hit its peak infection day, as it is the date of most interest (showing the date at which the subpopulation hit the infected fraction equivalent to $i_0$ would also work). The same logic could also be applied to the travel restriction dynamics, where instead we're interested in showing the date at which full travel restriction was implemented. The kamada kawai layout was used to compute the network layout. 
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=120mm]{Figures/Network_β0.125_γ0.02_σ0.0_μ0.01_nPop20_kbar2_λ1.0e10_mobBias0.0_h0.1_minh1.0e-7_nDays1000_I01.0e-5_critRange0.0.pdf}
+    \caption{\small Network visualization of a Barabasi-Albert network with number of added links per node ($m$) is two links. Indices show the day at which each population has reached its peak infection fraction. The subpopulation with initial condition infection is marked in red.}
+    \label{}
+\end{figure}
+
 \subsection{Simulation Results}
