@@ -21,11 +21,11 @@ function drawArc2PntAngle(p1::Point, p2::Point, angle::Float64)
     return center, radius, angle1
 end
 
-function drawPopulation(pop::Population;radiusScale = 15)
+function drawPopulation(pop::Population,position;radiusScale = 15)
     # Calculate the fractions
     maxRadius = sqrt(pop.size)*radiusScale
 
-    Luxor.translate(pop.position)
+    Luxor.translate(position)
     Luxor.rotate(-π/2)
     sAngle = 2π- pop.S* 2 * pi #cw
     iAngle = 2π - pop.I * 2 * pi
@@ -79,8 +79,14 @@ function drawConnection(i,j,populations; PNG = false)
     else
         startInd, endInd = (i,j)
     end
-
     nPopulations = length(populations)
+    r = W/2 - 30
+    theta_i = 2*π/nPopulations * (i-1)
+    theta_j = 2*π/nPopulations * (j-1)
+    position_i = Point(r*cos(theta_i), r*sin(theta_i))
+    position_j = Point(r*cos(theta_j), r*sin(theta_j))
+   
+
     angle = (abs(j-i))*π/(nPopulations/2)
     if (angle>π)
         angle = 2π-angle
@@ -92,7 +98,7 @@ function drawConnection(i,j,populations; PNG = false)
     mobRestriction1 = populations[startInd].ρs[endInd]
     mobRestriction2 = populations[endInd].ρs[startInd]
     nSegs = 20
-    center, radius, angle1 = drawArc2PntAngle(populations[startInd].position,populations[endInd].position, angle)
+    center, radius, angle1 = drawArc2PntAngle(position_i,position_j, angle)
 
     
     # lineStep = (populations[j].position-populations[i].position)/nSegs
@@ -112,7 +118,7 @@ function drawConnection(i,j,populations; PNG = false)
     end
 end
 
-function drawConnections(populations,connections,meta;PNG = false)
+function drawConnections(populations,connections;PNG = false)
     setline(2) # Set line width
     sethue("black") # Set line color
     nPopulations = length(populations)
@@ -129,8 +135,12 @@ function drawNetwork(populations,connections)
     background("white")
     origin()
     drawConnections(populations,connections)
+    nPopulations = length(populations)
+    r = W/2 - 30
     for pop in populations
-        drawPopulation(pop)
+        theta = 2*π/nPopulations * (pop.index-1)
+        position = Point(r*cos(theta), r*sin(theta))
+        drawPopulation(pop,position)
     end
     finish()
 end
@@ -174,7 +184,7 @@ function drawNetworkKarnak(meta, data; filename = "Network.png")
         drawgraph(g, layout=spring,
             vertexshapesizes = 20,
             margin=40,
-            vertexlabels = (vtx) -> string(Int(spreadTimes[vtx])),
+            vertexlabels = (vtx) -> string(Int(round(peakTimes[vtx]))),
             vertexlabelfontsizes = 20,
             vertexstrokecolors = (vtx) -> vtx==1 ? colorant"red" : colorant"black", 
             vertexstrokeweights = (vtx) -> vtx==1 ? 5 : 1  

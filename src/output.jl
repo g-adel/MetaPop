@@ -19,8 +19,20 @@ function generatePrettyTable(data)
       "second day infection"
      ]
 
-    # Print the table
     println()
     pretty_table(table_data, header=header, crop = :none)
     # println( [data["metaHist"][t].populations[2].ρs[1] for t in 1:length(data["metaHist"])]')
+end
+
+
+function metaParamsString(meta::Metapopulation)
+  S = meta.S
+  epi = S.epi
+  net = S.net
+  strat = S.strat
+  sim = S.sim
+
+  params_str = "β$(epi.β)_γ$(epi.γ)_σ$(epi.σ)_μ$(epi.μ)_nPop$(net.nPopulations)_kbar$(net.k_bar)_topology$(net.topology)_λ$(strat.λ)_mobBias$(strat.mobBias)_h$(sim.h)_minh$(sim.min_h)_nDays$(sim.nDays)_I0$(sim.I₀)_critRange$(sim.critRange)"
+  
+  return params_str
 end

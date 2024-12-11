@@ -45,17 +45,12 @@ function plotCase(data,S,meta;save=false,adaptive=false)
         push!(plots, plotRestrictions(data))
         push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
     end
-        # push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
+    push!(plots, plot_image(drawNetworkKarnak(meta, data)))
+    # push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
-
-    # Load the image and add it to the plots
     
-    # img_file = drawNetworkPNG(meta.populations,net.connections,infectedHistory, susceptibleHistory, ρsHistory)
-    # img_file = drawNetworkKarnak(meta, data)
-    # animate_network(meta.populations,convert(Matrix{Float64}, adjacency_matrix(meta.S.net.graph)),infectedHistory, susceptibleHistory, recoveredHistory, ρsHistory)
-    # img = load(img_filename)
-    # img_plot = plot(img, seriestype=:image)
-    # push!(plots, (img_plot,800))
+    animate_network(meta.populations,convert(Matrix{Float64}, adjacency_matrix(meta.S.net.graph))
+    ,data["infectedHistory"], data["susceptibleHistory"], data["recoveredHistory"], data["ρsHistory"])
     if save
         savePlots(plots, meta)
     end
@@ -75,14 +70,14 @@ function plotInfEvolution(data; yLog=false, xLog = false)
     infected_percent = yLog ? infected_cleaned : infected_percent
     color_index = 1
     p = plot()
-    yLog && plot!(p, yscale=:log10)
-    xLog && plot!(p, xscale=:log10)
+    yLog && plot!(p, yscale=:log10);    xLog && plot!(p, xscale=:log10)
+    nPopulations>10 && plot!(p,legend=false)
     for i in 1:nPopulations
         plot!(p,xAxis, infected_percent[:, i], label="Pop. $i", color=colors[color_index])
         color_index += 1
     end
 
-    plot!(p, xAxis, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2)
+    plot!(p, xAxis, avg_infected_percent, label="Average", linestyle=:dash, linewidth=2, lc=:black)
     xlabel!(p,"Time (days)")
     ylabel!(p,"Infected Population Fraction")
     height = yLog ? 600 : 400
@@ -274,4 +269,9 @@ function plot_infect_flow(infectedHistory, downstream_flows)
     ylabel!(p, "Population i infected prevalence")
     xlabel!(p, "Population i+1 infected flow rate")
     return p, 800, title
+end
+
+function plot_image(img_filename)
+    p=plot(load(img_filename), seriestype=:image, framestyle=:none,size=(1000,1000))
+    return p, 800, "Network"
 end

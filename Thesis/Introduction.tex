@@ -40,6 +40,10 @@ Stochastic transitions in metapopulation networks are governed by two main proce
     \item \textbf{Migration Dynamics:} Movement of individuals between subpopulations is typically modeled as a Poisson process, with rates determined by the migration patterns encoded in the network topology. These rates can be heterogeneous, reflecting variations in connectivity and travel behavior across the network.
 \end{enumerate}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Metapopulation Colizza.png}
+\end{figure}
 As with single populations, the mean-field limit can be applied to metapopulation networks by aggregating the stochastic transitions into deterministic flows. This leads to a coupled system of mean-field equations, where the dynamics of each subpopulation are influenced by both local interactions and migration-driven exchanges with neighboring subpopulations.
 
 In this study, we introduce an extension to the existing model by incorporating adaptive mobility in the network. Subpopulations can restrict the mobility of incoming and outgoing individuals based on the prevalence of infections in incoming individuals from neighboring subpopulations.

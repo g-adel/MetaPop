@@ -41,7 +41,7 @@ function smallWorldMatrix(net::Network; β=.5)
 end
 
 function baraAlbert(net::Network)
-    g = barabasi_albert(net.nPopulations, net.k_bar)
+    g = barabasi_albert(net.nPopulations, net.k_bar/2)
     adj = convert(Matrix{Float64}, adjacency_matrix(g))
     return g
 end
