@@ -17,8 +17,8 @@ end
 
 function defineMeta()
     epi = SIRS_epidemic(β = 0.125,γ = 0.02, σ = .0, μ = 0.01)
-    net = Network(nPopulations = 3, k_bar = 2, topology = SmallWorld)
-    strat = Strat(λ = 1e10, mobBias = 0.0,strategy = IndivPropRestriction)
+    net = Network(nPopulations = 15, k_bar = 3, topology = SmallWorld)
+    strat = Strat(λ = 1e7, mobBias = 0.0,strategy = IndivPropRestriction)
     sim = Sim(h = 0.1,min_h=10e-8, nDays = 1000, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),

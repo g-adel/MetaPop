@@ -14,6 +14,20 @@ Epidemic modeling has a rich history rooted in mathematical and computational fr
 
 The most basic compartmental models, such as the Susceptible- Infectious- Recovered (SIR), rely on differential equations to describe the rates at which individuals transition between compartments. Transition rates between these states are often modeled as stochastic processes, with transitions assumed to occur as a Poisson process. This implies that the time between events (e.g., an individual becoming infected or recovering) follows an exponential distribution, simplifying the mathematical treatment and enabling the calculation of expected transition probabilities over time.\\
 
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Figures/population Anuwat Wiratsudakul.png}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Figures/compartmental Anuwat Wiratsudakul.png}
+    \end{minipage}
+    \caption{Agent-based model and compartmental Model cite:Anuwat Wiratsudakul}
+\end{figure}
+
 For instance, in the SIR model, the rate at which susceptible individuals become infected depends on the interaction probability between susceptible and infectious individuals and the transmission probability per contact. These interactions are assumed to occur uniformly across the population in homogeneously mixed models. However, this assumption oversimplifies the complexity of real-world social networks, where contact patterns are highly structured and heterogeneous.\\
 
 To address this limitation, epidemic models have been extended to incorporate heterogeneity in interactions. One such extension involves network-based models, where individuals are represented as nodes, and their interactions are represented as edges in a network. This framework allows for irregular degree distributions, capturing the reality that some individuals have many more contacts than others. These models enable a more nuanced understanding of how diseases spread through populations with diverse social structures, including scale-free networks and small-world networks. However, these kind of network-based models require either in-depth data collection to capture the intricate contact network topology or broad simplified assumptions on the network structure such.    \\
@@ -27,11 +41,11 @@ Epidemic dynamics in compartmental models typically come from an amortization of
     \item \textbf{Recovery Events:} Occur as independent Poisson processes for each infected individual, governed by a recovery rate ($\gamma$).
 \end{itemize}
 
-The stochastic nature of these transitions means that even under identical initial conditions, the trajectory of an epidemic can vary due to random fluctuations. This randomness is particularly significant in small populations or during the early stages of an outbreak, where stochastic effects can influence the probability of disease extinction or large-scale spread. As the population size increases, stochastic fluctuations average out, and the system's behavior becomes increasingly deterministic. This transition, known as the mean-field limit, is achieved by considering the expected rates of change in the compartments rather than the random transitions of individuals. In this framework, the stochastic processes governing transitions are replaced by deterministic flows based on the average interaction rates.
+The stochastic nature of these transitions means that even under identical initial conditions, the trajectory of an epidemic can vary due to random fluctuations. This randomness is particularly significant in small populations or during the early stages of an outbreak, where stochastic effects can influence the probability of disease extinction or large-scale spread. As the population size increases, stochastic fluctuations average out, and the system's behavior becomes increasingly deterministic. This transition, known as the mean-field limit, is achieved by considering the expected rates of change in the compartments rather than the random transitions of individuals. In this framework, the stochastic processes governing transitions are replaced by deterministic flows based on the average interaction rates.\\
 
-The mean-field approximation assumes that interactions between individuals occur uniformly across the population (in the case of a homogeneously mixed population). This assumption simplifies the stochastic process into a set of ordinary differential equations (ODEs) describing the aggregate dynamics of the system. While the stochastic model provides detailed insights into individual-level processes, the mean-field limit focuses on population-level trends, enabling a more tractable analysis of large-scale epidemic behavior.
+The mean-field approximation assumes that interactions between individuals occur uniformly across the population (in the case of a homogeneously mixed population). This assumption simplifies the stochastic process into a set of ordinary differential equations (ODEs) describing the aggregate dynamics of the system. While the stochastic model provides detailed insights into individual-level processes, the mean-field limit focuses on population-level trends, enabling a more tractable analysis of large-scale epidemic behavior.\\
 
-In metapopulation networks, stochastic processes govern both the within-subpopulation dynamics (e.g., local infections and recoveries) and the between-subpopulation processes, such as migration. Migration introduces additional complexity, as individuals can move between patches at rates that may vary based on the connectivity of the network and other factors such as applied mobility restrictions.
+In metapopulation networks, stochastic processes govern both the within-subpopulation dynamics (e.g., local infections and recoveries) and the between-subpopulation processes, such as migration. Migration introduces additional complexity, as individuals can move between patches at rates that may vary based on the connectivity of the network and other factors such as applied mobility restrictions.\\
 
 Stochastic transitions in metapopulation networks are governed by two main processes:
 
@@ -44,8 +58,8 @@ Stochastic transitions in metapopulation networks are governed by two main proce
     \centering
     \includegraphics[width=\textwidth]{Figures/Metapopulation Colizza.png}
 \end{figure}
-As with single populations, the mean-field limit can be applied to metapopulation networks by aggregating the stochastic transitions into deterministic flows. This leads to a coupled system of mean-field equations, where the dynamics of each subpopulation are influenced by both local interactions and migration-driven exchanges with neighboring subpopulations.
+As with single populations, the mean-field limit can be applied to metapopulation networks by aggregating the stochastic transitions into deterministic flows. This leads to a coupled system of mean-field equations, where the dynamics of each subpopulation are influenced by both local interactions and migration-driven exchanges with neighboring subpopulations.\\
 
-In this study, we introduce an extension to the existing model by incorporating adaptive mobility in the network. Subpopulations can restrict the mobility of incoming and outgoing individuals based on the prevalence of infections in incoming individuals from neighboring subpopulations.
+In this study, we introduce an extension to the existing model by incorporating adaptive mobility in the network. Subpopulations can restrict the mobility of incoming and outgoing individuals based on the prevalence of infections in incoming individuals from neighboring subpopulations.\\
 
 % \end{document}

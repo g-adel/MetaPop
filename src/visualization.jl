@@ -15,27 +15,28 @@ function drawArc2PntAngle(p1::Point, p2::Point, angle::Float64)
 
     center = midpoint + dist_to_center * direction
 
-    angle1 = atan(p1.y - center.y, p1.x - center.x)
+    angle1 = mod(atan(p1.y - center.y, p1.x - center.x),2π)
     # angle2 = atan(p2.y - center.y, p2.x - center.x)
 
     return center, radius, angle1
 end
 
 function drawPopulation(pop::Population,position;radiusScale = 15)
-    # Calculate the fractions
     maxRadius = sqrt(pop.size)*radiusScale
 
     Luxor.translate(position)
     Luxor.rotate(-π/2)
-    sAngle = 2π- pop.S* 2 * pi #cw
-    iAngle = 2π - pop.I * 2 * pi
-
+    sAngle = pop.S * 2 * π #cw
+    iAngle = pop.I * 2 * π
+    
+    setcolor("black")
+    pop.index==1 && circle(O,maxRadius*1.35, :fill)
     setcolor("blue")
     sector(O, 0, maxRadius, 0, sAngle, :fill)
     setcolor("red")
     sector(O, 0, maxRadius, sAngle, sAngle + iAngle, :fill)
     setcolor("green")
-    sector(O, 0, maxRadius, sAngle + iAngle, 2 * π, :fill)
+    (sAngle + iAngle < 2π) && sector(O, 0, maxRadius, sAngle + iAngle, 2 * π, :fill)
         
     # function drawDisk(radius, color)
     #     setcolor(color)
@@ -53,26 +54,6 @@ function drawPopulation(pop::Population,position;radiusScale = 15)
     origin()
 end
 
-# function drawPopulationHistory(pop, popSusceptibleHistory, popInfectedHistory,)
-#     nTimeSteps = length(popSusceptibleHistory)
-#     popC = deepcopy(pop)
-#     nPts = 40
-#     Luxor.translate(pop.position+Point(-nPts/2,-nPts/2))
-#     for r in 1:nPts
-#         S = popSusceptibleHistory[floor(Int,r*nTimeSteps/nPts)]
-#         I = popInfectedHistory[floor(Int,r*nTimeSteps/nPts)]
-#         R = 1 - S - I
-#         setcolor(0,0,1)
-#         rect(Point(r,0),1.5,nPts*S,:fill)
-#         setcolor("green")
-#         rect(Point(r,nPts*(S)),1.5,nPts*R,:fill)
-#         setcolor("red")
-#         rect(Point(r,nPts*(S+R)),1.5,nPts*I,:fill)
-        
-#     end
-#     origin()
-# end 
-
 function drawConnection(i,j,populations; PNG = false)
     if (j>i)
         startInd, endInd = (j,i)
@@ -87,9 +68,9 @@ function drawConnection(i,j,populations; PNG = false)
     position_j = Point(r*cos(theta_j), r*sin(theta_j))
    
 
-    angle = (abs(j-i))*π/(nPopulations/2)
+    angle = 2*π/nPopulations
     if (angle>π)
-        angle = 2π-angle
+        # angle = 2π-angle
         # print(angle)
         startInd, endInd = (endInd,startInd)
     end
@@ -98,7 +79,9 @@ function drawConnection(i,j,populations; PNG = false)
     mobRestriction1 = populations[startInd].ρs[endInd]
     mobRestriction2 = populations[endInd].ρs[startInd]
     nSegs = 20
-    center, radius, angle1 = drawArc2PntAngle(position_i,position_j, angle)
+    flip = xor(i>j,mod(i-j,nPopulations)>nPopulations/2)
+    (position_1,position_2) = flip ? (position_i,position_j) : (position_j,position_i)
+    center, radius, angle1 = drawArc2PntAngle(position_1,position_2, angle)
 
     
     # lineStep = (populations[j].position-populations[i].position)/nSegs
@@ -107,13 +90,17 @@ function drawConnection(i,j,populations; PNG = false)
         x = (k-1)/nSegs
         redness = infFrac1*(1-x) + infFrac2*x
         # transparency = max(mobRate1*(1-x)^2, mobRate2*(x)^2) * abs(nSegs*.5-k)/nSegs*4
-        transparency::Float64 = parabolaS0(x,mobRestriction1,mobRestriction2)
+        transparency::Float64 = parabolaS0(x,1-mobRestriction1,1-mobRestriction2)
         if (PNG)
             setcolor(0,0,0)
         else
             setcolor(1-(1-redness)^1.1,0,0,transparency)
         end
-        arc(center,radius,angle1+angleStep*(k-1),angle1+angleStep*k,:stroke)
+        # @show angle1+angleStep*k angle1
+        # if mod(angle1+angleStep*k,2π)>angle1
+            arc(center,radius,angle1+angleStep*(k-1),angle1+angleStep*k,:stroke)
+        # end
+        # arc(center,radius,angle1+angleStep*(k-1),angle1+angleStep*k,:stroke)
         # line(populations[i].position+lineStep*(k-1), populations[i].position+lineStep*k,:stroke)
     end
 end

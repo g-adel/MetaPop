@@ -37,10 +37,9 @@ end
 function indivPropRestriction(pop,meta)
     λ = meta.S.strat.λ # Adaptive mobility tuning rate
     g=meta.S.net.graph
-    nbrs_indices = neighbors(g,pop.index)
     ρsRoC = spzeros(meta.S.net.nPopulations)
     
-    for connPopInd in nbrs_indices
+    for connPopInd in neighbors(g,pop.index)
         # could be turned into array operation
         inflowInfected = meta.mobilityRates[connPopInd,pop.index] * (meta.populations[connPopInd].I)
         ρsRoC[connPopInd] = λ*inflowInfected - meta.S.strat.mobBias * pop.ρs[connPopInd]

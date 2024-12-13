@@ -34,8 +34,8 @@ Another property of the ODE to take into consideration is high variance in rates
 The Julia programming language was used for the computational aspect of this project. The main known advantage of Julia is its out-of-the-box speed in scientific computation due to its  Just-in-time compiler. This gives a head-start in computational speed compared to C++ and Python which require significantly more complex setups. However, Julia has several other positive aspects that make it especially useful for this project. This includes its strong variable typing, multiple dispatch, and strong support for functional programming. It also incorporates many mathematical tools dealing with matrix operations and numerical equations. For dealing with networks, Graphs.jl was used for generating network classes, such as the Barabasi-Albert and the Watts-Strogatz networks, and for typical graph functionality such as finding path length and nearest neighbors. Karnak.jl was used for network visualization and Plots.jl was used for all the plots in this report.
 \subsubsection{Data Structure}
 In designing an efficient and scalable data pipeline for epidemic simulations, the choice of data structures plays a critical role. These structures must support both static and dynamic components of the simulation while ensuring memory efficiency and computational speed. This subsection delves into the underlying principles guiding these choices, such as the use of structs, the importance of memory contiguity, and the modularization of code for optimizing computational performance.\\
-\\
-\includegraphics[width=120mm]{Figures/structs.png}
+
+\includegraphics[width=120mm]{Figures/structs code.png}
 \\\\
 The aspect that taken under consideration the most in the data structure is Memory contiguity, which refers to the arrangement of data in sequential memory locations. This is important because modern computer architectures leverage caching mechanisms to speed up data retrieval. Contiguous memory allows processors to fetch adjacent data elements in fewer operations, significantly boosting performance for tasks that iterate over large datasets. For epidemic simulations, where data structures like adjacency matrices and population compartments are frequently accessed, maintaining memory contiguity minimizes latency and ensures efficient computational workflows.\\
 
@@ -43,9 +43,13 @@ The struct (short for structure) was used extensively in this project. It is a u
 
 The usage of structs allows for Modularization in code design, which ensures that computational tasks are divided into smaller, self-contained functions or modules. For epidemic simulations, modularization allows dynamic operations—such as updating epidemiological states or applying travel restrictions—to be isolated within specific functions. These contained spaces reduce the scope of local variables and ensure that memory access patterns remain predictable, leading to optimized resource utilization. Additionally, modularization promotes parallel development and debugging by isolating distinct computational aspects into manageable units.\\
 
-There are two types of data in this sytem: the static parameters and properties of the metapopulation, such as the mobility rate and link weights, and the dynamic data such as the number of infected individuals in each subpopulation and travel restrictions which change with time. The static parameters were stored in a collection of immutable structs such as epidemic and network properties. This grouping allows for safe and efficient passing of constants to functions. It's worthy to note that while there is different link weights between nodes, the network overall is still sparse such that the majority of links between any two nodes are zero-valued. The dynamic variables in this system all happen locally in relation to the subpopulations. The two aspects of this dynamics for any given subpopulation are the sizes of the different epidemiological states and the travel restrictions applied towards all of its neighbors. These dynamic data were stored in structs representing each subpopulation. These include the population compartmental variables and the travel restricitions applied by the subpopulation towards all neighboring populations.\\
+There are two types of data in this sytem: 
+\begin{itemize}
+	\item The static parameters and properties of the metapopulation, such as the mobility rate and link weights.The static parameters were stored in a collection of immutable structs such as epidemic and network properties. This grouping allows for safe and efficient passing of constants to functions. It's worthy to note that while there is different link weights between nodes, the network overall is still sparse such that the majority of links between any two nodes are zero-valued.
+	\item The dynamic data such as the number of infected individuals in each subpopulation and travel restrictions which change with time. The dynamic variables in this system all happen locally in relation to the subpopulations. The two aspects of these dynamics for any given subpopulation are the sizes of the different epidemiological states and the travel restrictions applied towards all of its neighbors. These dynamic data were stored in structs representing each subpopulation. These include the population compartmental variables and the travel restricitions applied by the subpopulation towards all neighboring populations.
+\end{itemize}
 
-The utilization of structs came in especially useful when implementing multistep integration schemes. Since they require the multiplication and scaling of the system at different timesteps, special definitions for scaling and adding metapopulations are needed. Julia's multi-dispatch was utilized here for streamlined manipulation of system variables. In addition to struct definions of the system itself, a special struct was defined that stores the rate of change of each subpopulation as well.
+The utilization of structs came in especially useful when implementing multistep integration schemes. Since they require the multiplication and scaling of the system at different timesteps, special definitions for scaling and adding metapopulations are needed. Julia's multi-dispatch was utilized here for streamlined manipulation of system variables. In addition to struct definions of the system itself, a special struct was defined that stores the rate of change of each subpopulation as well.\\
 
 The graph structure is stored in the form of a sparse weighted adjacency matrix in the form of a Compressed Sparse Column (CSC).  CSC is composed of 3 arrays of element values, row indices array and column pointers array. CSC was chosed and not Compressed Sparse Row, because Julia is column-major. The storage size of this format is linearly proportional to the number of elements in the adjacency matrix and hence to the network link density. Even though this matrix is symmetrical and thus would only require the storage of the lower rectangular region, the entire matrix is stored with both its symmetric sides. This is to improve the retrieval time to attain the indices of neighboring subpopulations. In a CSC adjacency matrix, values in each column are stored contiguously, and hence are quick to read from memory. However, to maintain this advantage, each column has to be fully stored so that each subpopulation can quickly find all its neighbors.\\
 \usetikzlibrary{matrix}
@@ -90,7 +94,7 @@ Following the simulation, we are interested in the history of all the dynamic va
 
 \subsubsection{Integration Scheme}
 
-Selecting an appropriate integration scheme is vital for accurately solving the system of ODEs governing the epidemic dynamics and adaptive travel restrictions. Initially, the Explicit Euler method was employed due to its simplicity. However, it required impractically small time steps to maintain stability and accuracy, especially in the presence of stiffness and nonlinearities in the system.
+Selecting an appropriate integration scheme is vital for accurately solving the system of ODEs governing the epidemic dynamics and adaptive travel restrictions. Initially, the Explicit Euler method was employed due to its simplicity. However, it required impractically small time steps to maintain stability and accuracy, especially in the presence of stiffness and nonlinearities in the system.\\
 
 To improve accuracy without significantly increasing computational complexity, the classical fourth-order Runge-Kutta (RK4) method was implemented. The RK4 method provides a good balance between computational efficiency and accuracy by calculating intermediate stages within each time step to achieve fourth-order accuracy. The implementation of RK4 for advancing the solution from time $t$ to ( $t + \Delta t$ ) is as follows:
 
@@ -109,6 +113,11 @@ The RK4(5) method dynamically adjusts the time step based on:
 
 By employing the adaptive RK4(5) method, the simulation effectively balances accuracy and efficiency, handling stiffness in the ODE system while maintaining the physical realism of the solution throughout the simulation.
 \subsubsection{Algorithms}
+\begin{figure}
+	\centering
+	\includegraphics[width=120mm]{Figures/Population RoC code.png}
+
+\end{figure}
 
 \subsubsection{Visualization}
 Typically, visualizing dynamics on networks and especially dynamics of network without animation can be quite challenging, as there is a lot of temporal information that needs to be conveyed in a single or a few still graphs. However, certain dynamical invariances can be made use of to reduce the amount of information that can communicated the temporal information. In this case, it has been observed that the evolution of the SIR compartmental sizes all follow a nearly-identical trajectory, at least in linear space (which is typically the one of interest in decision making), where the only major difference is the time offset of this trajectory. The objective is now to clearly communicated the time (in days) at which each subpopulation hit its peak infection day, as it is the date of most interest (showing the date at which the subpopulation hit the infected fraction equivalent to $i_0$ would also work). The same logic could also be applied to the travel restriction dynamics, where instead we're interested in showing the date at which full travel restriction was implemented. The kamada kawai layout was used to compute the network layout. 
@@ -118,6 +127,26 @@ Typically, visualizing dynamics on networks and especially dynamics of network w
     \includegraphics[width=120mm]{Figures/Network_β0.125_γ0.02_σ0.0_μ0.01_nPop20_kbar2_λ1.0e10_mobBias0.0_h0.1_minh1.0e-7_nDays1000_I01.0e-5_critRange0.0.pdf}
     \caption{\small Network visualization of a Barabasi-Albert network with number of added links per node ($m$) is two links. Indices show the day at which each population has reached its peak infection fraction. The subpopulation with initial condition infection is marked in red.}
     \label{}
+\end{figure}
+
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Animation Frame 1.png}
+	\end{minipage}
+	\hfill
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Animation Frame 2.png}
+	\end{minipage}
+	\vfill
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Animation Frame 3.png}
+	\end{minipage}
+	\hfill
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Animation Frame 4.png}
+	\end{minipage}
+	\caption{Animation frames showing the progression of the epidemic over time in a Watts-Strogatz network. The system is Susceptible-Infected-Recovered (Blue, Red, Green) compartmental system with connection proportional response strategy with no mobility restoration bias. The animation shows the state of the system at the initial condition of the system (the black-bordered patch is the subpopulation with an initial small infected fraction). Over time, the infection starts spreading within the first subpopulation along with its near neighbors. The flow rate of infected individuals across connections can be seen by the red tinting of connections. Along with the spread of the infection, many subpopulations start to increase their travel restriction to even mildly-infected patches which can be seen by the low or no opacity of some link endpoints. Over time, eventually the infection to spreads substantially to the rest of the network while many subpopulations nearly recover. In the final state of the metapopulation network, all populations have negligible amount of infected while the vast majority are recovered individuals.}
 \end{figure}
 
 \subsection{Simulation Results}

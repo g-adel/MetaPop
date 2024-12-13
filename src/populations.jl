@@ -78,7 +78,7 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
         netFlowInfected += finalMobilityRate    * (connPop.I- I)
         netFlowRecovered += finalMobilityRate   * (connPop.R- R)
     end
-    dS = -epi.β*I*S + epi.σ*R + netFlowSusceptible # is netFlow a rate of change?
+    dS = -epi.β*I*S + epi.σ*R + netFlowSusceptible 
     dI =  epi.β*I*S - epi.γ*I + netFlowInfected
     dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
     ρsRoC = spzeros(meta.S.net.nPopulations)
@@ -90,6 +90,5 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
         elseif strategy == IndivLogRestriction      ρsRoC = indivLogRestriction(pop,meta)
         end
     end
-    populationRoC = PopulationRoC(dS,dI,dR,ρsRoC) #struct
-    return populationRoC
+    return  PopulationRoC(dS,dI,dR,ρsRoC) #struct
 end
