@@ -90,7 +90,7 @@ D_{ij} = N_i N_j W_{ij}.
 \end{equation}
 
 
-\subsection{Adaptive Strategies}
+\subsection{Adaptivity}
 
 To incorporate adaptivity in the metapopulation network system, two main questions need to be answered: What information is given to the agents, and what control parameters are they given control of. While there are an infinite number of information gateways and actions that can be given to the agents, simplicity and reflection of real-life observed phenonmena need to be the primary factors taken into consideration when proposing an adaptivity model. Furthermore, there is a focus in this project on locality in agent adaptivity, both in information and contrrol, as opposed to the typical modeling approache which given complete control over a central actor. In the case of a metapopulation network, one of the most direct analogies that can be taken is a transportation network between state-regions such as governerates or countries. While there are many actions state governerates can take to protect their population from infectious disease, the focus of this project will be on control over incoming and outgoing individuals traveling across the transportation network to neighboring patches (other subpopulations). This is typically applied through shutting down air routes, limiting road traffic, and applying quarantines for entire regions.The level of granularity given to the subpopulations can vary from limiting mobility without discrimination in regards to which patch the individuals are coming from to having connection-based control. Finally, some governerates can implement testing at entrances to the region to check which individuals are infected and put them in quarantine or simply deny them entrance. In the case of this model however, no such option is given. Subpopulations cannot distinguish the the states of infection the individuals arrive in and can only limit a random fraction of the incoming individuals at any point in time. They also cannot distinguish between incoming and outgoing individuals.\\
 
@@ -109,31 +109,39 @@ A more refined version of the equations for subpopulation $i$ in vector form is:
 \end{aligned}
 \end{equation}
 
-A few deductions can be immediately made for this model formulation. First of all, it can be easily  proven that the steady state of a subpopulation under SIR is either infection-free where the infection has not been introduced or has undergone infection and has fully recovered from it. Secondly, due to the nature of diffusion, it is to be expected that once a subpopulation contains a nonzero amount of infected individuals, it immediately spreads to not only all neighboring subpopulations, but all subpopulations in the connected component or subgraph of the infected subpopulation (any patch that can be reached through traversing through consecutive neighbors). The combination of these two observations is crucial as it eliminates the possibility of finding a travel restriction strategy that eradicates the disease in the metapopulation without all subpopulations getting at least partially infected. There are several ways to counteract this issue, one which was explored is introducing the discrete probabilistic dynamics of interacting and migrating individuals, which does have a chance for an early end of the spread \cite{colizza2008epidemic}. While it is true that preventing an epidemic from spreading to neighboring sites has been found to be very difficult, the instantaneous spread of the disease across all connected nodes is a possibly inaccurate phenomenon. However, since the focus of this work is to slow down the spread of the infection and not completely eradicating it, this simplification is acceptable. \\
+A few deductions can be immediately made for this model formulation. First of all, it can be easily proven that the steady state of a subpopulation under SIR (in isolation) is either infection-free where the infection has not been introduced or has undergone infection and has fully recovered from it. Secondly, due to the nature of diffusion, it is to be expected that once a subpopulation contains a nonzero amount of infected individuals, it immediately spreads to not only all neighboring subpopulations, but all subpopulations in the connected component or subgraph of the infected subpopulation (any patch that can be reached through traversing through consecutive neighbors). The combination of these two observations is crucial as it eliminates the possibility of finding a non-instantaneous travel restriction strategy that eradicates the disease in the metapopulation without all subpopulations getting at least partially infected. There are several ways to counteract this issue, one which was explored is introducing the discrete probabilistic dynamics of interacting and migrating individuals, which does have a chance for an early end of the spread \cite{colizza2008epidemic}. While it is true that preventing an epidemic from spreading to neighboring sites has been found to be very difficult, the instantaneous spread of the disease across all connected nodes is a possibly inaccurate phenomenon. However, since the focus of this work is to slow down the spread of the infection and not completely eradicating it, this simplification is acceptable. \\
 
-In the context of this model, containment strategies are adaptive dynamics of the effective Laplacians for the population in the different health states. For instance, a very simple strategy could be to severely restrict the movement of the infected population away from a given site by coupling it to the prevalence there. The aim of this thesis should be to devise and explore different containment strategies as well as investigate their effectiveness through numerical simulations. Optionally, one could also consider extensions to the above model such as introducing a socio-economial component that would indicate the desire of a subpopulation to enforce travel restrictions.\\
+\subsection{Travel Restriction Strategies}
+In the context of this model, containment strategies are adaptive dynamics of the effective Laplacians for the population in the different health states. For instance, a very simple strategy could be to severely restrict the movement of the infected population away from a given site by coupling it to the prevalence there. The aim of this thesis is to devise and explore different containment strategies as well as investigate their effectiveness through numerical simulations. Optionally, one could also consider extensions to the above model such as introducing a socio-economial component that would indicate the desire of a subpopulation to enforce travel restrictions.\\
 
-To model the travel restrictions implemented as the prevalence of infection in the metapopulation changes over time, several strategies were explored. For each subpopulation $x$, given the control vector $\mathbf{\rho}$, it is desirable to minimize the mobility of infected individuals, $I_{x}$, down to zero. Since implementing travel restrictions typically takes a nonzero amount of time, giving a subpopulation the ability to immediately change the travel restriction to any desired value is unrealistic. The option of cutting off the connection to an infected population after a set time has been explored \cite{feng2020infectious}. Instead, here the subpopulations have control over the rate of change of $\mathbf{\rho}$, which defines how $\mathbf{\rho}$ changes with time. Henceforth, a strategy defines an equation that $\mathbf{\dot{t}}$ follows given the current information about the metapopulation.\\
+To model the travel restrictions implemented as the prevalence of infection in the metapopulation changes over time, several strategies were explored. For each subpopulation $x$, given the control vector $\mathbf{\rho}$, it is desirable to minimize the mobility of infected individuals, $I_{x}$, down to zero. Since implementing travel restrictions typically takes a nonzero amount of time, giving a subpopulation the ability to immediately change the travel restriction to any desired value is unrealistic. The option of cutting off the connection to an infected population after a set time has been explored \cite{feng2020infectious}. Instead, here the subpopulations have control over the rate of change of $\mathbf{\rho}$, which defines how $\mathbf{\rho}$ changes with time. Henceforth, a strategy defines an equation that $\mathbf{\dot{\rho}}$ follows given information about the current status of the metapopulation.\\
+
+A few predetermined requirements were set in place for designing strategies. Following the theme of differential model, the travel restriction rate of change $\dot \rho$ should be continuous. Furthermore, it is preferred if the dynamics of the travel restriction are contained in the range from 0 to 1, with no need to artificially clamp the value to that range.
 
 \subsubsection{Global proportional travel restriction}
-The most basic form of travel restriction for the metapopulation is one where only the global infection prevalence is used to control restriction for all connections. This global travel restriction amounts to a single scalar value $t$ that subpopulations implement, which scales down the mobility of all individuals across all subpopulation connections, from both origin and destination. This results in the equation:
+The most basic form of travel restriction for the metapopulation is one where only the global infection prevalence is used to control restriction for all connections. This is a non-local scenario where there's a central authority that does not distinguish between subpopulations or their connections. This global travel restriction amounts to a single scalar value $\rho$ that subpopulations implement, which scales down the mobility of all individuals across all subpopulation connections, from both origin and destination. This results in the equation:
 
 \begin{equation}
-\dot{\rho} = \lambda M_{(I)}
+    \dot{\rho} = \lambda M_{(I)}
 \end{equation}
 
-where $M_{(I)}$ is the total mobility of infected individuals on all connections:
-
+where $M_{(I)}$ is the total mobility of infected individuals on all connections at any given point in time:
+\begin{figure}
+    \centering
+    \includegraphics[width=100mm]{Figures/M rho Evolution.png}
+    \caption{\small The state space of M and $\rho$ from different initial conditions starting with $\rho=0$ as it evolves with time with the global travel restiction strategy.}
+\end{figure}
 \begin{equation}
-M_{(I)} = \sum_{i=1}^{n} \sum_{j=1}^{i-1} \rho_{i} \rho_{j} \mathbf{d}_{j} I_{j}
+M_{(I)} = \sum_{i=1}^{n} \sum_{j=1}^{i-1} \rho^2 \mathbf{d}_{j} I_{j}
 \end{equation}
 
 Applying this global restriction on the metapopulation network, the final effective Laplacian of the network is:
 
 \begin{equation}
-\Delta_G = t^2 D
+\Delta_G = \rho^2 D
 \end{equation}
 
+% Talk about how rho dot is a function of rho and maybe plot the dynamics of the system.
 \subsubsection{Uniform proportional travel restriction}
 
 A slightly more granular strategy would be for each subpopulation to look at the influx of infected individuals from all neighbors and restrict all connections uniformly based on the total number of infected individuals. This gives each subpopulation a single scalar variable $t_x$ to control. This restriction follows the ODE:
