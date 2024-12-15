@@ -2,7 +2,7 @@
 
 julia_version = "1.10.2"
 manifest_format = "2.0"
-project_hash = "9d00b042a3d10ea458cf3375e6444eb063499111"
+project_hash = "d648eed7db1e30665b7339820bf42011f9b706d1"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -1160,9 +1160,9 @@ version = "0.8.19"
 
 [[deps.PlotlyJS]]
 deps = ["Base64", "Blink", "DelimitedFiles", "JSExpr", "JSON", "Kaleido_jll", "Markdown", "Pkg", "PlotlyBase", "PlotlyKaleido", "REPL", "Reexport", "Requires", "WebIO"]
-git-tree-sha1 = "f198c8a80c08987a2915156e6e6131e5d73b97f4"
+git-tree-sha1 = "e415b25fdec06e57590a7d5ac8e0cf662fa317e2"
 uuid = "f0f68f2c-4968-5e81-91da-67840de0976a"
-version = "0.18.14"
+version = "0.18.15"
 
     [deps.PlotlyJS.extensions]
     CSVExt = "CSV"

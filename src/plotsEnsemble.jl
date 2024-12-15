@@ -3,13 +3,13 @@ function plotEnsemble(datas,Ss,meta;save=false)
     # # β and μ
     # push!(plots, plot_beta_mu_spread_rates(datas,Ss))
     # push!(plots, plot_beta_mu_spread_rates(datas,Ss;plot_t3=true))
-    
+
     # λ
     push!(plots, plot_lambda_avg_spread_rate(datas,Ss))
     push!(plots, plot_lambda_path_spread_rates(datas,Ss))
     push!(plots, plot_lambda_F₂(datas,Ss))
     push!(plots, plot_lambda_t₂(datas,Ss))
-    push!(plots, plot_lambda_t₃(datas,Ss))
+    # push!(plots, plot_lambda_t₃(datas,Ss))
     if save
         savePlots(plots, meta)
     end

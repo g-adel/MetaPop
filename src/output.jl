@@ -36,3 +36,15 @@ function metaParamsString(meta::Metapopulation)
   
   return params_str
 end
+
+# struct SArray
+#   params::Array{Param, 1}
+#   size::Array{Int, 1}
+#   ranges::Array{Tuple{Float64, Float64}, 1}
+# end
+# function multiParamsString(Ss::SArray)
+
+#   params_str = "
+  
+#   return params_str
+# end

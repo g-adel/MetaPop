@@ -49,8 +49,8 @@ function plotCase(data,S,meta;save=false,adaptive=false)
     # push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
     
-    animate_network(meta.populations,convert(Matrix{Float64}, adjacency_matrix(meta.S.net.graph))
-    ,data["infectedHistory"], data["susceptibleHistory"], data["recoveredHistory"], data["ρsHistory"])
+    # animate_network(meta.populations,convert(Matrix{Float64}, adjacency_matrix(meta.S.net.graph))
+    # ,data["infectedHistory"], data["susceptibleHistory"], data["recoveredHistory"], data["ρsHistory"])
     if save
         savePlots(plots, meta)
     end

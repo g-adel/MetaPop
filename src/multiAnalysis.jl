@@ -1,7 +1,13 @@
 @enum Param begin
-    β
-    μ
-    λ
+    βParam
+    μParam
+    λParam
+end
+
+struct SArray
+    params::Array{Param, 1}
+    size::Array{Int, 1}
+    ranges::Array{Tuple{Float64, Float64}, 1}
 end
 
 function multiScenario(S, param_names, param_ranges)
@@ -15,11 +21,11 @@ function multiScenario(S, param_names, param_ranges)
         strat = deepcopy(S.strat)
         
         for (k, param_name) in enumerate(param_names)
-            if param_name == :β
+            if param_name == :βParam
                 epi.β = param_ranges[k][indices[k]]
-            elseif param_name == :μ
+            elseif param_name == :μParam
                 epi.μ = param_ranges[k][indices[k]]
-            elseif param_name == :λ
+            elseif param_name == :λParam
                 strat.λ = param_ranges[k][indices[k]]
             end
         end
@@ -61,7 +67,7 @@ function multiScenario_μβ(S)
 end
 
 function multiScenario_λ(S)
-    nPtsX=10
+    nPtsX=9
     λs= 10 .^(range(0,(nPtsX-1)*2,nPtsX))
     Ss=Array{Scenario,1}(undef,nPtsX)
     for i in 1:nPtsX
