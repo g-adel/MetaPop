@@ -3,14 +3,62 @@
 % \usepackage{amsmath}  
 % \usepackage{svg}
 % \usepackage{tikz}
+% \usepackage{subcaption}
 % \usepackage[a4paper, margin=3cm]{geometry}
-
+% \usetikzlibrary{arrows.meta, positioning, calc}
 % \begin{document}
+
 \section{Model}
-\subsection{Network Dynamics}
+Modeling epidemic spread and finding strategies to stop it is a complex, yet crucial, problem to solve. Infectious diseases, if not properly managed, can lead to devastating consequences, as evidenced by recent pandemics such as COVID-19. The unpredictability and rapid spread of such diseases necessitate robust models to inform public health interventions and policy decisions. Without proper simplification, modeling the dynamics of an infectious disease spread would require simulating all individuals and their interactions, which is computationally infeasible. However, some models have proven to provide sufficient simplicity while maintaining a high level of accuracy. Traditional models, such as the SIR model, have laid the groundwork, but they often fail to account for the adaptive behaviors of agents within the system, such as individuals, cities, and countries acting in self-preservation.\\
+
+More recently, there have been efforts to incorporate such behaviors into system models to predict the dynamics of epidemics better. Adaptive metapopulation network models consider the reactions of populations, such as the implementation of travel restrictions and social distancing measures. The balance of population preservation and connectivity is crucial, as it involves maintaining realistic expectations of how fast a population can impose travel restrictions and close down borders. Adaptive networks are essential for capturing the dynamic nature of human behavior and movement during an epidemic. Historical context shows that epidemic modeling has evolved significantly, from simple compartmental models to complex network-based models. Current models face challenges such as heterogeneous population distributions and varying rates of infection and recovery, which adaptive networks aim to address.
 
 \subsection{Non-adaptive system}
-To model the epidemic dynamics within each subpopulation, we use a mean-field compartmental model, assuming homogeneous mixing of individuals. Specifically, we employ the SIR model (Susceptible, Infected, and Recovered/Removed), which is commonly used as a simple epidemic model. The model follows a deterministic Poisson process where individuals can transition between compartments based on predefined rules. In the SIR model, the transition rules are: \( S + I \rightarrow 2I \) (an infected individual infects a susceptible individual) and \( I \rightarrow R \) (an infected individual recovers). No immunization loss process is considered in this model, focusing on a single-wave scenario. The model for each subpopulation \( x \) is described by the following set of ordinary differential equations (ODEs):
+\subsubsection{SIR Model}
+To model the epidemic dynamics within each subpopulation, we use a mean-field compartmental model, assuming homogeneous mixing of individuals. Specifically, we employ the SIR model (Susceptible, Infected, and Recovered/Removed), which is commonly used as a simple epidemic model. The model follows a stochastic Poisson process where individuals can transition between compartments based on predefined rules. In the SIR model, the transition rules are:
+\begin{itemize}
+    \item $\mathbf{S + I \rightarrow 2I:}$ an infected individual infects a susceptible individual, with rate of $\beta$ individuals per second.
+    \item $\mathbf{I \rightarrow R:}$ an infected individual recovers/is removed, with rate $\gamma$ individuals per second.
+    
+\end{itemize}
+
+No immunization loss process is considered in the SIR model. This results in a final steady state where $I_\infty=0$. This happens because the recovered individuals do not return to the susceptible state. Therefore, the disease eventually dies out as there are no new susceptible individuals to infect. The disease could also die out in the case of $\gamma$ being sufficiently larger than $\beta$. In that case, at some point the rate of recovery can be faster than the rate of infection and then there's a possiblity of completely depliting the infected population while there are still susceptibles remaining.
+
+\begin{figure}[ht]
+    \centering
+    \begin{tikzpicture}[node distance=2cm, >=Stealth]
+
+    % Nodes
+    \node[draw, circle] (S) {S};
+    \node[draw, circle, right=of S] (I) {I};
+    \node[draw, circle, right=of I] (R) {R};
+
+    % Arrows
+    \draw[->] (S) -- node[above] {$\beta I$} (I);
+    \draw[->] (I) -- node[above] {$\gamma$} (R);
+
+    \end{tikzpicture}
+    \caption{SIR model with state transition rates $\beta$ for S $\rightarrow$ I and $\gamma$ for I $\rightarrow$ R.}
+    \label{fig:SIR_stochastic_model}
+\end{figure}
+While the stochastic Poisson process offers a precise representation of individual-level interactions during an epidemic, mathematical modeling often requires more tractable approaches that can provide insights into overall population dynamics. The computational complexity of tracking individual probabilistic transitions becomes prohibitive as the population size increases, motivating the development of aggregate models that capture the system's essential dynamics. By transitioning to an ordinary differential equation (ODE) representation, researchers can develop a more analytically manageable framework that preserves the core epidemiological mechanisms while simplifying computational requirements. The transition from a stochastic Poisson process to a deterministic ODE representation is valid under specific conditions that involve large population sizes, interactions are well-mixed, and transition rates that are sufficiently larger than zero, among other considerations. When the number of individuals in each compartment is sufficiently large, the discrete, probabilistic transitions can be approximated by continuous, smooth changes described by differential equations. This mean-field approximation assumes that the probability of state transitions can be represented by their expected values, effectively smoothing out the inherent randomness of individual interactions. The ODE model captures the average behavior of the population, losing the detailed stochastic fluctuations but gaining computational simplicity and analytical tractability. This approach is most justifiable when individual-level variations are less important than the overall population dynamics.
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Figures/SIR evolution.png}
+        \subcaption{}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Figures/SIR phase space.png}
+        \subcaption{}
+    \end{minipage}
+    \hfill
+    \caption{\small (a) shows the evolution over time with initial conditions (S,I,R) = (0.95,0.05,0.0). (b) Shows the phase space of S and I (R can be found for any point as the complementary for S+I), all starting from R=0. The curves are characterised by a rapid exponential rise of infecteds, followed by an inflection point where the peak number of infected individuals is reached, followed by rapid decline of infected turning into recovered individuals. Depending on the value of $\gamma$, there can be a sizable number of susceptible individuals who never got infected by the disease as the infection spread died out before reaching them.}
+    \label{fig:SIR_comparison}
+\end{figure}
+The mean-field ordinary differential equations (ODEs) model from the SIR model given above  $x$ is described by the following set of ODEs for each subpopulation:
 
 \begin{equation}
 \begin{aligned}
@@ -19,9 +67,12 @@ To model the epidemic dynamics within each subpopulation, we use a mean-field co
     \dot{R}_{x} &= \gamma_{x} I_{x},
 \end{aligned}
 \end{equation}
-where \( \beta_x \) and \( \gamma_x \) represent the infection and recovery rates at site \( x \), respectively. The term \( S_x I_x \) approximates the interaction rate between susceptible and infected individuals, which is valid for large populations. The transition rates are assumed to be uniform across all subpopulations, and each subpopulation has a total number of individuals \( N_x = S_x + I_x + R_x \).\\
+where $ \beta_x$ and $ \gamma_x$ represent the infection and recovery rates at site $ x$, respectively.\\
+The term $S_x I_x$ approximates the interaction rate between susceptible and infected individuals, which is valid for large populations. The transition rates are assumed to be uniform across all subpopulations, and each subpopulation has a total number of individuals $ N_x = S_x + I_x + R_x$.\\
 
-A simplified mechanistic approach is used, assuming a Markovian process in which the movement of individuals between subpopulations is governed by a matrix \( \Delta \), where \( \Delta_{ij} \) represents the rate at which individuals move from subpopulation \( i \) to subpopulation \( j \) per unit time. Although a unique \( \Delta \) matrix could be defined for each state (S, I, or R), for simplicity, we unify the mobility for all states. The most general model is described by the following system of ODEs:
+
+\subsubsection{SIR on Metapopulation Network}
+A simplified mechanistic approach is used, assuming a Markovian process in which the movement of individuals between subpopulations is governed by a matrix $\Delta$, where $\Delta_{ij}$ represents the rate at which individuals move from subpopulation $i$ to subpopulation $j$ per unit time. Although a unique $\Delta$ matrix could be defined for each state (S, I, or R), for simplicity, we unify the mobility for all states. The most general model is described by the following system of ODEs:
 
 \begin{equation}
 \begin{aligned}
@@ -30,27 +81,38 @@ A simplified mechanistic approach is used, assuming a Markovian process in which
     \dot{R}_{x} &= \gamma_{x} I_{x} - \mu_{(R)} \sum_{x' \in \mathcal{X}} \Delta_{(R);x,x'}^{\top} R_{x'},
 \end{aligned}
 \end{equation}
-for every \( x \in \mathcal{X} \).
+for every $x \in \mathcal{X}$.
 
-We define an invariant weighted mobility network \( D \), representing the pre-epidemic traffic between subpopulations. Two subpopulations are considered neighbors if and only if the mobility network weight is non-zero. To ensure that the mobility network does not affect population sizes over time, it must be undirected, meaning the net flow of travelers between two subpopulations is equal in both directions. This condition is difficult to implement when subpopulations have heterogeneous size distributions. Our model resolves this issue by making the mobility rate between two subpopulations proportional to the product of their population sizes, resulting in equal diffusion in both directions. The base mobility rate between subpopulations is represented by a positive symmetric matrix \( W \), and the mobility network is defined as:
+We define an invariant weighted mobility network $D$, representing the pre-epidemic traffic between subpopulations. Two subpopulations are considered neighbors if and only if the mobility network weight is non-zero. To ensure that the mobility network does not affect population sizes over time, it must be undirected, meaning the net flow of travelers between two subpopulations is equal in both directions. This condition is difficult to implement when subpopulations have heterogeneous size distributions. Our model resolves this issue by making the mobility rate between two subpopulations proportional to the product of their population sizes, resulting in equal diffusion in both directions. The base mobility rate between subpopulations is represented by a positive symmetric matrix $W$, and the mobility network is defined as:
 
 \begin{equation}
 D_{ij} = N_i N_j W_{ij}.
 \end{equation}
 
-To incorporate adaptivity, subpopulations can restrict the mobility rate through a scalar travel restriction factor \(t\). The travel restriction factor for a connection between two subpopulations ranges from zero to one, where one eliminates all mobility and zero allows full mobility. A value of zero, however, does not guarantee a pre-pandemic mobility rate, as the other side of the link could be implementing a travel restriction. Each subpopulation can control the level of travel restriction independently for each neighboring subpopulation, forming a vector $\mathbf{\rho}$ of travel restriction values. The values in the vector that would correspond to links to non-neighbors or the self-link equal zero. These vectors are combined to form a non-symmetric square matrix \( T \), where \( \Delta = T \circ T^\top \circ D \).\\
-
-A more refined version of the equations for subpopulation \( i \) in vector form is:
-
-\begin{align}
-    \dot{S}_{i} &= -\beta S_{i} I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{t}_i \mathbf{t}_j \mathbf{d}_j S_j, \\
-    \dot{I}_{i} &= \beta S_{i} I_{i} - \gamma I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{t}_i \mathbf{t}_j \mathbf{d}_j I_j, \\
-    \dot{R}_{i} &= \gamma I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{t}_i \mathbf{t}_j \mathbf{d}_j R_j.
-\end{align}
-
-A few deductions can be immediately made for this model formulation. First of all, it can be easily  proven that the steady state of a subpopulation under SIR is either infection-free where the infection has not been introduced or has undergone infection and has fully recovered from it. Secondly, due to the nature of diffusion, it is to be expected that once a subpopulation contains a nonzero amount of infected individuals, it immediately spreads to not only all neighboring subpopulations, but all subpopulations in the connected component or subgraph of the infected subpopulation. The combination of these two observations is crucial as it eliminates the possibility of finding a travel restriction strategy that eradicates the disease in the metapopulation without all individuals getting infected once. There are several ways to counteract this issue, one which was explored is introducing the discrete probabilistic dynamics of interacting and migrating individuals, which does have a chance for an early end of the spread \cite{colizza2008epidemic}. While it is true that preventing an epidemic  from spreading to neighboring sites has been found to be very difficult, the instantaneous spread of the disease across all connected nodes is an unrealistic phenomenon. However, since the focus of this work is to slow down the spread of the infection and not completely eradicating it, this simplification is acceptable. \\
 
 \subsection{Adaptive Strategies}
+
+To incorporate adaptivity in the metapopulation network system, two main questions need to be answered: What information is given to the agents, and what control parameters are they given control of. While there are an infinite number of information gateways and actions that can be given to the agents, simplicity and reflection of real-life observed phenonmena need to be the primary factors taken into consideration when proposing an adaptivity model. Furthermore, there is a focus in this project on locality in agent adaptivity, both in information and contrrol, as opposed to the typical modeling approache which given complete control over a central actor. In the case of a metapopulation network, one of the most direct analogies that can be taken is a transportation network between state-regions such as governerates or countries. While there are many actions state governerates can take to protect their population from infectious disease, the focus of this project will be on control over incoming and outgoing individuals traveling across the transportation network to neighboring patches (other subpopulations). This is typically applied through shutting down air routes, limiting road traffic, and applying quarantines for entire regions.The level of granularity given to the subpopulations can vary from limiting mobility without discrimination in regards to which patch the individuals are coming from to having connection-based control. Finally, some governerates can implement testing at entrances to the region to check which individuals are infected and put them in quarantine or simply deny them entrance. In the case of this model however, no such option is given. Subpopulations cannot distinguish the the states of infection the individuals arrive in and can only limit a random fraction of the incoming individuals at any point in time. They also cannot distinguish between incoming and outgoing individuals.\\
+
+Although the most straightforward way to control mobility rate is to instantaneously set the value of the travel restriction (the fraction of individuals not coming or leaving) at any point in time given certain information, there are several issues with this option. The main issue is that it is typically not reprisentative of the real-life analogy where it can take several days to implement to fully implement travel restrictions. This happens because there is typically an aspect of inertia in the system and it takes time for the desired outcome to take shape. A second reason why instantanious control is an issue is that, given this option, subpopulations would have the option to protect themselves from incoming infected individuals by immediately blocking off all infected patches. This issue has been solved previously by introducing a time delay in which a subpopulation fully blocks incoming mobility from infected neighbors \cite{feng2020infectious}. In this project, which is the key difference from similar literature, subpopulations only control the rate of change of the travel restriction, not the restriction value itself. This removes instantanious control from the subpopulations while still allowing them to react to present-day information.\\
+
+In regards to the information given to the subpopulation, a focus on locality is still preserved. Each subpopulation knows at all time the number of inhabitants in each infection state. In regards to the metapopulation network, each subpopulation has information only about the overall makeup of indivduals coming from each neighboring subpopulation (ones with non-zero pre-pandemic mobility rate) in regards to the number of individuals in each infection state. This is analogous to random testing done at city entrances to gauge the number of infected individuals coming from abroad. In one of the upcoming proposed strategies, information about the global number of infected individuals traveling across the network is given, but this strategy is only tested as a default non-local case scenario.\\
+
+For the mathematical formulation, subpopulations can restrict the mobility rate through a scalar travel restriction multiplier $\rho$. The travel restriction factor for a connection between two subpopulations ranges from zero to one, where one eliminates all mobility and zero allows full pre-pandemic mobility. A value of zero, however, does not guarantee mobility across the connection, as the other side of the connection could be implementing a travel restriction. Each subpopulation can control the level of travel restriction independently for each neighboring subpopulation, forming a vector $\mathbf{\rho}$ of travel restriction values. The values in the vector that would correspond to links to non-neighbors or the self-link equal zero. These vectors are combined to form a non-symmetric (typically sparse) square matrix $T$, where $\Delta = T \circ T^\top \circ D$.\\
+
+A more refined version of the equations for subpopulation $i$ in vector form is:
+\begin{equation}    
+\begin{aligned}
+        \dot{S}_{i} &= -\beta S_{i} I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{\bar \rho}_i \mathbf{\bar \rho}_j \mathbf{d}_j S_j, \\
+        \dot{I}_{i} &= \beta S_{i} I_{i} - \gamma I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{\bar \rho}_i \mathbf{\bar \rho}_j \mathbf{d}_j I_j, \\
+        \dot{R}_{i} &= \gamma I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{\bar \rho}_i \mathbf{\bar \rho}_j \mathbf{d}_j R_j.
+\end{aligned}
+\end{equation}
+
+A few deductions can be immediately made for this model formulation. First of all, it can be easily  proven that the steady state of a subpopulation under SIR is either infection-free where the infection has not been introduced or has undergone infection and has fully recovered from it. Secondly, due to the nature of diffusion, it is to be expected that once a subpopulation contains a nonzero amount of infected individuals, it immediately spreads to not only all neighboring subpopulations, but all subpopulations in the connected component or subgraph of the infected subpopulation (any patch that can be reached through traversing through consecutive neighbors). The combination of these two observations is crucial as it eliminates the possibility of finding a travel restriction strategy that eradicates the disease in the metapopulation without all subpopulations getting at least partially infected. There are several ways to counteract this issue, one which was explored is introducing the discrete probabilistic dynamics of interacting and migrating individuals, which does have a chance for an early end of the spread \cite{colizza2008epidemic}. While it is true that preventing an epidemic from spreading to neighboring sites has been found to be very difficult, the instantaneous spread of the disease across all connected nodes is a possibly inaccurate phenomenon. However, since the focus of this work is to slow down the spread of the infection and not completely eradicating it, this simplification is acceptable. \\
+
+In the context of this model, containment strategies are adaptive dynamics of the effective Laplacians for the population in the different health states. For instance, a very simple strategy could be to severely restrict the movement of the infected population away from a given site by coupling it to the prevalence there. The aim of this thesis should be to devise and explore different containment strategies as well as investigate their effectiveness through numerical simulations. Optionally, one could also consider extensions to the above model such as introducing a socio-economial component that would indicate the desire of a subpopulation to enforce travel restrictions.\\
+
 To model the travel restrictions implemented as the prevalence of infection in the metapopulation changes over time, several strategies were explored. For each subpopulation $x$, given the control vector $\mathbf{\rho}$, it is desirable to minimize the mobility of infected individuals, $I_{x}$, down to zero. Since implementing travel restrictions typically takes a nonzero amount of time, giving a subpopulation the ability to immediately change the travel restriction to any desired value is unrealistic. The option of cutting off the connection to an infected population after a set time has been explored \cite{feng2020infectious}. Instead, here the subpopulations have control over the rate of change of $\mathbf{\rho}$, which defines how $\mathbf{\rho}$ changes with time. Henceforth, a strategy defines an equation that $\mathbf{\dot{t}}$ follows given the current information about the metapopulation.\\
 
 \subsubsection{Global proportional travel restriction}
@@ -85,57 +147,42 @@ where:
 \begin{equation}
 M_{(I);x} = \sum_{x' \in X}^{n} \rho_x \rho_{x'} \mathbf{d}_{x'} I_{x'}
 \end{equation}
-\usetikzlibrary{arrows.meta, positioning, calc}
 
 \begin{figure}[ht]
     \centering
     \begin{tikzpicture}[node distance=2cm, >=Stealth]
 
-    % Subpopulation node
     \node[draw, rectangle, minimum width=1.5cm, minimum height=1.5cm] (subpop) {$I_{x}$};
 
-    % rho node
     \node[draw, circle, left=6cm of subpop] (rho) {$\bar \rho$};
 
 
-    % Sum node
     \node[draw, circle, left=1cm of rho] (sum) {$\Sigma$};
 
-    % Inflows
-    \node[left=2cm of sum] (inflow1) {$\mu I_{2}$};
-    \node[above=0.5cm of inflow1] (inflow2) {$\mu I_{1}$};
-    \node[below=0.5cm of inflow1] (inflow3) {$\mu I_{3}$};
+    \node[left=2cm of sum] (inflow1) {$\mu \bar{\rho_2} I_{2}$};
+    \node[above=0.5cm of inflow1] (inflow2) {$\mu \bar{\rho_1} I_{1}$};
+    \node[below=0.5cm of inflow1] (inflow3) {$...$};
 
-    % Arrows from inflows to sum node
     \draw[->] (inflow1) -- (sum);
     \draw[->] (inflow2) -- (sum);
     \draw[->] (inflow3) -- (sum);
 
-    % Arrow from sum node to rho
     \draw[->] (sum) -- (rho);
 
-    % Arrow from rho to subpopulation, label midpoint
     \draw[->] (rho) -- node[pos=0.5, above] (midpoint) {$M_{(I);x}$} (subpop);
 
-
-
-    % Multiplication by $\lambda$ node
     \node[draw, circle, below=1cm of midpoint] (lambda_mult) {$\lambda$};
 
-    % Arrow from midpoint to lambda_mult with label
     \draw[->] (midpoint) --  (lambda_mult);
 
-    % Integrator node
     \node[draw, rectangle, left=1cm of lambda_mult, minimum width=1cm, minimum height=1cm] (integrator) {$\displaystyle 1-\int$};
 
-    % Arrow from lambda_mult to integrator
     \draw[->] (lambda_mult) -- node[pos=0.5, below] {$\dot{\rho}$} (integrator);
 
-    % Arrow from integrator back to rho
     \draw[->] (integrator) to [out=180, in=-90] (rho);
 
     \end{tikzpicture}
-    \caption{System diagram illustrating the dynamics of a single subpopulation $x$, specifically the external flow on $I_x$, following the uniform proportional travel restriction strategy without bias. The incoming infecteds all come through together (summed) where all the traffic is restricted by a singular $\bar \rho_x$ node, resulting in final influx rate $M_{(I)x}$. This influx rate is measured as a control signal which is integrated with a proportionality constant $\lambda$. The complement of this integral is $\bar \rho_x$, the control parameter restricting incoming flow.    It is worthy to note that this diagram is only showing the incoming infecteds flow. However There is outflowing individuals to other patches whose mobility is also restricted by $\bar \rho_x$. Individuals in other states such as susceptible and recovered are also affected by the same dynamics }
+    \caption{\small System diagram illustrating the dynamics of a single subpopulation $x$, specifically the external flow on $I_x$, following the uniform proportional travel restriction strategy without bias. The incoming infecteds all come through together (summed) where all the traffic is restricted by a singular $\bar \rho_x$ node, resulting in final influx rate $M_{(I)x}$. This influx rate is measured as a control signal which is integrated with a proportionality constant $\lambda$. The complement of this integral is $\bar \rho_x$, the control parameter restricting incoming flow. It is worthy to note that this diagram is only showing the incoming infecteds flow. However There is outflowing individuals to other patches whose mobility is also restricted by $\bar \rho_x$. Individuals in other states such as susceptible and recovered are also affected by the same dynamics }
     \label{fig:Unifrom restriction diagram}
 \end{figure}
 
@@ -157,7 +204,7 @@ Unlike the other two strategies, this one is entirely local to the connection, a
         \node[draw, rectangle, minimum width=1.5cm, minimum height=1.5cm] (subpop) {$I_{x}$};
         \node[draw, rectangle, minimum width=1cm, minimum height=1.5cm, anchor=south, left=4.5cm of subpop] (rho) {$\bar \rho_x$};
         \draw[->] (rho) -- node[pos=0.6, above] (midpoint) {$M_{(I);x}$} (subpop);
-        \node[draw, circle, above=0.5cm of midpoint, xshift=-1.5cm] (mu) {$\mu$};
+        \node[draw, circle, above=0.5cm of midpoint, xshift=-1cm] (mu) {$\mu$};
         \node[draw, circle, below=1cm of midpoint] (lambda_mult) {$ \lambda$};
         \draw[->] (midpoint) -- (lambda_mult);
         \node[draw, rectangle, left=1cm of lambda_mult, minimum width=1cm, minimum height=1cm] (integrator) {$\displaystyle 1-\int$};
@@ -170,7 +217,7 @@ Unlike the other two strategies, this one is entirely local to the connection, a
         \draw[->] (rho_mirror) -- node[pos=0.6, above] (midpoint_mirror) {$M_{(I);x'}$} (subpop_mirror);
         \node[draw, circle, below=1cm of midpoint_mirror] (lambda_mult_mirror) {$\lambda$};
         
-        \node[draw, circle, above=0.5cm of midpoint_mirror, xshift=1.5cm] (mu_mirror) {$\mu$};
+        \node[draw, circle, above=0.5cm of midpoint_mirror, xshift=1cm] (mu_mirror) {$\mu$};
         \draw[->] (midpoint_mirror) -- (lambda_mult_mirror);
         \node[draw, rectangle, right=1cm of lambda_mult_mirror, minimum width=1cm, minimum height=1cm] (integrator_mirror) {$\displaystyle 1-\int$};
         \draw[->] (lambda_mult_mirror) -- node[pos=0.5, below] {$\dot{\rho_{x'}}$} (integrator_mirror);
@@ -186,7 +233,7 @@ Unlike the other two strategies, this one is entirely local to the connection, a
         \draw[->] (rho_mirror) to [out=30, in=180]  (rho);
         
     \end{tikzpicture}
-    \caption{System diagram illustrating the dynamics between two subpopulations $x$ and $x'$ with connection proportional travel restriction. This, however, is not an isolated system as there are other influxes and outfluxes to other patches that impact the rates of change of $I_x$ and $I_{x'}$. As can be seen in the diagram, both influx and outflux are restricted by $\bar \rho$, but only the inflow of infected contributes to the dynamics of the respective $\bar \rho$}
+    \caption{\small System diagram illustrating the dynamics between two subpopulations $x$ and $x'$ with connection proportional travel restriction. This, however, is not an isolated system as there are other influxes and outfluxes to other patches that impact the rates of change of $I_x$ and $I_{x'}$. As can be seen in the diagram, both influx and outflux are restricted by $\bar \rho$, but only the inflow of infected contributes to the dynamics of the respective $\bar \rho$}
     \label{fig:Connection restriction diagram}
 \end{figure}
 

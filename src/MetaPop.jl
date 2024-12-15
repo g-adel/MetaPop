@@ -41,10 +41,10 @@ end
 
 function multiCaseMain()
     meta, S = defineMeta()
-    # Ss = multiScenario_λ(S)
-    # datas = multiSimulation1D(Ss)
-    Ss = multiScenario_μβ(S)
-    datas = multiSimulation2D(Ss)
+    Ss = multiScenario_λ(S)
+    datas = multiSimulation1D(Ss)
+    # Ss = multiScenario_μβ(S)
+    # datas = multiSimulation2D(Ss)
 
     combinedPlot = plotEnsemble(datas, Ss,meta;save=false)
     return combinedPlot, datas
@@ -56,8 +56,8 @@ end
 
 println("¡Hola!")
 
-@time combinedPlot, data, meta = MetaPop.singleCaseMain()
+# @time combinedPlot, data, meta = MetaPop.singleCaseMain()
 
-# combinedPlot, datas = MetaPop.multiCaseMain()
+@time combinedPlot, datas = MetaPop.multiCaseMain()
 
 plot(combinedPlot)
