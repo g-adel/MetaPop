@@ -98,7 +98,6 @@ Since we are interested in the spread rate of the infection, the objective is to
 
 Based on numerical results, we found that ${\Delta t}_{j}$ converges quickly to a constant value. Therefore, we apply an ansatz ${\Delta t}_{j+1} = t_{j+1} - t_j \approx {\Delta t}$ for $j \gg 1$, leading to $t_j \approx j \, \Delta t$.
 
-Subtracting equation (7) from equation (8), we get:
 
 \begin{equation}
 \kappa \Delta t + j \ln\left( \frac{t_{j+1}}{t_j} \right) + \ln\left( \frac{\mu t_{j+1}}{j+1} \right) = 0
@@ -125,7 +124,7 @@ This is still a transcendental function. However, a known solution for this equa
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Spread Rates for different μ and β_β0.125_γ0.0_σ0.0_μ0.01_nPop10_kbar2_λ0.0_mobBias0.0_h0.1_minh1.0e-5_nDays500_I01.0e-5_critRange0.0.pdf}
-    \caption{\small The spread rates of infection across a 1-lattice network (path graph) for far away neighbors. Value are found both numerically and approximated analytically for different values of $\mu$ and $\beta$. It can be seen that both the equation solution and the lambert W limit funciton closely approximate the spread rate for the relevant epidemic and mobility parameters.}
+    \caption{\small The spread rates of infection across a 1-lattice network (path graph) for far away neighbors. Value are found both numerically and approximated analytically for different values of $\mu$ and $\beta$. It can be seen that both the equation solution and the lambert W limit function closely approximate the spread rate for the relevant epidemic and mobility parameters.}
     \label{Spread Rates mu beta}
 \end{figure}
 
@@ -153,7 +152,7 @@ Applying the same linearization as equation (4):
 \dot I_j \approx \kappa I_j + \mu \bar \rho I_{j-1} 
 \end{equation}
 
-Substituting $I_1 = i_0 \kappa e^{\kappa t}$ in equation (13):
+Substituting $I_1 = i_0 \kappa e^{\kappa t}$:
 
 \begin{equation}
 \dot{\bar{\rho}}_2(t) = - i_{0} \lambda \mu \bar \rho_{2}(t) e^{\kappa t}
@@ -213,10 +212,10 @@ This shows that the rate of decay for the first applied restriction based on thi
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Evolution of Path Mobility Restrictions_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar3_topologyPathGraph_λ1.0e10_mobBias0.0_h0.1_minh1.0e-9_nDays1000_I01.0e-5_critRange0.0.pdf}
-    \caption{\small Evolution of mobility restrictions. It is worthy of note here that most $\rho$ values reach 1 significantly before the populaiton's corresponsponding infected prevalence reaches any significant value. It can be also seen from this plot that $\rho_2$ reaches 1 before the second day of the scenario, while $rho_3$ has a non-zero initial growth rate.}
+    \caption{\small Evolution of mobility restrictions. It is worthy of note here that most $\rho$ values reach 1 significantly before the population's corresponding infected prevalence reaches any significant value. It can be also seen from this plot that $\rho_2$ reaches 1 before the second day of the scenario, while $rho_3$ has a non-zero initial growth rate.}
 \end{figure}
 
-It is also worth noting that due to this super-exponential growth, $\rho_{2,1}$ decays down to zero much faster than the internal infection spread $I_2$. This difference in rates can be used to analytically approximate the delay in infection spread $t_2$ in subpopulation 2 from subpopulation 1. This can be done by first finding the final cumulative amount of incoming infecteds $F_2$ where 
+It is also worth noting that due to this super-exponential growth, $\rho_{2,1}$ decays down to zero much faster than the internal infection spread $I_2$. This difference in rates can be used to analytically approximate the delay in infection spread $t_2$ in subpopulation 2 from subpopulation 1. This can be done by first finding the final cumulative amount of incoming infected $F_2$ where 
 \begin{equation}F_2:=\int_0^\infty f_2(t)dt\end{equation}
  
 
@@ -303,7 +302,7 @@ While one cannot solve explicitly for $t$ in this equation, it is important to o
 
 \begin{equation}\Delta t_3 = t_{F_3} \approx \frac{1}{\kappa} \ln(1+\frac{ \kappa}{\mu})\end{equation}
 
-This expression for $\Delta t_3$ is very close to equation (19) in the nonadaptive system, since $W(x) \approx \ln(1+x)$. It is numerically found that in the adaptive system, for sufficiently large $i$, 
+This expression for $\Delta t_3$ is very close to the spread rate expression in the nonadaptive system, since $W(x) \approx \ln(1+x)$. It is numerically found that in the adaptive system, for sufficiently large $i$, 
 \[
 \lim_{i \to \infty} \Delta t_i \approx \frac{1}{\kappa} W\left(\frac{\kappa}{\mu}\right)
 \]
