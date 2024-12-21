@@ -6,15 +6,21 @@
 % \begin{document}
 
 \section{Analysis}
-\subsection{Unadaptive path graph}
+\subsection{Non-Adaptive Path Graph}
 \begin{center}
 \begin{tikzpicture}
+    \node (y) at (-4,0)  {...};
+    \node (z) at (-2,0) [circle,draw] {...};
     \node (a) at (0,0) [circle,draw] {1};
     \node (b) at (2,0) [circle,draw] {2};
     \node (c) at (4,0) [circle,draw] {3};
-    \node (d) at (6,0) [circle,draw] {4};
-    \node (e) at (8,0) [circle,draw] {...};
+    \node (d) at (6,0) [circle,draw] {...};
+    \node (e) at (8,0) {...};
     
+    \draw[->, bend left] (y) to (z);
+    \draw[->, bend left] (z) to (y);
+    \draw[->, bend left] (a) to (z);
+    \draw[->, bend left] (z) to (a);
     \draw[->, bend left] (a) to (b);
     \draw[->, bend left] (b) to (a);
     \draw[->, bend left] (b) to (c);
@@ -25,7 +31,9 @@
     \draw[->, bend left] (e) to (d);
 \end{tikzpicture}
 \end{center}
-Let the network have a path graph (1-lattice graph) where subpopulation 1 is at the start of the path and has an initial infection of $I_1(0)=I_0$. The governing dynamics of the infection in subpopulation 1 is:
+Let the network have be an unweighted path graph (1-lattice graph),  and infinitely long on both sides. All subpopulations have population sizes $N_x=S_x+I_x+R_x=1$. We randomly select a node subpopulation and designate it with index 1 and incrementally index each consecutive neighboring subpopulation to the right. We will be focusing on the group of subpopulations to the right side of subpopulation 1 though due to the symmetry of the network and the ODE system, the epidemic evolution of both sides are the same. In a pre-infection state, all subpopulations have $S_x=1,I_x=0,R_x=1$. To begin an infection scenario, we start with an initial condition where $I_1(0)=i_0$ and $S_1(0)=1-i_0$. 
+%STRATEGY: focus on I, go sequentially. Expected behaviour of consecutive exponential rise. Objective of finding spread rate. Define spread rate
+The governing dynamics of the infection in subpopulation 1 is:
 
 \begin{equation}
 \dot I_1(t)=(\beta S_1-\gamma)I_1+\mu I_2-2\mu I_1
@@ -36,7 +44,7 @@ Since $I_2$ starts at zero and the susceptible fraction starts at one, a first-o
 \end{equation}
 For a randomly selected subpopulation $j$, the infection fraction dynamics can be represented and approximated as:
 \begin{equation}
-\dot I_j =(\beta S_j-\gamma)I_j+\mu (I_{j-1}+I_{j+1}-2\mu I_j)
+\dot I_j =(\beta S_j-\gamma)I_j+\mu (I_{j-1}+I_{j+1}-2 I_j)
 \end{equation}
 Since the diffusion of infected individuals starts from index 1 and increasing, $I_{j+1} \approx 0$ with respect to $I_j$. Similar to the above linearization:
 \begin{equation}
@@ -247,7 +255,8 @@ to find $t_2$, the value at which $I_2(t)=i_0$,
 \begin{equation}I_2(t) =\frac{e^{\kappa t_2}}{\lambda}\stackrel{!}{=} i_0\end{equation}
 solving for $t_2$:
 \begin{equation}t_2=\frac{\ln(i_0 \lambda)}{\kappa}\end{equation}
-This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there are diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$. As Figure~\ref{fig:t_2 vs lambda} shows, the appoximated relationship matches the numerical results when $\lambda$ is sufficiently higher than $1/i_0$ such that $\lambda i_0 >>1$ 
+This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there are diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$. As Figure~%REF figure
+shows, the appoximated relationship matches the numerical results when $\lambda$ is sufficiently higher than $1/i_0$ such that $\lambda i_0 >>1$ 
 
 \begin{figure}[!ht]
     \centering
