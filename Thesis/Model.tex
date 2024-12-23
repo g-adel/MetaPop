@@ -71,6 +71,7 @@ The mean-field ordinary differential equations (ODEs) model from the SIR model g
 \end{equation}
 where $ \beta_x$ and $ \gamma_x$ represent the infection and recovery rates at site $x$, respectively.\\
 The term $S_x I_x$ approximates the interaction rate between susceptible and infected individuals, which is valid for large populations with homogenous interaction.%REF
+%FIX: explain S*I better
 Each subpopulation has a total number of individuals $ N_x = S_x + I_x + R_x$.
 For the remainder of this work, the transition rates $\beta_x$ and $ \gamma_x$ are assumed to be uniform across all subpopulations, such that $\beta_x=\beta$ and $ \gamma_x=\gamma$ \\
 
@@ -81,12 +82,71 @@ While this is somewhat unrepersentative of the real-world counterpart, where ind
 The random walkers modelling choice also has some nice mathematical properties, as taking the mean-field of this stochastic process produces a system that is analogous to diffusion of individuals across the metapopulation network\cite{masuda2017random}.
 This, along with the local dynamics within subpopulations, would place this model as a reaction-diffusion system\cite{colizza2007reaction}.\\
 
-% We define the weighted adjacency matrix $A$, where $A_{x,x'}$ is equal to a nonzero real value if there is a connection between patches $x$ and $x'$, and zero otherwise. Given this adjacency matrix, we define a metapopulation network as the combination of a set of subpopulations $\mathcal{X}$ connected by the network $A$. The matrix A is assumed to be symmetric, i.e. any individual that can travel from patch $x$ to $x'$ can also travel from patch $x'$ to $x$. A is also called an undirected network or graph. We also define the degree matrix $D$, a diagonal matrix where $D_{x,x}$ is equal to the number of connections, called the node degree, subpopulation $x$ has. Using this degree matrix, we're able define the Laplacian matrix $\Delta$ as $\Delta = D - A$. %FIX: explain what's the use of this matrix
+
+
+We define the weighted adjacency matrix $A$, where $A_{x,x'}$ is equal to a positive real value if there is a connection between patches $x$ and $x'$, and zero otherwise. Using an adjacency matrix eliminates the possibility of having multiple links connecting the same nodes. We also eliminate the possibility of self-loops, links connecting a node to itself. The matrix $A$ is assumed to be symmetric, i.e., any individual that can travel from patch $x$ to $x'$ can also travel from patch $x'$ to $x$. These assumptions make $A$ an adjacency matrix of a simple undirected weighted network or graph. Finally, we assume that the network is one giant component, i.e. every patch can be reached from every other patch through a sequence of moves through the network connections. Given this adjacency matrix, we define a metapopulation network as the combination of a set of subpopulations $\mathcal{X}$ connected by the network $A$. From the network, the number of direct connections it has to other patches in the network, termed the patch degree. For a weighted network, the node strength of a patch is the sum of the weights of all links connected to it. 
+\\
+
+Given the metapopulation network, we need to define the nature of the mobility of the individuals across the network. The assumption that is typically used in metapopulation networks, popularized by Colizza et. al, is that individuals follow a random walk along the links \cite{colizza2008epidemic}. A discrete random walk is a stochastic in which, at set points in time, agents randomly choose one of the location available to it and move there. In a network domain, that means choosing one of the patches neighboring the individual's current patch and moving to it. This process here is made memoryless (independent of individual's history). An extension to a continuous time process is possible by defining a continuous-time random walk where the probability of moving to a neighboring patch is defined by a mobility rate parameter $\mu_x$, which can be thought of as the expected/average number of individuals to move per unit time. It can also be thought of as the inverse of the expected/average time it takes for an individual to move. The rate parameter $\mu$ can be adjusted to reflect different levels of mobility based on location and individual disease status. In this model, it will be assumed that the mobility rate of individuals in any given patch is proportional to the degree of said patch. This assumption is based on the observation that in real-life analogous systems, it is typically the case that sites that are more connected (e.g. in a flight network) exhibit a mobility rate proportional to the number (and strength) of connections available \cite{colizza2006role}. For a weighted network, $\mu_x$ instead becomes proportional to the node strength of of patch $x$.
+
+\begin{equation}
+    \mu_x= St(x) \ \mu
+\end{equation}
+where $St(x)$ is the node strength of patch $x$. $St(x)=deg(x)$ for an unweighted matrix. We will also assume that individuals choose a cross a connection linearly proportional to the weight of said connection. This assumption is an intuitive extention for weighted networks \cite{10.1093/comnet/cnab032}. For unweighted networks, this amounts to a uniform probability to select any patch to move to. Thus we define the transition probability $p_{x,x'}$ of individuals from patches $x$ to $x'$ as:
+\begin{equation}
+    p_{x,x'} =  \frac{A_{x,x'}}{St(x)}
+\end{equation}
+
+Given the mobility rates and transition probabilities, one can now compute the expected mobility flow of individuals per unit time $M_{x,x'}$ from a patch $x$ to $x'$. For $N_x$ individuals inhabiting the subpopulation patch $x$ who move at mobility rate $\mu_x$ to patch $x'$ with probability $p_{x,x'}$:
+
+\begin{equation}
+    M_{x,x'} = \mu_x p_{x,x'} N_{x} = \mu  St(x) \ \frac{A_{x,x'}}{St(x)} \ N_{x} = \mu  A_{x,x'} N_{x}
+    \label{eq:Mxx'}
+\end{equation}
+
+From the formulation we can already see an advantage of having $\mu_x$ be proportional to the node degree or strength. The mobility flow from one population to another is independent of the node degree or strength. Also, in the case $A$ is symmetric, in a connection between two patches of the same population size, $M_{x,x'}=M_{x',x}$. This means that in a network with uniform population sizes, there is a conservation of the population size distribution in all subpopulations. This is a nice corollary of the model design as it reflects real life observations where short-term mobility of individuals has minimal impact on the population sizes. This is in contrast to a random walk process model where the the metapopulation converges to a state where the population size at a patch is proportional to its degree or strength, no matter its initial condition \cite{colizza2008epidemic}. Though the population sizes remain uniform, this does not mean that the composition of disease compartment sizes does not change. As
+\\
+From equation \ref{eq:Mxx'}, we can find the net mobility outflow of individuals (outflow - inflow) from subpopulation $x$, termed as $M_x$, as:
+\begin{equation}
+    M_x = \sum_{x' \in \mathcal{X}} (M_{x,x'} - M_{x',x}) = \mu \sum_{x' \in \mathcal{X}} (A_{x,x'} N_{x} -  A_{x',x} N_{x'}) 
+    \label{eq: Mx}
+\end{equation}
+Equations \ref{eq:Mxx'} and \ref{eq: Mx} are also true for each of the compartments, where $M_x$ is replaced by $M_(C);x$ and $N_x$ replaced by $C_x$, where $C$ can be $S$, $I$, or $R$. The definition of node strength can be utilized to simplify \ref{eq:Mxx'} as:
+\begin{equation}
+    M_x = \mu \left( St(x) N_x - \sum_{x' \in \mathcal{X}} (A_{x',x} N_{x'}) \right)
+    \label{eq: Mx St}
+\end{equation}
+\\
+Since $A_{x,x}=0$, equation \ref{eq: Mx St} can be expressed as a vector dot product, where one vector is the array of population sizes $\mathbf{N}$. The other vector, representing connection strength and direction, has the node degree or strength on index $x$, and $-A_{x,x'}$ on $x'$ indices. Since this vector is unique for each subpopulation, it'll be useful to define a matrix as the collection of these vectors. 
+
+Two kinds of networks will be considered in the following work: an unweighted network ($A_{x,x'}$ can only be zeros or ones) with uniform subpopulation sizes, and a weighted network with potentially heterogeneous subpopulation size distribution. The unweighted network will be a simpler case scenario on which mathematical analysis will be done, and the weighted network will be the subject of numerical simulations.
+
+For the unweighted network, as mentioned previously, the row vector of the Laplacian matrix $\Delta = D - A$ precisely captures the net mobility flow expression in equation \ref{eq: Mx}. We can verify this by substituting the definitions:
+\begin{equation}
+    \begin{aligned}
+        \Delta_{x,:} \cdot \mathbf{N} &= (D_{x,x} \mathbf{e}_x - A_{x,:}) \cdot \mathbf{N} \\
+        &= deg(x)N_x - \sum_{x' \in \mathcal{X}} A_{x,x'}N_{x'} \\
+        &= \frac{1}{\mu}M_x
+    \end{aligned}
+\end{equation}
+where $\mathbf{e}_x$ is the standard basis vector for index $x$. The Laplacian matrix $\Delta$ maintains the symmetry of $A$ such that $\Delta_{x,x'} = \Delta_{x',x}$. These values are signed such that negative values indicate flow in the opposite directions.
+
+For the weighted network case, we define the node strength matrix $St$ as a diagonal matrix where $St_{x,x}$ is the sum of the link weights connected to node $x$, which is analogous to the degree matrix in the unweighted case. Following the same derivation as above, but using equation \ref{eq: Mx St}, we obtain the weighted Laplacian matrix $\Delta_W = St - A$. The weighted Laplacian maintains the same relationship with the mobility flow:
+\begin{equation}
+    \begin{aligned}
+        \Delta_{W;x,:} \cdot \mathbf{N} &= (St_{x,x} \mathbf{e}_x - A_{x,:}) \cdot \mathbf{N} \\
+        &= St(x)N_x - \sum_{x' \in \mathcal{X}} A_{x,x'}N_{x'} \\
+        &= \frac{1}{\mu}M_x
+    \end{aligned}
+\end{equation}
+
+This formulation demonstrates that both the unweighted and weighted Laplacian matrices serve as natural operators for describing the diffusion dynamics in their respective network types. The symmetry of these Laplacian matrices ensures conservation of total population in the system, as $\mathbf{1}^{\top}\Delta = \mathbf{0}$ and $\mathbf{1}^{\top}\Delta_W = \mathbf{0}$, where $\mathbf{1}$ is a vector of ones. This property reflects the physical constraint that individuals are neither created nor destroyed during the mobility process.
+% Two kinds of networks will be considered in the following work: an unweighted network ($A_{x,x'}$ can only be zeros or ones) with uniform subpopulation sizes, and a weighted network with potentially heterogeneous subpopulation size distribution. The unweighted network will be a simpler case scenario on which mathematical analysis will be done, and the weighted network will be the subject of numerical simulations. For the unweighted network, the degree matrix $D$ is defined as a diagonal matrix where $D_{x,x}$ is equal to the number of connections (called the node degree) that subpopulation $x$ has. Using this degree matrix, we define the Laplacian matrix $\Delta$ as $\Delta = D - A$. The Laplacian matrix plays a crucial role in describing diffusion processes on networks, as it captures both the local connectivity structure and the flow of individuals between patches. Specifically, for any patch $x$, the row $\Delta_{x,:}$ represents the net outflow of individuals from patch $x$ to all its neighboring patches, with $\Delta_{x,x}$ representing the total possible outflow and $-\Delta_{x,x'}$ (where $x \neq x'$) representing the inflow from neighboring patch $x'$. The $\Delta$ matrix maintains the symmetry of $A$ such that $\Delta_{x,x'} = \Delta_{x',x}$. These values are signed such that negative values indicate flow in the opposite directions. For the weighted network, we define a node strength matrix $S$ also as a diagonal matrix where $S_{x,x}$ is the sum of the link weights connected to node $x$, which is analogous to the degree matrix in the unweighted case. 
+\\
+
+
 % Finally, we define the scalar diffusion rate $\mu$ which dictates the rate per unit time at which an individual moves from one patch to another. 
 % The mobility of individuals across the metapopulation is assumed invariant for the various infection states both in mobility rate and in respect to the patches they're able to move to.
-
-
-We define the weighted adjacency matrix $A$, where $A_{x,x'}$ is equal to a positive real value if there is a connection between patches $x$ and $x'$, and zero otherwise. Using an adjacency matrix eliminates the possibility of having multiple links connecting the same nodes. We also eliminate the possibility of self-loops, links connecting a node to itself, making A a simple network or graph. The matrix $A$ is assumed to be symmetric, i.e., any individual that can travel from patch $x$ to $x'$ can also travel from patch $x'$ to $x$. $A$ is also called an undirected network or graph. Finally, we assume that the network has only one component, i.e. every patch can be reached from every other patch through a sequence of moves through the network connections. Given this adjacency matrix, we define a metapopulation network as the combination of a set of subpopulations $\mathcal{X}$ connected by the network $A$.   The degree matrix $D$ is defined as a diagonal matrix where $D_{x,x}$ is equal to the number of connections (called the node degree) that subpopulation $x$ has. Using this degree matrix, we define the Laplacian matrix $\Delta$ as $\Delta = D - A$. The Laplacian matrix plays a crucial role in describing diffusion processes on networks, as it captures both the local connectivity structure and the flow of individuals between patches. Specifically, for any patch $x$, the row $\Delta_{x,:}$ represents the net outflow of individuals from patch $x$ to all its neighboring patches, with $\Delta_{x,x}$ representing the total possible outflow and $-\Delta_{x,x'}$ (where $x \neq x'$) representing the inflow from neighboring patch $x'$.\\
 
 The diffusion process in our model follows from the mathematical theory of continuous-time random walks on graphs. Given a scalar diffusion rate $\mu$, which dictates the rate per unit time at which an individual moves from one patch to another, the term $-\mu \sum_{x' \in \mathcal{X}} \Delta_{x,x'}^{\top} S_{x'}$ in our equations represents the net change in the susceptible population in patch $x$ due to mobility. This formulation emerges as the infinitesimal generator of the random walk \cite{masuda2017random}. The mobility of individuals across the metapopulation is assumed invariant for the various infection states both in mobility rate $\mu$ and in respect to the patches they're able to move to. This assumption, while simplifying, allows us to treat the diffusion process independently of the disease states, making the system amenable to analysis as a reaction-diffusion system where the reaction terms correspond to the local SIR dynamics and the diffusion terms capture the spatial spread through mobility.
 
