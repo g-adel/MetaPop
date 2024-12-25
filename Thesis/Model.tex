@@ -82,73 +82,107 @@ While this is somewhat unrepersentative of the real-world counterpart, where ind
 The random walkers modelling choice also has some nice mathematical properties, as taking the mean-field of this stochastic process produces a system that is analogous to diffusion of individuals across the metapopulation network\cite{masuda2017random}.
 This, along with the local dynamics within subpopulations, would place this model as a reaction-diffusion system\cite{colizza2007reaction}.\\
 
+We define the weighted adjacency matrix $A$, where $A_{x,x'}$ is equal to a positive real value if there is a connection between patches $x$ and $x'$, and zero otherwise. Using an adjacency matrix eliminates the possibility of having multiple links connecting the same nodes. We also eliminate the possibility of self-loops, links connecting a node to itself.  These assumptions make $A$ an adjacency matrix of a simple undirected weighted network or graph. Finally, we assume that the network is one giant component, i.e. every patch can be reached from every other patch through a sequence of moves through the network connections. Given this adjacency matrix, we define a metapopulation network as the combination of a set of subpopulations $\mathcal{X}$ connected by the network $A$. From the network, the number of direct connections it has to other patches in the network, termed the patch degree. For a weighted network, the node strength of a patch is the sum of the weights of all links connected to it. Two kinds of metapopulation networks will be considered in the following work: an unweighted network ($A_{x,x'}$ can only be zeros or ones) with uniform subpopulation sizes, and a weighted network with potentially heterogeneous subpopulation size distribution. The unweighted network will be a simpler case scenario on which mathematical analysis will be done, and the weighted network will be the subject of numerical simulations. For the unweighted networ, the matrix $A$ is assumed to be symmetric, i.e., any individual that can travel from patch $x$ to $x'$ can also travel from patch $x'$ to $x$. This is not the case for the heterogeneously distributed population sizes case, which will be explained later.\\
 
-
-We define the weighted adjacency matrix $A$, where $A_{x,x'}$ is equal to a positive real value if there is a connection between patches $x$ and $x'$, and zero otherwise. Using an adjacency matrix eliminates the possibility of having multiple links connecting the same nodes. We also eliminate the possibility of self-loops, links connecting a node to itself. The matrix $A$ is assumed to be symmetric, i.e., any individual that can travel from patch $x$ to $x'$ can also travel from patch $x'$ to $x$. These assumptions make $A$ an adjacency matrix of a simple undirected weighted network or graph. Finally, we assume that the network is one giant component, i.e. every patch can be reached from every other patch through a sequence of moves through the network connections. Given this adjacency matrix, we define a metapopulation network as the combination of a set of subpopulations $\mathcal{X}$ connected by the network $A$. From the network, the number of direct connections it has to other patches in the network, termed the patch degree. For a weighted network, the node strength of a patch is the sum of the weights of all links connected to it. 
-\\
-
-Given the metapopulation network, we need to define the nature of the mobility of the individuals across the network. The assumption that is typically used in metapopulation networks, popularized by Colizza et. al, is that individuals follow a random walk along the links \cite{colizza2008epidemic}. A discrete random walk is a stochastic in which, at set points in time, agents randomly choose one of the location available to it and move there. In a network domain, that means choosing one of the patches neighboring the individual's current patch and moving to it. This process here is made memoryless (independent of individual's history). An extension to a continuous time process is possible by defining a continuous-time random walk where the probability of moving to a neighboring patch is defined by a mobility rate parameter $\mu_x$, which can be thought of as the expected/average number of individuals to move per unit time. It can also be thought of as the inverse of the expected/average time it takes for an individual to move. The rate parameter $\mu$ can be adjusted to reflect different levels of mobility based on location and individual disease status. In this model, it will be assumed that the mobility rate of individuals in any given patch is proportional to the degree of said patch. This assumption is based on the observation that in real-life analogous systems, it is typically the case that sites that are more connected (e.g. in a flight network) exhibit a mobility rate proportional to the number (and strength) of connections available \cite{colizza2006role}. For a weighted network, $\mu_x$ instead becomes proportional to the node strength of of patch $x$.
+Given the metapopulation network, we need to define the nature of the mobility of the individuals across the network. The assumption that is typically used in metapopulation networks, popularized by Colizza et. al, is that individuals follow a random walk along the links \cite{colizza2008epidemic}. A discrete random walk is a stochastic in which, at set points in time, agents randomly choose one of the location available to it and move there. In a network domain, that means choosing one of the patches neighboring the individual's current patch and moving to it. This process here is made memoryless (independent of individual's history). An extension to a continuous time process is possible by defining a continuous-time random walk where the probability of moving to a neighboring patch is defined by a mobility rate parameter $\mu_x$, which can be thought of as the expected/average frequency of individuals moving per unit time. It can also be thought of as the inverse of the expected/average time it takes for an individual to move. The rate parameter $\mu$ can be adjusted to reflect different levels of mobility based on location and individual disease status. In this model, it will be assumed that the mobility rate of individuals in any given patch is proportional to the degree of said patch. This assumption is based on the observation that in real-life analogous systems, it is typically the case that sites that are more connected (e.g. in a flight network) exhibit a mobility rate proportional to the number (and strength) of connections available \cite{colizza2006role}. Analogously for a weighted network, $\mu_x$ instead becomes proportional to the node strength $st(x)$ of patch $x$.
 
 \begin{equation}
-    \mu_x= St(x) \ \mu
-\end{equation}
-where $St(x)$ is the node strength of patch $x$. $St(x)=deg(x)$ for an unweighted matrix. We will also assume that individuals choose a cross a connection linearly proportional to the weight of said connection. This assumption is an intuitive extention for weighted networks \cite{10.1093/comnet/cnab032}. For unweighted networks, this amounts to a uniform probability to select any patch to move to. Thus we define the transition probability $p_{x,x'}$ of individuals from patches $x$ to $x'$ as:
-\begin{equation}
-    p_{x,x'} =  \frac{A_{x,x'}}{St(x)}
+    \mu_x= st(x) \ \mu
 \end{equation}
 
-Given the mobility rates and transition probabilities, one can now compute the expected mobility flow of individuals per unit time $M_{x,x'}$ from a patch $x$ to $x'$. For $N_x$ individuals inhabiting the subpopulation patch $x$ who move at mobility rate $\mu_x$ to patch $x'$ with probability $p_{x,x'}$:
+The mobility of individuals across the metapopulation is assumed invariant for the various infection states both in mobility rate and in respect to the patches they're able to move to. We will also assume that individuals choose a cross a connection linearly proportional to the weight of said connection. This assumption is an intuitive extention for weighted networks \cite{10.1093/comnet/cnab032}. For unweighted networks, this amounts to a uniform probability to select any patch to move to. Thus we define the transition probability $p_{x,x'}$ of individuals from patches $x$ to $x'$ as:
 
 \begin{equation}
-    M_{x,x'} = \mu_x p_{x,x'} N_{x} = \mu  St(x) \ \frac{A_{x,x'}}{St(x)} \ N_{x} = \mu  A_{x,x'} N_{x}
-    \label{eq:Mxx'}
+    p_{x,x'} =  \frac{A_{x,x'}}{st(x)}
 \end{equation}
 
-From the formulation we can already see an advantage of having $\mu_x$ be proportional to the node degree or strength. The mobility flow from one population to another is independent of the node degree or strength. Also, in the case $A$ is symmetric, in a connection between two patches of the same population size, $M_{x,x'}=M_{x',x}$. This means that in a network with uniform population sizes, there is a conservation of the population size distribution in all subpopulations. This is a nice corollary of the model design as it reflects real life observations where short-term mobility of individuals has minimal impact on the population sizes. This is in contrast to a random walk process model where the the metapopulation converges to a state where the population size at a patch is proportional to its degree or strength, no matter its initial condition \cite{colizza2008epidemic}. Though the population sizes remain uniform, this does not mean that the composition of disease compartment sizes does not change. As
-\\
-From equation \ref{eq:Mxx'}, we can find the net mobility outflow of individuals (outflow - inflow) from subpopulation $x$, termed as $M_x$, as:
+Given the mobility rates and transition probabilities, one can now compute the expected mobility flow of individuals in disease state $C$ per unit time $M_{(C);x,x'}$ from a patch $x$ to $x'$. $C$ could be $S$,$I$,$R$, and also $N$. For $C_x$ individuals inhabiting the subpopulation patch $x$ who move at mobility rate $\mu_x$ to patch $x'$ with probability $p_{x,x'}$:
+
 \begin{equation}
-    M_x = \sum_{x' \in \mathcal{X}} (M_{x,x'} - M_{x',x}) = \mu \sum_{x' \in \mathcal{X}} (A_{x,x'} N_{x} -  A_{x',x} N_{x'}) 
+    M_{(C);x,x'} = \mu_x\ p_{x,x'} \ C_{x} = \mu \  st(x) \ \frac{A_{x,x'}}{st(x)} \ C_{x} = \mu  A_{x,x'} C_{x}
+    \label{eq: Mxx'}
+\end{equation}
+
+It is also important to note the conservation of mobility sums:
+\begin{equation}
+    M_{(S);x,x'} + M_{(I);x,x'} + M_{(R);x,x'} = M_{(N);x,x'} =:M_{x,x'}
+\end{equation}
+
+From the formulation we can already see an advantage of having $\mu_x$ be proportional to the node degree or strength. The mobility flow from one population to another is independent of the node degree or strength. Also, in the case $A$ is symmetric, in a connection between two patches of the same population size, $M_{x,x'}=M_{x',x}$. 
+From equation \ref{eq: Mxx'}, we can find the net mobility inflow of individuals from subpopulation $x$, termed as $M_{(C);x}$, as:
+\begin{equation}
+    M_{(C);x} = -\sum_{x' \in \mathcal{X}} (M_{(C);x,x'} - M_{(C);x',x}) = \mu \sum_{x' \in \mathcal{X}} (A_{x,x'} C_{x} -  A_{x',x} C_{x'}) 
     \label{eq: Mx}
 \end{equation}
-Equations \ref{eq:Mxx'} and \ref{eq: Mx} are also true for each of the compartments, where $M_x$ is replaced by $M_(C);x$ and $N_x$ replaced by $C_x$, where $C$ can be $S$, $I$, or $R$. The definition of node strength can be utilized to simplify \ref{eq:Mxx'} as:
+
+In a metapopulation with uniform sizes, it can be easily shown that $M_x=0$ since $A$ is symmetric. This means that in a network with uniform population sizes, there is a conservation of the population sizes for in all subpopulations. This is a nice corollary of the model design as it reflects real life observations where short-term mobility of individuals has minimal impact on the population sizes. This is in contrast to a random walk process model where the the metapopulation converges to a state where the population size at a patch is proportional to its degree or strength, no matter its initial condition \cite{colizza2008epidemic}. Though the population sizes remain uniform, this does not mean that the composition of disease compartment sizes does not change as indeed they do diffuse and influence the compartmental propotions in neighboring subpopulations.
+\\
+For the unweighted network, the definition of node degree can be utilized to simplify \ref{eq:Mxx'} as:
 \begin{equation}
-    M_x = \mu \left( St(x) N_x - \sum_{x' \in \mathcal{X}} (A_{x',x} N_{x'}) \right)
+    M_{(C);x} = \mu \left( st(x) C_x - \sum_{x' \in \mathcal{X}} A_{x',x} C_{x'} \right)
     \label{eq: Mx St}
 \end{equation}
 \\
-Since $A_{x,x}=0$, equation \ref{eq: Mx St} can be expressed as a vector dot product, where one vector is the array of population sizes $\mathbf{N}$. The other vector, representing connection strength and direction, has the node degree or strength on index $x$, and $-A_{x,x'}$ on $x'$ indices. Since this vector is unique for each subpopulation, it'll be useful to define a matrix as the collection of these vectors. 
-
-Two kinds of networks will be considered in the following work: an unweighted network ($A_{x,x'}$ can only be zeros or ones) with uniform subpopulation sizes, and a weighted network with potentially heterogeneous subpopulation size distribution. The unweighted network will be a simpler case scenario on which mathematical analysis will be done, and the weighted network will be the subject of numerical simulations.
-
-For the unweighted network, as mentioned previously, the row vector of the Laplacian matrix $\Delta = D - A$ precisely captures the net mobility flow expression in equation \ref{eq: Mx}. We can verify this by substituting the definitions:
+Equation \ref{eq: Mx St} can be expressed as a vector dot product, where one vector is the array of population compartment sizes $\mathbf{C}$, which can be $\mathbf{S}$, $\mathbf{I}$, $\mathbf{R}$, or $\mathbf{N}$. The other vector, representing connection strength and direction, has the node degree or strength on index $x$, and $(-A_{x,x'})$ on $x'\in \mathcal{X}$ indices. Since this vector is unique for each subpopulation, it'll be useful to define a matrix as the collection of these vectors. The Laplacian matrix $\Delta$, defined as 
+\begin{equation}
+    \Delta = D - A
+    \label{eq: Delta}
+\end{equation}
+ precisely captures the net mobility flow expression in equation \ref{eq: Mx St} for an unweighted network. We can verify this by substituting the definitions:
 \begin{equation}
     \begin{aligned}
-        \Delta_{x,:} \cdot \mathbf{N} &= (D_{x,x} \mathbf{e}_x - A_{x,:}) \cdot \mathbf{N} \\
-        &= deg(x)N_x - \sum_{x' \in \mathcal{X}} A_{x,x'}N_{x'} \\
-        &= \frac{1}{\mu}M_x
+        M_{(C);x} &= \mu \left( deg(x)C_x - \sum_{x' \in \mathcal{X}} A_{x,x'}C_{x'} \right) \\
+        &= \mu \left( D_{x,x} \mathbf{e}_x - A_{:,x} \right) \cdot \mathbf{C} \\
+        &= \mu \Delta_{x,:}^{\top} \cdot \mathbf{C}
     \end{aligned}
 \end{equation}
-where $\mathbf{e}_x$ is the standard basis vector for index $x$. The Laplacian matrix $\Delta$ maintains the symmetry of $A$ such that $\Delta_{x,x'} = \Delta_{x',x}$. These values are signed such that negative values indicate flow in the opposite directions.
+where $\mathbf{e}_x$ is the standard basis vector for index $x$ and $A_{x,:}$ is the vector of values $A_{x,x'}$ for all $x \in \mathcal{X}$. The Laplacian matrix $\Delta$ maintains the symmetry of $A$ such that $\Delta_{x,x'} = \Delta_{x',x}$. These values are signed such that negative values indicate flow in the opposite directions.
+\\
 
-For the weighted network case, we define the node strength matrix $St$ as a diagonal matrix where $St_{x,x}$ is the sum of the link weights connected to node $x$, which is analogous to the degree matrix in the unweighted case. Following the same derivation as above, but using equation \ref{eq: Mx St}, we obtain the weighted Laplacian matrix $\Delta_W = St - A$. The weighted Laplacian maintains the same relationship with the mobility flow:
+For the weighted heterogeneous metapopulation network case, however, an extension of the definitions of $M$ and $\Delta$ are needed to maintain some of the properties of the diffusion described above. It can be easily shown that for connections between two subpopulations of varying population sizes, there is an asymmetry of flow where there is a net flow of individuals from the larger subpopulation to the smaller one. This would eventually cause the state to converge to a uniform population size distribution, regardless of the initial one \cite{Kuehn2024}. As argued before, this change of population sizes is undesirable as it does not reflect the short-term impact of diffusion in analogous real-life systems. A simple remedy is possible where one lets the mobility flow $M_{x,x'}$ be linearly proportional to $N_x$. This can be thought of individuals in subpopulation $x$ have an interest to visit another subpopulation linearly proportional to the number of individuals there. Such an assumption is feasible for many transportation network models \cite{colizza2006role}\cite{bajardi2011human}. This proportionality is defined for heterogenously-distributed metapopulations by the new matrix $A_{H}$ where 
+\begin{equation}
+    A_{H;x,x'} = N_{x'} A_{x,x'}
+    \label{eq: AH}
+\end{equation}
+
+$A_H$ will be used instead of $A$ for heterogeneously-sized metapopulation case, which loses the symmetry maintained by $A$. In the case of a uniformly sized metapopulation, $A_H = A$. The expressions from \ref{eq: Mxx'} and \ref{eq: Mx} is updated where $A$ is replaced with $A_H$:
+
+\begin{equation}
+    M_{(C);x,x'} = \mu  A_{H;x,x'} C_{x} = \mu  A_{x,x'} C_{x} N_{x'}
+    \label{eq: MHxx'}
+\end{equation}
+
 \begin{equation}
     \begin{aligned}
-        \Delta_{W;x,:} \cdot \mathbf{N} &= (St_{x,x} \mathbf{e}_x - A_{x,:}) \cdot \mathbf{N} \\
-        &= St(x)N_x - \sum_{x' \in \mathcal{X}} A_{x,x'}N_{x'} \\
-        &= \frac{1}{\mu}M_x
+    M_{(C);x}   &=  -\mu \sum_{x' \in \mathcal{X}} (A_{H;x,x'} C_{x} -  A_{H;x',x} C_{x'})\\
+                &= -\mu \sum_{x' \in \mathcal{X}} (A_{x,x'} N_{x'} C_{x} -  A_{x',x} N_{x} C_{x'})
     \end{aligned}
+    \label{eq: MHx}
 \end{equation}
 
-This formulation demonstrates that both the unweighted and weighted Laplacian matrices serve as natural operators for describing the diffusion dynamics in their respective network types. The symmetry of these Laplacian matrices ensures conservation of total population in the system, as $\mathbf{1}^{\top}\Delta = \mathbf{0}$ and $\mathbf{1}^{\top}\Delta_W = \mathbf{0}$, where $\mathbf{1}$ is a vector of ones. This property reflects the physical constraint that individuals are neither created nor destroyed during the mobility process.
-% Two kinds of networks will be considered in the following work: an unweighted network ($A_{x,x'}$ can only be zeros or ones) with uniform subpopulation sizes, and a weighted network with potentially heterogeneous subpopulation size distribution. The unweighted network will be a simpler case scenario on which mathematical analysis will be done, and the weighted network will be the subject of numerical simulations. For the unweighted network, the degree matrix $D$ is defined as a diagonal matrix where $D_{x,x}$ is equal to the number of connections (called the node degree) that subpopulation $x$ has. Using this degree matrix, we define the Laplacian matrix $\Delta$ as $\Delta = D - A$. The Laplacian matrix plays a crucial role in describing diffusion processes on networks, as it captures both the local connectivity structure and the flow of individuals between patches. Specifically, for any patch $x$, the row $\Delta_{x,:}$ represents the net outflow of individuals from patch $x$ to all its neighboring patches, with $\Delta_{x,x}$ representing the total possible outflow and $-\Delta_{x,x'}$ (where $x \neq x'$) representing the inflow from neighboring patch $x'$. The $\Delta$ matrix maintains the symmetry of $A$ such that $\Delta_{x,x'} = \Delta_{x',x}$. These values are signed such that negative values indicate flow in the opposite directions. For the weighted network, we define a node strength matrix $S$ also as a diagonal matrix where $S_{x,x}$ is the sum of the link weights connected to node $x$, which is analogous to the degree matrix in the unweighted case. 
+It can be seen that in equation \ref{eq: MHx}, when $C_x$ is substituted with $N_x$ $M_x=0$. This means that population sizes are maintaned constant no matter the initial size distribution, as desired. Again, this is not true for the compartmental composition. To find the Laplacian matrix, we define the node strength matrix $St_H$ as a diagonal matrix where $St_{H;x,x}$ is the sum of the link weights $A_H$ connected to node $x$, which is analogous to the degree matrix in the unweighted case. Following the same derivation as before, but using equation \ref{eq: MHx}, we obtain the weighted Laplacian matrix 
+\begin{equation}
+    \Delta_H = St_H - A_H. 
+    \label{eq: DeltaH}
+\end{equation}
+The biggest difference from $\Delta$ is that $\Delta_H$ is nonsymmetric. The weighted Laplacian maintains the same relationship with the mobility flow.
+
+\begin{equation}
+    \begin{aligned}
+        M_{(C);x} &= -\mu \sum_{x' \in \mathcal{X}} (A_{H;x,x'} C_{x} -  A_{H;x',x} C_{x'})\\
+        &= \mu \left( St_{H;x,x} \mathbf{e}_x - A_{H;(:,x)} \right) \cdot \mathbf{C} \\
+        &= \mu \ \Delta_{H;(:,x)}^{\top} \cdot \mathbf{C}
+    \end{aligned}
+\end{equation}
+This formulation demonstrates that both the unweighted and weighted Laplacian matrices serve as natural operators for describing the diffusion dynamics in their respective network types. The symmetry of these Laplacian matrices ensures conservation of total population in the system, as $\mathbf{1}^{\top}\Delta = \mathbf{0}$ and $\mathbf{1}^{\top}\Delta_W = \mathbf{0}$, where $\mathbf{1}$ is a vector of ones. This property reflects the physical constraint that individuals are neither created nor destroyed during the mobility process. Even though $\Delta_H$ becomes the same as $\Delta$ in the case of the unweighted metapopulation network scenario, a distinction was made because not necissarily all the properties that apply to the unweighted Laplacian $\Delta$ apply to the weighted $\Delta_H$ \cite{10.1093/comnet/cnab032}.
 \\
 
 
-% Finally, we define the scalar diffusion rate $\mu$ which dictates the rate per unit time at which an individual moves from one patch to another. 
-% The mobility of individuals across the metapopulation is assumed invariant for the various infection states both in mobility rate and in respect to the patches they're able to move to.
+Having established the mathematical framework for both unweighted and heterogeneous weighted networks, we can now formulate the complete system of ordinary differential equations that describes the epidemic dynamics coupled with mobility across the metapopulation network. The system combines the local SIR dynamics within each patch with the diffusion processes across patches through the Laplacian operator.
 
-The diffusion process in our model follows from the mathematical theory of continuous-time random walks on graphs. Given a scalar diffusion rate $\mu$, which dictates the rate per unit time at which an individual moves from one patch to another, the term $-\mu \sum_{x' \in \mathcal{X}} \Delta_{x,x'}^{\top} S_{x'}$ in our equations represents the net change in the susceptible population in patch $x$ due to mobility. This formulation emerges as the infinitesimal generator of the random walk \cite{masuda2017random}. The mobility of individuals across the metapopulation is assumed invariant for the various infection states both in mobility rate $\mu$ and in respect to the patches they're able to move to. This assumption, while simplifying, allows us to treat the diffusion process independently of the disease states, making the system amenable to analysis as a reaction-diffusion system where the reaction terms correspond to the local SIR dynamics and the diffusion terms capture the spatial spread through mobility.
+For the case of an unweighted network, the mobility flow for each disease compartment $C \in \{S, I, R\}$ in patch $x$ is given by $M_{(C);x} = -\mu \Delta_{x,:}^{\top} \cdot \mathbf{C}$. For a weighted heterogeneous network, we use $M_{(C);x} = -\mu \Delta_{H;(:,x)}^{\top} \cdot \mathbf{C}$ instead. These mobility flows are incorporated into the standard SIR equations for each patch, where the rate of change of each compartment is affected both by the local epidemic dynamics and by the movement of individuals between patches.
+
+The resulting system of ordinary differential equations takes the form:
 
 \begin{equation}
 \begin{aligned}
@@ -156,9 +190,11 @@ The diffusion process in our model follows from the mathematical theory of conti
     \dot{I}_{x} &= \beta S_{x} I_{x} - \gamma I_{x} - \mu \sum_{x' \in \mathcal{X}} \Delta_{x,x'}^{\top} I_{x'}, \\
     \dot{R}_{x} &= \gamma I_{x} - \mu \sum_{x' \in \mathcal{X}} \Delta_{x,x'}^{\top} R_{x'},
 \end{aligned}
+\label{eq: SIR M}
 \end{equation}
-for every $x \in \mathcal{X}$.
+for every $x \in \mathcal{X}$, where $\Delta$ can be replaced by $\Delta_H$ for the heterogeneous case. This formulation elegantly captures both the epidemic spreading within patches and the coupling between patches through mobility. The negative signs before the summation terms reflect that positive values in the Laplacian correspond to outflows from the patch.
 
+This system of equations represents a reaction-diffusion system where the reaction terms ($-\beta S_{x} I_{x}$, $\beta S_{x} I_{x} - \gamma I_{x}$, and $\gamma I_{x}$) describe the local epidemic dynamics, while the diffusion terms (containing the Laplacian) describe the spatial spread through mobility. The system preserves important properties such as population conservation, as guaranteed by the properties of the Laplacian matrices derived earlier. Moreover, the formulation maintains consistency between the unweighted and weighted cases, allowing for systematic analysis of both scenarios within the same mathematical framework.
 
 
 \subsection{Travel Restriction} %%FIX: Change title
@@ -167,16 +203,51 @@ To incorporate adaptivity in the metapopulation network system, two main questio
 
 Although the most straightforward way to control mobility rate is to instantaneously set the fraction of individuals disallowed from coming or leaving at any point in time, there are several issues with this option. The main issue is that it is typically not representative of the real-life analogy where it can take several days to fully implement travel restrictions. This happens because there is typically an aspect of inertia in the system and it takes time for the desired outcome to take shape. A second reason why instantaneous control is an issue is that, given this option, subpopulations would have the option to protect themselves from incoming infected individuals by immediately blocking off all infected patches. This issue has been solved previously by introducing a time delay in which a subpopulation fully blocks incoming mobility from infected neighbors \cite{feng2020infectious}. In this project, which is the key difference from similar literature, subpopulations only control the rate of change of the travel restriction, not the restriction value itself. This removes instantaneous control from the subpopulations while still allowing them to react to present-day information.\\
 
-In regards to the information given to the subpopulation, a focus on locality is still preserved. Each subpopulation knows at all time the number of inhabitants in each infection state. In regards to the metapopulation network, each subpopulation has information only about the overall makeup of individuals coming from each neighboring subpopulation (ones with non-zero pre-pandemic mobility rate) in regards to the number of individuals in each infection state. This is analogous to random testing done at city entrances to gauge the number of infected individuals coming from abroad. In one of the upcoming proposed strategies, information about the global number of infected individuals traveling across the network is given, but this strategy is only tested as a default non-local case scenario.\\
+In regards to the information given to the subpopulation, a focus on locality is still preserved. Each subpopulation knows at all time the number of inhabitants in each infection state. In regards to the metapopulation network, each subpopulation has information only about the overall makeup of individuals coming from each neighboring subpopulation (ones with non-zero pre-pandemic mobility rate) in regards to the number of individuals in each infection state. Measuring incoming flow is used as a proxy to estimate the number of infected. The actual information available to all subpopulations are the number of incoming individuals from each subpopulation and number of individuals in each state in each subpopulation. This is analogous to random testing done at city entrances to gauge the number of infected individuals coming from abroad. In one of the upcoming proposed strategies, information about the global number of infected individuals traveling across the network is given, but this strategy is only tested as a default non-local case scenario.\\
 
-For the mathematical formulation, subpopulations can restrict the mobility rate through a scalar travel restriction multiplier $\rho$. The travel restriction factor for a connection between two subpopulations ranges from zero to one, where one eliminates all mobility and zero allows full pre-pandemic mobility. A value of zero, however, does not guarantee mobility across the connection, as the other side of the connection could be implementing a travel restriction. Each subpopulation can control the level of travel restriction independently for each neighboring subpopulation, forming a vector $\mathbf{\rho}$ of travel restriction values. The values in the vector that would correspond to links to non-neighbors or the self-link equal zero. These vectors are combined to form a non-symmetric (typically sparse) square matrix $T$, where $\Delta = T \circ T^\top \circ D$.\\
+For the mathematical formulation, a subpopulations $x$ can restrict the incoming and outgoing mobility flow from patch $x'$ through a scalar travel restriction multiplier $\rho_{x,x'} \in [0,1]$. A value of one eliminates all mobility and zero allows full pre-pandemic mobility. A value of zero, however, does not guarantee full mobility across the connection, as the other side of the connection could be implementing a travel restriction. Each subpopulation can control the level of travel restriction independently for each neighboring subpopulation, forming a vector $\rho_{x,:}$ of travel restriction values where $\rho_{x,x'}=0$ if $A_{x,x'}=0$. These vectors are combined together to form a matrix $\rho$, which has the same element structure as $A$, except for the non-symmetry here.\\
+Updating equation \ref{eq: MHxx'}, for the mobility flow $M_{(C);x,x'}$ of a compartment $C$ from patches $x$ to $x'$, including applied travel restrictions by subpopulations $x$ and $x'$:
+\begin{equation}
+\begin{aligned}
+    M_{(C);x,x'}    &= \mu \ (1-\rho_{x,x'}) (1-\rho_{x',x}) A_{H;x,x'} C_{x} \\
+                    &= \mu \ \bar{\rho}_{x,x'} \bar{\rho}_{x',x} A_{H;x,x'} C_{x}
+\end{aligned}
+\label{eq: Mxx' rho}
+\end{equation}
+Where $\bar{\rho}_{x,x'}$ is the complementary of travel restriction $\rho_{x,x'}$, which can also be called travel permittance. Updating \ref{eq: MHx}, the net inflow $M_{(C);x}$ can be updated as:
+\begin{equation}
+\begin{aligned}
+    M_{(C);x} &= -\sum_{x' \in \mathcal{X}} (M_{(C);x,x'} - M_{(C);x',x}) \\
+              &= - \mu  \sum_{x' \in \mathcal{X}}\left(\bar{\rho}_{x,x'} \bar{\rho}_{x',x} A_{H;x,x'} C_{x} - \bar{\rho}_{x',x} \bar{\rho}_{x,x'} A_{H;x',x} C_{x} \right) \\
+            %   &= - \mu \ (\bar{\rho}_{x,:} \circ \bar{\rho}_{:,x} \circ \Delta_{x,:}^{\top}) \ \mathbf{C}.
+\end{aligned}
+\label{eq: Mx rho}
+\end{equation}
 
-Introducing travel restrictions to the mobility in the network:
+To simplify \ref{eq: Mx rho}, we define $A_{\rho;x,x'}=\bar{\rho}_{x,x'} \bar{\rho}_{x',x} A_{H;x,x'}$, which when assembled for all indices, forms the matrix $A_\rho$. While $A_H$ is invariant in time, $A_\rho$ is subject to change as $\rho$ evolves with time.
+
+\begin{equation}
+    \begin{aligned}
+        M_{(C);x} &= - \mu  \sum_{x' \in \mathcal{X}}\left(A_{\rho;x,x'} C_{x} - A_{\rho;x',x} C_{x} \right) \\
+                %   &= - \mu \ (\bar{\rho}_{x,:} \circ \bar{\rho}_{:,x} \circ \Delta_{x,:}^{\top}) \ \mathbf{C}.
+    \end{aligned}
+    \label{eq: Mx rho 2}
+\end{equation}
+With the same process as equation \ref{eq: DeltaH}, we define a new Laplacian based on $A_H$:
+\begin{equation}
+    \Delta_\rho = St_\rho - A_\rho
+\end{equation}
+where $St_\rho$ is a matrix with diagonal entries $st(A_{\rho;x,x})$. As $A_\rho$, $\Delta_\rho$ can also change with time. We use this new Laplacian to update equation \ref{eq: Mx rho 2}:
+\begin{equation}
+    M_{(C);x} = - \mu \Delta_{\rho;(:,x)}^{\top} \cdot \mathbf{C}
+    \label{eq: Mx rho 3}
+\end{equation}
+Equation \ref{eq: Mx rho 3}, in turn, finally leads to an update to the system ODEs defined in \ref{eq: SIR M} by introducing travel restrictions to the mobility in the network:
 \begin{equation}    
 \begin{aligned}
-        \dot{S}_{i} &= -\beta S_{i} I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{\bar \rho}_i \mathbf{\bar \rho}_j \mathbf{d}_j S_j, \\
-        \dot{I}_{i} &= \beta S_{i} I_{i} - \gamma I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{\bar \rho}_i \mathbf{\bar \rho}_j \mathbf{d}_j I_j, \\
-        \dot{R}_{i} &= \gamma I_{i} - \sum_{\substack{j=1 \\ j \neq i}}^n \mathbf{\bar \rho}_i \mathbf{\bar \rho}_j \mathbf{d}_j R_j.
+        \dot{S}_{i} &= -\beta S_{i} I_{i} - \mu \sum_{x' \in \mathcal{X}} \bar{\rho}_{x,x'} \bar{\rho}_{x',x} \Delta_{\rho;x,x'}^{\top} S_{x}, \\
+        \dot{I}_{i} &= \beta S_{i} I_{i} - \gamma I_{i} - \mu \sum_{x' \in \mathcal{X}} \bar{\rho}_{x,x'} \bar{\rho}_{x',x} \Delta_{\rho;x,x'}^{\top} S_{x}, \\
+        \dot{R}_{i} &= \gamma I_{i} - \mu \sum_{x' \in \mathcal{X}} \bar{\rho}_{x,x'} \bar{\rho}_{x',x} \Delta_{\rho;x,x'}^{\top} R_{x}.
 \end{aligned}
 \end{equation}
 
@@ -190,10 +261,10 @@ In the context of this model, containment strategies are adaptive dynamics of th
 A few predetermined requirements were set in place for designing strategies. Following the theme of an ODE model, the travel restriction rate of change $\dot \rho$ should be continuous. Furthermore, it is preferred if the dynamics of the travel restriction are contained in the range from 0 to 1, with no need to artificially clamp the value to that range.
 
 \subsubsection{Global proportional travel restriction}
-The most basic form of travel restriction for the metapopulation is one where only the global infection prevalence is used to control restriction for all connections. This is a non-local scenario where there's a central authority that does not distinguish between subpopulations or their connections. This global travel restriction amounts to a single scalar value $\rho$ that subpopulations implement, which scales down the mobility of all individuals across all subpopulation connections, from both origin and destination. This results in the equation:
+The most basic form of travel restriction for the metapopulation is one where only the global infection prevalence is used to control restriction for all connections. This is a non-local scenario where there's a central authority that does not distinguish between subpopulations or their connections. This global travel restriction amounts to a single scalar value $\rho_G$ that subpopulations implement, which scales down the mobility of all individuals across all subpopulation connections, from both origin and destination. This results in the equation:
 
 \begin{equation}
-    \dot{\rho} = \lambda M_{(I)}
+    \dot{\rho_G} = \lambda M_{(I)}
 \end{equation}
 
 where $M_{(I)}$ is the total mobility of infected individuals on all connections at any given point in time:
@@ -204,19 +275,23 @@ where $M_{(I)}$ is the total mobility of infected individuals on all connections
     \label{fig: M rho unbiased}
 \end{figure}
 \begin{equation}
-M_{(I)} = \sum_{i=1}^{n} \sum_{j=1}^{i-1} \bar{\rho}^2 \mathbf{d}_{j} I_{j}
+    \begin{aligned}
+        M_{(I)} &= \sum_{x \in \mathcal{X}}  \left| M_{(I);x}\right|\\
+                &= \sum_{x \in \mathcal{X}} \left|- \mu \Delta_{\rho;(:,x)}^{\top} \cdot \mathbf{I}\right|\\
+                &= \sum_{x \in \mathcal{X}} \sum_{x' \in \mathcal{X}} \mu {\bar{\rho}_{G}}^2 \Delta^{\top}_{x,x'} I_{x'}
+    \end{aligned}
 \end{equation}
 
 Applying this global restriction on the metapopulation network, the final effective Laplacian of the network is:
 
 \begin{equation}
-\Delta_G = \bar{\rho}^2 D
+\Delta_G^{\top} = \bar{\rho}_G^2 \Delta^{\top}
 \end{equation}
 
 % Talk about how rho dot is a function of rho and maybe plot the dynamics of the system.
 \subsubsection{Uniform proportional travel restriction}
 
-A slightly more granular strategy would be for each subpopulation to look at the influx of infected individuals from all neighbors and restrict all connections uniformly based on the total number of infected individuals. This gives each subpopulation a single scalar variable $t_x$ to control. This restriction follows the ODE:
+A more granular strategy would be for each subpopulation to look at the influx of infected individuals from all neighbors and restrict all connections uniformly based on the total number of infected individuals. This gives each subpopulation a single scalar variable $\rho_x$ that changes based on the total incoming infected $M_{(I);x}$. This restriction follows the ODE:
 
 \begin{equation}
 \dot{\rho}_x = \lambda M_{(I);x}
@@ -225,7 +300,10 @@ A slightly more granular strategy would be for each subpopulation to look at the
 where:
 
 \begin{equation}
-M_{(I);x} = \sum_{x' \in X}^{n} \bar{\rho}_x \bar{\rho}_{x'} \mathbf{d}_{x'} I_{x'}
+    \begin{aligned}
+        M_{(I);x}   &= \sum_{x' \in X}^{n} -\mu \bar{\rho}_x \bar{\rho}_{x'} \Delta^{\top}_{x,x'} I_{x'}\\
+                    &= -\mu \bar{\rho}_x \sum_{x' \in X}^{n} \bar{\rho}_{x'} \Delta^{\top}_{x,x'} I_{x'} 
+    \end{aligned}
 \end{equation}
 
 \begin{figure}[ht]
@@ -271,7 +349,7 @@ M_{(I);x} = \sum_{x' \in X}^{n} \bar{\rho}_x \bar{\rho}_{x'} \mathbf{d}_{x'} I_{
 Finally, a third strategy is investigated where subpopulations are given individual control over restrictions for each connection to neighbors. The strategy for a connection from subpopulation $x$ to subpopulation $x'$ is:
 
 \begin{equation}
-\dot{\rho}_{xx'} = \lambda M_{(I);x,x'} = \lambda \bar{\rho}_{x,x'} \bar{\rho}_{x',x} d_{x,x'} I_{x'}
+\dot{\rho}_{xx'} = \lambda M_{(I);x,x'} = \lambda \mu \bar{\rho}_{x,x'} \bar{\rho}_{x',x} \Delta^{\top}_{x,x'} I_{x'}
 \end{equation}
 
 Unlike the other two strategies, this one is entirely local to the connection, and hence the resulting system can be classified under adaptive dynamical weighted networks\cite{berner2023adaptive}.\\
@@ -328,9 +406,29 @@ Since there is currently no mechanism to decrease travel restriction (as $\dot \
 Due to the similarity of the different proposed strategies, the mobility restoration bias term $b$ can be introduced in a consisten manner:
 \begin{itemize}
     \item \text{Global proportional travel restrictionw with bias:}
-     \begin{equation}\dot{\rho} = \lambda M_{(I)} - \lambda b \rho^2 = \lambda \bar{\rho}^2 \sum_{i=1}^{n} \sum_{j=1}^{i-1}  \mathbf{d}_{j} I_{j} - \lambda b \rho^2 \label{global bias}\end{equation}
-    \item \text{Uniform proportional travel restriction with bias:} \begin{equation}\dot{\rho}_x = \lambda M_{(I);x} - \lambda b \rho_{x}= \lambda \bar{\rho}_x \sum_{x' \in X}^{n} \bar{\rho}_{x'} \mathbf{d}_{x'} I_{x'} - \lambda b \rho_x\end{equation}
-    \item \text{Connection proportional travel restriction with bias:} \begin{equation}\dot{\rho}_{x,x'} = \lambda M_{(I);x,x'} - \lambda b \rho_{xx'}= \lambda \bar{\rho}_{x,x'} \bar{\rho}_{x',x} d_{x'} I_{x'} - \lambda b \rho_{x,x'}\end{equation}
+         
+    \begin{equation}
+        \begin{aligned}
+    \dot{\rho} &= \lambda M_{(I)} - \lambda b \rho^2 \\
+               &= \lambda \sum_{x \in \mathcal{X}} \sum_{x' \in \mathcal{X}} \mu {\bar{\rho}_{G}}^2 \Delta^{\top}_{x,x'} I_{x'} - \lambda b \rho_G^2 \label{global bias}
+        \end{aligned}
+    \end{equation}
+
+    \item \text{Uniform proportional travel restriction with bias:}     
+    \begin{equation}
+        \begin{aligned}
+            \dot{\rho}_x &= \lambda M_{(I);x} - \lambda b \rho_{x} \\
+            &= -\lambda \mu \bar{\rho}_x \sum_{x' \in X}^{n} \bar{\rho}_{x'} \Delta^{\top}_{x,x'} I_{x'}  - \lambda b \rho_x
+        \end{aligned}
+    \end{equation}
+
+    \item \text{Connection proportional travel restriction with bias:} 
+    \begin{equation}
+        \begin{aligned}
+            \dot{\rho}_{x,x'} &= \lambda M_{(I);x,x'} - \lambda b \rho_{xx'}\\
+            &= \lambda \mu \bar{\rho}_{x,x'} \bar{\rho}_{x',x} \Delta^{\top}_{x,x'} I_{x'} - \lambda b \rho_{x,x'}
+        \end{aligned}
+    \end{equation}
 
 \end{itemize}
 
