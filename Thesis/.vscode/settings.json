@@ -13,5 +13,22 @@
 "[latex]": {
     "editor.wordBasedSuggestions": "off",
 },
-"latex-workshop.message.badbox.show" : "none",
+"latex-workshop.message.badbox.show": "none",
+"cSpell.words": [
+    "governorates",
+    "infecteds",
+    "linearization",
+    "Markovian",
+    "metapopulation",
+    "metapopulations",
+    "socio",
+    "susceptibles"
+],
+"spellright.language": [
+    "en"
+],
+"spellright.documentTypes": [
+    "markdown",
+    "plaintext"
+],
 }

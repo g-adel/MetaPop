@@ -1,4 +1,4 @@
-function plotEnsemble(datas,Ss,meta;save=false)
+function plotMulti(datas,Ss,meta;save=false)
     plots = []
     # # β and μ
     # push!(plots, plot_beta_mu_spread_rates(datas,Ss))
@@ -8,7 +8,8 @@ function plotEnsemble(datas,Ss,meta;save=false)
     push!(plots, plot_lambda_avg_spread_rate(datas,Ss))
     push!(plots, plot_lambda_path_spread_rates(datas,Ss))
     push!(plots, plot_lambda_F₂(datas,Ss))
-    push!(plots, plot_lambda_t₂(datas,Ss))
+    push!(plots, plot_lambda_t₂_t₃(datas,Ss))
+    # push!(plots, plot_lambda_t₂(datas,Ss))
     # push!(plots, plot_lambda_t₃(datas,Ss))
     if save
         savePlots(plots, meta)
@@ -90,7 +91,6 @@ function plot_beta_mu_spread_rates(datas::Array{Dict, 2},Ss;plot_t3=false)
     end
     
     title = plot_t3 ? "Δt₃ for different μ and β" : "Spread Rates for different μ and β"
-    title!(p, title)
 
     return p, 800, title
 end
@@ -110,21 +110,18 @@ function plot_lambda_avg_spread_rate(datas::Array{Dict, 1}, Ss)
         push!(λs, Ss[i].strat.λ)
     end
     
-    # @show λs 
-    p = plot(xlabel="λ", ylabel="Rate (nodes/day)", title="Spread Rates", ylims=(0,.2), xscale=:log10, legendfontsize=10)
-    plot!(p, λs, asympSpreadRates, lw=1, lc=:green, linestyle=:dash, label="")
-    scatter!(p, λs, asympSpreadRates, label="Asymptotic Spread Rate",lw=2, mc=:green)
+    p = plot(xlabel="λ", ylabel="Spread Rate", ylims=(0,.2), xscale=:log10, legendfontsize=10, size=(1000,600))
     plot!(p, λs, initSpreadRates, lw=1, lc=:blue, linestyle=:dash, label="")
     scatter!(p, λs, initSpreadRates, label="Initial Spread Rate", lw=2, mc=:blue)
     plot!(p, λs, avgSpreadRates, lw=1, lc=:red, linestyle=:dash, label="")
     scatter!(p, λs, avgSpreadRates, label="Average Spread Rate", lw=2, mc=:red)
+    plot!(p, λs, asympSpreadRates, lw=1, lc=:green, linestyle=:dash, label="")
+    scatter!(p, λs, asympSpreadRates, label="Asymptotic Spread Rate",lw=2, mc=:green)
 
     # plot!(p, λs, firstOrderSolSpreadRates, label="My Rate", lw=2, lc=:red)
     # scatter!(p, λs, firstOrderApproxSpreadRates, label="Approx Rate", lw=2, mc=:blue)
     title = "Spread Rates"
-    title!(p, title)
-
-    return p, 800, title
+    return p, 600, title
 end
 
 function plot_lambda_path_spread_rates(datas::Array{Dict, 1}, Ss)
@@ -144,7 +141,7 @@ function plot_lambda_path_spread_rates(datas::Array{Dict, 1}, Ss)
     colors = palette(:jet, n)
     color_index = 1
 
-    p= scatter(legendfontsize=10,xlabel="Path Length", ylabel="Inverse Δt", size=(1000,800))
+    p= scatter(legendfontsize=10,xlabel="Path Length", ylabel="Inverse Δt", legend=:bottomright, size=(1000,600))
     for i in 1:n
         plot!(p,pathLengths[2:end], spreadRates[i][2:end], lw=1,lc=colors[color_index], linestyle=:dash, label="")
         scatter!(p, pathLengths[2:end], spreadRates[i][2:end], label="λ=$(λs[i])", mc=colors[color_index])
@@ -152,8 +149,7 @@ function plot_lambda_path_spread_rates(datas::Array{Dict, 1}, Ss)
     end
     scatter!(p, ylims=(0, .2))
     title =  "Inverse Δt vs Path Length"
-    title!(p, title)
-    return p, 800, title
+    return p, 600, title
 end
 
 
@@ -180,55 +176,45 @@ function plot_lambda_F₂(datas::Array{Dict, 1}, Ss)
     plot!(p, λs,F₂Estimates,label="F₂ Estimate", lw=4)
 
     title = "F₂ vs λ (log-log)"
-    title!(p, title)
 
     return p, 800, title
 end
 
-function plot_lambda_t₂(datas::Array{Dict, 1}, Ss)
+
+function plot_lambda_t₂_t₃(datas::Array{Dict, 1}, Ss)
     n = length(datas)
     
     λs = []
     t₂s = []
-    t₂Estimates = []
-    
-    for i in 1:n
-        S=Ss[i]
-        push!(t₂s,datas[i]["spreadInfInd"][2])
-        push!(λs, S.strat.λ)
-        push!(t₂Estimates, log(S.sim.I₀ * S.strat.λ)/(S.epi.β))
-    end
-    @show t₂Estimates t₂s
-    t₂s_cleaned = [t₂ <= 0 ? NaN : t₂ for t₂ in t₂s]
-    t₂Estimates_cleaned = [t₂Estimates[i] <= 0 ? NaN : t₂Estimates[i] for i in 1:n]
-    p = plot(xlabel="λ", ylabel="t₂",legendfontsize=15, legend=:topleft, xscale=:log10)
-    scatter!(p, λs, t₂s_cleaned,label="t₂", mc=:yellow)
-    plot!(p, λs,t₂Estimates_cleaned ,label="t₂ Estimate", lw=4)
-    title = "t₂ vs λ (log-x)"
-    title!(p, title)
-    return p, 800, title
-end
-
-function plot_lambda_t₃(datas::Array{Dict, 1}, Ss)
-    n = length(datas)
-    
-    λs = []
     t₃s = []
+    t₂Estimates = []
     t₃Estimates = []
     
     for i in 1:n
-        S=Ss[i]
-        push!(t₃s,datas[i]["spreadInfInd"][3])
+        S = Ss[i]
+        push!(t₂s, datas[i]["spreadInfInd"][2])
+        push!(t₃s, datas[i]["spreadInfInd"][3])
         push!(λs, S.strat.λ)
-        # push!(t₃Estimates, log(S.sim.I₀ * S.strat.λ)/(S.epi.β))
+        push!(t₂Estimates, log(S.sim.I₀ * S.strat.λ) / (S.epi.β))
+        push!(t₃Estimates, log(S.sim.I₀ * S.strat.λ) / (S.epi.β) + log(1 + S.epi.β / S.epi.μ) / (S.epi.β))
     end
     
+    t₂s_cleaned = [t₂ <= 0 ? NaN : t₂ for t₂ in t₂s]
     t₃s_cleaned = [t₃ <= 0 ? NaN : t₃ for t₃ in t₃s]
+    t₂Estimates_cleaned = [t₂Estimates[i] <= 0 ? NaN : t₂Estimates[i] for i in 1:n]
     t₃Estimates_cleaned = [t₃Estimates[i] <= 0 ? NaN : t₃Estimates[i] for i in 1:n]
-    p = plot(xlabel="λ", ylabel="t₃",legendfontsize=15, legend=:topleft, xscale=:log10)
-    scatter!(p, λs, t₃s_cleaned,label="t₃", mc=:yellow)
-    # plot!(p, λs,t₃Estimates_cleaned ,label="t₃ Estimate", lw=4)
-    title = "t₃ vs λ (log-x)"
-    title!(p, title)
-    return p, 800, title
+    
+    p = plot(xlabel="λ", ylabel="time of infection", legendfontsize=15, legend=:topleft, xscale=:log10)
+    
+    scatter!(p, λs, t₂s_cleaned, label="t₂", mc=:yellow)
+    plot!(p, λs, t₂Estimates_cleaned, label="t₂ Estimate", lw=4)
+    
+    scatter!(p, λs, t₃s_cleaned, label="t₃", mc=:blue)
+    plot!(p, λs, t₃Estimates_cleaned, label="t₃ Estimate", lw=4)
+    
+    ylims!(p, 0, maximum([maximum(t₂s_cleaned), maximum(t₃s_cleaned), maximum(t₂Estimates_cleaned), maximum(t₃Estimates_cleaned)]))
+    
+    title = "t₂ and t₃ vs λ (log-x)"
+    
+    return p, 600, title
 end
