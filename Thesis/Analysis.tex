@@ -3,6 +3,7 @@
 % \usepackage{amsmath}  % if you need advanced math formatting
 % \usepackage{tikz}
 % \usepackage[a4paper, margin=3cm]{geometry}
+% \usetikzlibrary{arrows.meta, positioning, calc}
 % \begin{document}
 
 \section{Analysis}
@@ -31,7 +32,7 @@
     \draw[->, bend left] (e) to (d);
 \end{tikzpicture}
 \end{center}
-Let the network have be an unweighted path graph (1-lattice graph),  and infinitely long on both sides. All subpopulations have population sizes $N_x=S_x+I_x+R_x=1$. We randomly select a node subpopulation and designate it with index 1 and incrementally index each consecutive neighboring subpopulation to the right. We will be focusing on the group of subpopulations to the right side of subpopulation 1 though due to the symmetry of the network and the ODE system, the epidemic evolution of both sides are the same. In a pre-infection state, all subpopulations have $S_x=1,I_x=0,R_x=1$. To begin an infection scenario, we start with an initial condition where $I_1(0)=i_0$ and $S_1(0)=1-i_0$. 
+Let the network be an unweighted undirected path graph (1-lattice graph),  and infinitely long on both sides. All subpopulations have population sizes $N_x=S_x+I_x+R_x\stackrel{!}{=}N$. We randomly select a subpopulation patch and designate it with index 1 and incrementally index each consecutive neighboring subpopulation to the right. We will be focusing on the group of subpopulations to the right side of subpopulation 1 though due to the symmetry of the network and the ODE system, the epidemic evolution of both sides are expected to be the same. In a pre-infection state, all subpopulations have $S_x=1,I_x=0,R_x=1$. To begin an infection scenario, we start with an initial condition where $I_1(0)=i_0$ and $S_1(0)=1-i_0$. 
 %STRATEGY: focus on I, go sequentially. Expected behaviour of consecutive exponential rise. Objective of finding spread rate. Define spread rate
 The governing dynamics of the infection in subpopulation 1 is:
 
@@ -105,7 +106,6 @@ Since we are interested in the spread rate of the infection, the objective is to
 \end{equation}
 
 Based on numerical results, we found that ${\Delta t}_{j}$ converges quickly to a constant value. Therefore, we apply an ansatz ${\Delta t}_{j+1} = t_{j+1} - t_j \approx {\Delta t}$ for $j \gg 1$, leading to $t_j \approx j \, \Delta t$.
-
 
 \begin{equation}
 \kappa \Delta t + j \ln\left( \frac{t_{j+1}}{t_j} \right) + \ln\left( \frac{\mu t_{j+1}}{j+1} \right) = 0
@@ -258,11 +258,13 @@ solving for $t_2$:
 This relationship, as with the one for $F_2$, is only valid for $\lambda> \frac{1}{i_0}$. The most important observation from this finding is that the delay in infection depends on the logarithm of $\lambda$, which means there are diminishing returns to increasing the adaptivity rates of travel restriction to infection. To validate this finding, $t_2$ was evaluated for different systems of ODEs with varying values of $\lambda$ and $\kappa$. As Figure~%REF figure
 shows, the appoximated relationship matches the numerical results when $\lambda$ is sufficiently higher than $1/i_0$ such that $\lambda i_0 >>1$ 
 
-\begin{figure}[!ht]
+
+
+\begin{figure}
     \centering
-    \includegraphics[width=120mm]{Figures/t₂ vs λ (log-x)_β0.25_γ0.0_σ0.0_μ0.01_nPop15_kbar3_topologySmallWorld_λ1.0e7_mobBias0.0_h0.1_minh1.0e-9_nDays1000_I01.0e-5_critRange0.0.pdf}
+    \includegraphics[width=120mm]{Figures/t₂ and t₃ vs λ (log-x)_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar3_topologyPathGraph_λ1.0e10_mobBias0.0_h0.01_minh1.0e-9_nDays1000_I01.0e-5_critRange0.0.pdf}
     \caption{\small Evaluation of $t_2$ for different $\lambda$ and $\kappa$ values with the $t_2$ approximation in a log-x scale. The straight line in this plot correponds to a logarithmic dependency of $t_2$ on $\lambda$, as was found in the analytical approximation. The approximation is only valid for $\lambda > i_0$, which is $10^5$ in this case. It can be seen that before this threshold, the impact of $\lambda$ is negligible and $t_2$ has the same value as if there was no adaptivity.}
-    \label{fig:t_2 vs lambda}
+    \label{fig:t_2 and t_3 vs lambda}
 \end{figure}
 
 \begin{equation}\dot I_2(t<t_{F2}) \approx f_2 = \mu i_0 e^{\kappa (1-c) t} \approx \mu i_0 e^{-\kappa c t}\end{equation}
@@ -297,9 +299,9 @@ to find $t_3$, the time at which $I_3(t_3) = i_0$, we first integrate  $\dot I_3
 
 This can be solved for $I_3(t)$ (see appendix)
 
-\[
-I_3(t) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t} - e^{-\mu t} \right).
-\]
+\begin{equation}
+    I_3(t) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t} - e^{-\mu t} \right).
+\end{equation}
 
 with which we can solve for $t_{F_3}$ where $I_3(t)=F_3(\infty) = 1/\lambda$
 \begin{equation}I_3(t_{F_3}) \approx \frac{\mu}{\lambda (\mu + \kappa)} \left( e^{\kappa t_{F_3}} - e^{-\mu t_{F_3}} \right) \stackrel{!}{=}  \frac{1}{\lambda}\end{equation}
@@ -317,4 +319,152 @@ This expression for $\Delta t_3$ is very close to the spread rate expression in 
 \]
 Which further confirms the finding that adaptivity only introduces a delay in infection spread in the immediate neighborhood of the first infected subpopulation while the remaining metapopulation network suffers from approximately the same infection spread rate as the unadaptive system. 
 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=120mm]{Figures/Inverse Δt vs Path Length_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar3_topologyPathGraph_λ1.0e10_mobBias0.0_h0.1_minh1.0e-9_nDays1000_I01.0e-5_critRange0.0.pdf}
+    \caption{\small Spread rates ($1/\Delta t$) at each subpopulation $i$ in a 1-lattice. It can be seen that $\lambda$ has the most impact on the immediate neighborhood of the subpopulation 1. Subpopulations 2 and onwards have a much more subdued influence by $\lambda$ and quickly converges to the non-adaptive spread rates. The jump that can be observed between $\lambda=10^4$ and $\lambda=10^6$ is due to surpassing the bifurcation point at $\lambda=1/i_0=10^5$. }
+    \label{fig: inverse Δt vs path length var lambda}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=120mm]{Figures/Spread Rates_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar3_topologyPathGraph_λ1.0e10_mobBias0.0_h0.1_minh1.0e-9_nDays1000_I01.0e-5_critRange0.0.pdf}
+    \caption{\small Spread rates ($1/{\Delta t}$) at the immediate viscinity of the initially infected subpopulation (initial), average over all subpopulations, and at the far edge of the network (asymptotic). It can be seen that, with sufficiently large $\lambda >1/i_0$, the spread rate around the initial infection is significantly lowered. However, for further away subpopulations (and hence, the network average), this impact in nearly non-existant. Though it might seem that the initial spread rate is converging to a value, it is intead mearly following a $1/log(\lambda)$ curve.}
+    \label{fig: Spread rates vs λ}
+\end{figure}
+
+
+\subsection{Application to Clustered Networks}
+In the previous sections, we focused on one-dimensional lattice structures (or path graphs), where each subpopulation is connected linearly. This allowed us to derive analytical estimates for infection times by considering distances from the initial infection source. However, real-world networks often possess higher clustering coefficients, which can create shortcuts and feedback loops not present in a simple path graph. In highly clustered networks, the effective distance between nodes can shrink rapidly once a community is reached, influencing the overall infection velocity. As a result, a purely linear distance approach may underestimate the speed of contagion in such regions. \\
+
+To further illustrate this, we can consider the Directed Acyclic Graph (DAG) and directed tree subsets of a given network. As found from the previous analysis, flow of infected individuals is highly asymmetric, where the flow downstream (from the initially infected subpopulations) is is significantly higher than that in the upstream direction, near the initial infection period. This asymmetry allows us to simplify the studied network to the downstream subset of the network connections, which is a DAG. To eliminate cross-links (links between nodes of same distance from root), we instead focus on the layered DAG. Unlike the DAG simplification, there is only one unique DAG given a specified root. Applying this simplification opens the gateway to many tools and optimizations both analytically and numerically. Furthermore, it directly shows the expected primary paths and sources of infection flow in the early stages of infection spread. To utilize the previous analysis done on path graphs, one could convert the network of interest into a directed tree graph, where only (one of) the shortest paths are kept to any given node (see \ref{fig: graph subsets}). In this case, one could predict the time of infection of any node only as a function of its distance from the root. This simplification, while insightful to networks with low clustering, is hurt the most by nodes where there are multiple shortest-distance paths from the root. \\
+
+To account for different topological effects, more sophisticated distance measures (e.g., effective resistance distance, shortest path betweenness, or harmonic centrality) can refine predictions. These measures provide complementary insights when clustering or multiple pathways significantly alter the propagation route. Nonetheless, the essential core idea of partitioning nodes by their ‘distance shells’ from the initial infection source still applies, especially when infection flows primarily along shortest paths. The approximation of infection time to path length is sufficiently accurate due to the geometric decay of the number of infected individuals $I_j$ at a given point in time. In the unadaptive 1-lattice, the solution for $I_j$ is given by:
+\[
+I_j = I_0 \frac{\mu^{j-1} t^{j-1}}{(j-1)!} e^{\kappa t},
+\]
+which forms a decaying geometric series as a function of time. When the decay factor $\mu$ is small enough, the net flow from two downstream paths of different lengths into a patch will be disproportionately impacted by the shorter path. This approximation holds particularly well around $t=0$, where the initial infection spread is most critical.
+
+For a node $j$ at distance $d_j$ from the initially infected source under a chosen metric, we can write:
+\[
+t_{d_j} \approx d_j \cdot \Delta t,
+\]
+where $\Delta t$ is the characteristic infection time step derived in the 1-lattice analysis. Each distance shell’s nominal infection time can be adjusted by weighing the clustering properties or alternative network metrics, providing a first-order approximation before detailed simulations confirm or refine these predictions.
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}[b]{0.3\textwidth}
+        \begin{tikzpicture}[
+          node distance=1cm and 1cm,
+          every node/.style={circle, draw, minimum size=.75cm}
+        ]
+        
+        % Nodes
+        \node[draw=red] (n1) {1};
+        \node[above right=of n1] (n2) {2};
+        \node[below=of n2] (n3) {3};
+        \node[below=of n3] (n4) {4};
+        \node[above right=of n2] (n5) {5};
+        \node[below=of n5] (n6) {6};
+        \node[below=of n6] (n7) {7};
+        \node[below right=of n4] (n8) {8};
+        
+        % Connections
+        \draw (n1) -- (n2);
+        \draw (n1) -- (n3);
+        \draw (n1) -- (n4);
+        \draw (n2) -- (n5);
+        \draw (n2) -- (n6);
+        \draw (n3) -- (n6);
+        \draw (n4) -- (n7);
+        \draw (n4) -- (n8);
+        \draw (n5) -- (n6);
+        \draw (n6) -- (n7);
+        \draw (n7) -- (n8);
+        \draw (n3) -- (n4);
+        \draw (n1) -- (n6);
+        \draw (n2) -- (n7);
+        \draw (n3) -- (n8);
+        
+        \end{tikzpicture}\\
+        \centering
+        {(a)}
+    \end{minipage}
+    \begin{minipage}[b]{0.3\textwidth}
+        \begin{tikzpicture}[
+          node distance=1cm and 1cm,
+          every node/.style={circle, draw, minimum size=.75cm}
+        ]
+        
+        % Nodes
+        \node[draw=red] (n1) {1};
+        \node[above right=of n1] (n2) {2};
+        \node[below=of n2] (n3) {3};
+        \node[below=of n3] (n4) {4};
+        \node[above right=of n2] (n5) {5};
+        \node[below=of n5] (n6) {6};
+        \node[below=of n6] (n7) {7};
+        \node[below right=of n4] (n8) {8};
+        
+        % Connections
+        \draw[->] (n1) -- (n2);
+        \draw[->] (n1) -- (n3);
+        \draw[->] (n1) -- (n4);
+        \draw[->] (n2) -- (n5);
+        \draw[->] (n2) -- (n6);
+        \draw[->] (n3) -- (n6);
+        \draw[->] (n4) -- (n7);
+        \draw[->] (n4) -- (n8);
+        \draw[->] (n5) -- (n6);
+        \draw[->] (n6) -- (n7);
+        \draw[->] (n7) -- (n8);
+        \draw[->] (n3) -- (n4);
+        \draw[->] (n1) -- (n6);
+        \draw[->] (n2) -- (n7);
+        \draw[->] (n3) -- (n8);
+        
+        \end{tikzpicture}\\
+        \centering
+        {(b)}
+    \end{minipage}
+    \begin{minipage}[b]{0.3\textwidth}
+        \begin{tikzpicture}[
+          node distance=1cm and 1cm,
+          every node/.style={circle, draw, minimum size=.75cm}
+        ]
+        
+        % Nodes
+        \node[draw=red] (n1) {1};
+        \node[above right=of n1] (n2) {2};
+        \node[below=of n2] (n3) {3};
+        \node[below=of n3] (n4) {4};
+        \node[above right=of n2] (n5) {5};
+        \node[below=of n5] (n6) {6};
+        \node[below=of n6] (n7) {7};
+        \node[below right=of n4] (n8) {8};
+        
+        % Connections
+        \draw[->] (n1) -- (n2);
+        \draw[->] (n1) -- (n3);
+        \draw[->] (n1) -- (n4);
+        \draw[->] (n2) -- (n5);
+        \draw[->] (n4) -- (n7);
+        \draw[->] (n4) -- (n8);
+        \draw[->] (n1) -- (n6);
+        
+        \end{tikzpicture}\\
+        \centering
+        {(c)}
+    \end{minipage}
+    \caption{\small Comparison of network structures and their impact on infection spread dynamics. 
+    (a) The original regular connected graph represents the full network topology, including all possible connections between subpopulations. 
+    (b) A Directed Acyclic Graph (DAG) subset of the original network, rooted at the initially infected patch, on of possible many.
+    (c) The directed tree subset, with only downstream arrows from the root.
+     The full network captures the complexity and potential clustering effects in real-world networks. The DAG subset of said network is the downstrea helps in understanding the effective distance measures and the hierarchical spread of infection. The directed tree subset demonstrates the approximation of infection time to path length, showing how the infection predominantly follows the shortest paths, which is crucial for the initial stages of infection spread.}
+    \label{fig: graph subsets}
+\end{figure}
+
+
+    
 % \end{document}
