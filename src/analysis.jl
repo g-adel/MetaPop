@@ -21,6 +21,7 @@ function dataAnalytics(metaHist,S)
     end
     # plot!(p, xAxis, ρsHistory[:,i+1,i], label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
     data = Dict()
+    data["S"] = S
     data["metaHist"]=metaHist;    data["days"] = days; 
     data["susceptibleHistory"] = susceptibleHistory[1:nPts,:];    data["infectedHistory"] = infectedHistory[1:nPts,:];
     data["recoveredHistory"] = recoveredHistory[1:nPts,:];    data["ρsHistory"] = ρsHistory[1:nPts,:,:]; 
@@ -66,6 +67,8 @@ function dataAnalytics(metaHist,S)
 
     distances = dijkstra_shortest_paths(g, 1).dists
     data["pathLengths"] = distances
+    data["resistance_distances"] = resistance_distances(S.net.graph)
+
     # data["avgSpreadRate"] = 1/linear_regression_slope(distances,spreadInfInd) #TODO needs to be redefined for other networks
     data["avgSpreadRate"] = sum(spreadRates)/length(spreadRates)
     spreadRatesTotal=0
@@ -81,7 +84,9 @@ function dataAnalytics(metaHist,S)
     data["initSpreadRate"] = 1/(spreadInfInd[2]-spreadInfInd[1])
     # data["avgSpreadRate"] = 1/(spreadInfInd[end]-spreadInfInd[end-1])
     data["firstOrderSol"] = [firstOrderSol(i-1,S.epi) for i in 1:nPopulations]
-    data["firstOrderApprox"] = firstOrderApprox(S.epi).*(0:nPopulations-1)
+    data["firstOrderApprox"] = firstOrderApprox(S.epi).*data["pathLengths"]
+    data["firstOrderApproxResistance"] = firstOrderApprox(S.epi).*data["resistance_distances"]
+    data["firstOrderApproxResistance"]*=maximum(data["firstOrderApprox"])/maximum(data["firstOrderApproxResistance"])
     # data["firstOrderSolSpreadRate"] = 1/linear_regression_slope(distances,data["firstOrderSol"])
     data["firstOrderSolSpreadRate"] = 1/(data["firstOrderSol"][end-1]-data["firstOrderSol"][end-2])
     data["referenceSpreadRate"] = 2.2√(S.epi.μ*(S.epi.β-S.epi.γ))

@@ -1,6 +1,7 @@
 using Revise, Plots
 module MetaPop
 using Graphs, SparseArrays, Luxor, Karnak, Images, Plots, Plots.PlotMeasures, Printf, PrettyTables
+using LinearAlgebra
 
 include("epidemics.jl");    include("populations.jl");  include("network.jl");
 include("visualization.jl");include("strategies.jl");   include("simulation.jl");
@@ -16,10 +17,10 @@ mutable struct Scenario
 end
 
 function defineMeta()
-    epi = SIRS_epidemic(β = 0.25,γ = 0.0, σ = .0, μ = 0.01)
-    net = Network(nPopulations = 10, k_bar = 3, topology = PathGraph)
-    strat = Strat(λ = 1e10, mobBias = 0.0,strategy = IndivPropRestriction)
-    sim = Sim(h = 0.1,min_h=10e-10, nDays = 1000, I₀=1e-5, critRange = 0)
+    epi = SIRS_epidemic(β = 0.25,γ = 0.00, σ = .0, μ = 0.01)
+    net = Network(nPopulations = 10, k_bar = 4, topology = PathGraph)
+    strat = Strat(λ =4e-2, mobBias = 0.0,strategy = IndivLogRestriction)
+    sim = Sim(h = 0.1,min_h=1e-2, nDays = 1000, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
                             mobilityRates = Graphs.LinAlg.adjacency_matrix(net.graph,Float64)*epi.μ, day = 1)
@@ -50,14 +51,27 @@ function multiCaseMain()
     return combinedPlot, datas
 end
 
+function ensembleCaseMain()
+    meta, S = defineMeta()
+    Ss = multiScenario_1D(S)
+    datas = multiSimulation1D(Ss)
+    # Ss = multiScenario_μβ(S)
+    # datas = multiSimulation2D(Ss)
+
+    combinedPlot = plotMulti(datas, Ss,meta;save=true)
+    return combinedPlot, datas
+end
+
 export multiCaseMain, singleCaseMain
 
 end
 
 println("¡Hola!")
 
-# @time combinedPlot, data, meta = MetaPop.singleCaseMain()
+@time combinedPlot, data, meta = MetaPop.singleCaseMain()
 
-@time combinedPlot, datas = MetaPop.multiCaseMain()
+# @time combinedPlot, datas = MetaPop.multiCaseMain()
+
+# @time combinedPlot, datas = MetaPop.ensembleCaseMain()
 
 plot(combinedPlot)

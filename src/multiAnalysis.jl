@@ -78,3 +78,28 @@ function multiScenario_λ(S)
     end
     return Ss
 end
+
+function multiScenario_1D(S)
+    nPtsX=10
+    Ss=Array{Scenario,1}(undef,nPtsX)
+    for i in 1:nPtsX
+        Ss[i]=deepcopy(S)
+    end
+    return Ss
+end
+
+
+function multiScenario_strategies(S)
+    nPtsX=5
+    Ss=Array{Scenario,1}(undef,nPtsX)
+    for i in 1:nPtsX
+        Ss[i]=deepcopy(S)
+    end
+    Ss[1].strat = Strat(λ = 0, mobBias = 0.0,strategy = GlobalDiffRestriction)
+    Ss[2].strat = Strat(λ = 1e7, mobBias = 0.0,strategy = GlobalDiffRestriction)
+    Ss[3].strat = Strat(λ = 1e10, mobBias = 0.0,strategy = UniformPropRestriction)
+    Ss[4].strat = Strat(λ = 0e10, mobBias = 0.0,strategy = IndivPropRestriction)
+    Ss[5].strat = Strat(λ = 0e10, mobBias = 0.0,strategy = IndivLogRestriction)
+    return Ss
+end
+

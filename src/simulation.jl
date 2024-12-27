@@ -208,18 +208,18 @@ end
 function metaRoC(meta)
     populations = meta.populations; epi=meta.S.epi; g=meta.S.net.graph
     popsRoC = Array{PopulationRoC, 1}(undef, length(populations))
-
+    globalInfectedFlow = 0
     for (popInd, pop) in enumerate(populations)
         for connPopInd in neighbors(g,popInd)
             connPop = populations[connPopInd]
             # connWeight removed!! needs weighted graphs or another sparse matrix
             meta.mobilityRates[popInd,connPopInd] =  epi.μ *  (1-connPop.ρs[popInd]) * (1-pop.ρs[connPopInd])
-            # globalInfectedFlow += meta.mobilityRates[popInd,connPopInd] # WRONG
+            globalInfectedFlow += abs(meta.mobilityRates[popInd,connPopInd]*pop.I) # WRONG
         end
     end
     for (i, population) in enumerate(populations)
         # meta.mobilityRates need to be computed for popsRoC
-        popsRoC[i] = getPopulationRoC(population, meta)
+        popsRoC[i] = getPopulationRoC(population, meta;globalInfFlow = globalInfectedFlow)
     end
     return popsRoC
 end
@@ -233,7 +233,6 @@ function multiSimulation1D(Ss)
         nPopulations = net.nPopulations
         newMeta = Metapopulation(S=Ss[i], populations = Array{Population,1}(undef,nPopulations),
                             mobilityRates = spzeros(Float64, nPopulations, nPopulations),day=1)
-        net.graph = pathGraph(Ss[i].net;directed=false)
         initializePopulations!(newMeta)
         push!(metaHists,simulateSystem(newMeta))
         datas[i] = dataAnalytics(metaHists[i],Ss[i])

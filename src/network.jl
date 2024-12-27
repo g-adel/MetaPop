@@ -1,3 +1,4 @@
+
 @enum GraphTopology begin
     PathGraph
     DiPathGraph
@@ -19,7 +20,7 @@ mutable struct Network
         elseif topology == DiPathGraph
             net.graph = pathGraph(net; directed = true)
         elseif topology == SmallWorld
-            net.graph = smallWorldMatrix(net)
+            net.graph = smallWorldMatrix(net; β=0.5)
         elseif topology == BarabasiAlbert
             net.graph = baraAlbert(net)
         end
@@ -41,7 +42,7 @@ function smallWorldMatrix(net::Network; β=.5)
 end
 
 function baraAlbert(net::Network)
-    g = barabasi_albert(net.nPopulations, net.k_bar/2)
+    g = barabasi_albert(net.nPopulations, net.k_bar÷2)
     adj = convert(Matrix{Float64}, adjacency_matrix(g))
     return g
 end
@@ -60,6 +61,27 @@ function pathGraph(net::Network; directed=false)
     return g
 end
 
+
+function resistance_distances(g::Graphs.SimpleGraph)
+    n = nv(g)
+    # Build Laplacian
+    L = zeros(Float64, n, n)
+    for i in 1:n
+        deg_i = degree(g, i)
+        L[i,i] = deg_i
+        for j in neighbors(g, i)
+            L[i,j] = -1
+        end
+    end
+    # Pseudoinverse
+    Lpseudo = pinv(L)
+    # Compute distances
+    distances = Vector{Float64}(undef, n)
+    for j in 1:n
+        distances[j] = Lpseudo[1,1] + Lpseudo[j,j] - 2 * Lpseudo[1,j]
+    end
+    return distances
+end
 
 # function KRegRingMatrix(net::Network)
 #     connections::Array{Float64, 2} = zeros(Float64, net.nPopulations, net.nPopulations)

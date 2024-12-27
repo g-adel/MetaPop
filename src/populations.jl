@@ -51,7 +51,7 @@ function initializePopulations!(meta)
 end
 
 
-function getPopulationRoC(pop::Population,meta::Metapopulation)
+function getPopulationRoC(pop::Population,meta::Metapopulation;globalInfFlow =0)
     net, populations, epi = meta.S.net, meta.populations, meta.S.epi;
     g=net.graph
     S = pop.S; I = pop.I; R = pop.R
@@ -82,10 +82,10 @@ function getPopulationRoC(pop::Population,meta::Metapopulation)
     dI =  epi.β*I*S - epi.γ*I + netFlowInfected
     dR =  epi.γ*I   - epi.σ*R + netFlowRecovered
     ρsRoC = spzeros(meta.S.net.nPopulations)
+    strategy = meta.S.strat.strategy
     if meta.S.strat.λ>0
-        strategy = meta.S.strat.strategy
-        if strategy == GlobalDiffRestriction        ρsRoC == globalDiffRestriction(pop,meta)
-        elseif strategy == UniformPropRestriction   ρsRoC = uniformPropRestriction(pop,meta)
+        if strategy == UniformPropRestriction   ρsRoC = uniformPropRestriction(pop,meta)
+        elseif strategy == GlobalDiffRestriction        ρsRoC = globalDiffRestriction(pop,meta,globalInfFlow)
         elseif strategy == IndivPropRestriction     ρsRoC = indivPropRestriction(pop,meta)
         elseif strategy == IndivLogRestriction      ρsRoC = indivLogRestriction(pop,meta)
         end

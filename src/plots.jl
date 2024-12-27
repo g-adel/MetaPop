@@ -34,18 +34,18 @@ function plotCase(data,S,meta;save=false,adaptive=false)
     plots = []
     push!(plots, plotInfEvolution(data))
     push!(plots, plotInfEvolution(data;yLog=true))
+    if adaptive
+        push!(plots, plotRestrictions(data))
+        # push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
+        push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
+    end
     S.sim.critRange>0 && push!(plots, plotInfEvolution(data;yLog=true,xLog=true))
     # push!(plots, plotInfectedFlow(data))
-    # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
     push!(plots, plotInfectionDays(data,S.epi))
     push!(plots, plotSpreadRates(data))
     # push!(plots, plot_cumulative_flow(data))
     # push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
-    if adaptive
-        push!(plots, plotRestrictions(data))
-        push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
-    end
-    push!(plots, plot_image(drawNetworkKarnak(meta, data)))
+    (S.net.topology != PathGraph) && push!(plots, plot_image(drawNetworkKarnak(meta, data)))
     # push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
     
