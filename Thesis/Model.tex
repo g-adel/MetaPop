@@ -346,7 +346,7 @@ where:
 
 \subsubsection{Connection proportional travel restriction}
 
-Finally, a third strategy is investigated where subpopulations are given individual control over restrictions for each connection to neighbors. The strategy for a connection from subpopulation $x$ to subpopulation $x'$ is:
+A third strategy is investigated where subpopulations are given individual control over restrictions for each connection to neighbors. The strategy for a connection from subpopulation $x$ to subpopulation $x'$ is:
 
 \begin{equation}
 \dot{\rho}_{xx'} = \lambda M_{(I);x,x'} = \lambda \mu \bar{\rho}_{x,x'} \bar{\rho}_{x',x} \Delta^{\top}_{x,x'} I_{x'}
@@ -395,6 +395,19 @@ Unlike the other two strategies, this one is entirely local to the connection, a
     \label{fig:Connection restriction diagram}
 \end{figure}
 
+\subsubsection{Connection logarithm travel restriction}
+
+Finally, a fourth strategy is formulated with the same information and control as the connection proportiona travel restriction, with a change of the relationship function. The strategy for a connection from subpopulation $x$ to subpopulation $x'$ is:
+
+\begin{equation}
+    \dot{\rho}_{xx'} = 
+    \begin{cases} 
+    \lambda \log\left(\frac{\kappa I_{x} + M_{(I);x,x'}}{\kappa I_{x}}\right) & \text{if } I_{x} > I_{min} \\ 
+    0 & \text{otherwise}
+    \end{cases}
+\end{equation}
+
+where $\kappa$ signifies the local growth constant, $\kappa_x = \beta-\gamma- deg(x) \mu$. As will be seen in the Analysis chapter, this expression for the logarithm of the ratio of incoming vs local growth rates approximates the spread rate of infection in the non-adaptive system. Hence, applying a travel restriction strategy that applies proportional control taking the spread rate approximation as input is a sensible option. The condition of $I_{x} > I_{min}$ is made so that a growth rate $\dot \rho$ does not reach infinity around the initial condition of the system. This is analogous in the real system to a minimal observable number of infected individuals $I_{min}$ in a subpopulation.
 
 \subsection{Mobility Restoration}
 While it would be ideal to give the subpopulations unrestrained ability to implement travel restrictions and isolate themselves from an infected metapopulation network, it is unrealistic and would bring about severe consequences in the real world analogy. Individuals traveling from one patch to another typically do so out of economic or social reasons such as delivering goods, trading, meeting a friend, tourism, etc. Whenever subpopulations prevent this mobility, they lose out of the economic gains of this traffic and start to acrue discontent among the local population who are increasingly restricted from their freedom of movement. This econonmic loss and population discontent played a big role in the COVID-19 non-pharmaceutical interventions, as democratic governments found resistance in policy implementation and backlash from the restricted populations. Therefore, it was found that there was more success in interventions and strategies that took into considerations these ramifications and attempted to alleviate some of the socio-economic pressure when the infectious disease isn't at its most dangerous phase. \\
@@ -430,6 +443,14 @@ Due to the similarity of the different proposed strategies, the mobility restora
         \end{aligned}
     \end{equation}
 
+    \item \text{Connection logarithm travel restriction with bias:} 
+    \begin{equation}
+        \dot{\rho}_{xx'} = 
+        \begin{cases} 
+        \lambda \log\left(\frac{\kappa I_{x} + M_{(I);x,x'}}{\kappa I_{x}}\right) - \lambda b \rho_{x,x'} & \text{if } I_{x} > I_{min} \\ 
+        0 & \text{otherwise}
+        \end{cases}
+    \end{equation}
 \end{itemize}
 
 This mobility restoration bias allows the reduction of travel restriction when $M_{(I)}$ is below a certain threshold, at which $\dot \rho=0$. This threshold, however, is not a specific value for $M_{(I)}$, but an entire line at which $\rho$ and $M_{(I)}$ would converge to, depending on where it started. The utility of the restoration bias is not to cull the travel restriction at the start of the infection spread across the metapopulation, since the bias is scaled by $rho$ and hence is close to zero at the initial condition of the metapopulation. Its role instead lies in the aftermath of the infection spread, when most individuals have recovered (low $I_x$) while the travel restriction is still high from the dynamics of the adaptive strategy. At that stage, with a receding $M_{(I)}$, $\rho$ in turn goes back down to zero.

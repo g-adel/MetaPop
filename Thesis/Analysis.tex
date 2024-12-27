@@ -50,6 +50,7 @@ For a randomly selected subpopulation $j$, the infection fraction dynamics can b
 Since the diffusion of infected individuals starts from index 1 and increasing, $I_{j+1} \approx 0$ with respect to $I_j$. Similar to the above linearization:
 \begin{equation}
 \dot I_j \approx \kappa I_j+\mu I_{j-1}
+\label{eq: kappa}
 \end{equation}
 where $\kappa = \beta-\gamma-2\mu$. Solving the differential equation for the linearized $\dot I_1$:
 \begin{equation}
@@ -127,12 +128,13 @@ This is still a transcendental function. However, a known solution for this equa
 
 \begin{equation}
 \Delta t = \frac{1}{\kappa} W\left(\frac{\kappa}{e \mu}\right)
+\label{eq: Lambert W approximation}
 \end{equation}
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Spread Rates for different μ and β_β0.125_γ0.0_σ0.0_μ0.01_nPop10_kbar2_λ0.0_mobBias0.0_h0.1_minh1.0e-5_nDays500_I01.0e-5_critRange0.0.pdf}
-    \caption{\small The spread rates of infection across a 1-lattice network (path graph) for far away neighbors. Value are found both numerically and approximated analytically for different values of $\mu$ and $\beta$. It can be seen that both the equation solution and the lambert W limit function closely approximate the spread rate for the relevant epidemic and mobility parameters.}
+    \caption{\small The spread rates of infection across a 1-lattice network (path graph) for far away neighbors. Value are found both numerically and approximated analytically for different values of $\mu$ and $\beta$. It can be seen that both the equation solution and the Lambert W limit function closely approximate the spread rate for the relevant epidemic and mobility parameters.}
     \label{Spread Rates mu beta}
 \end{figure}
 
@@ -323,7 +325,7 @@ Which further confirms the finding that adaptivity only introduces a delay in in
 \begin{figure}
     \centering
     \includegraphics[width=120mm]{Figures/Inverse Δt vs Path Length_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar3_topologyPathGraph_λ1.0e10_mobBias0.0_h0.1_minh1.0e-9_nDays1000_I01.0e-5_critRange0.0.pdf}
-    \caption{\small Spread rates ($1/\Delta t$) at each subpopulation $i$ in a 1-lattice. It can be seen that $\lambda$ has the most impact on the immediate neighborhood of the subpopulation 1. Subpopulations 2 and onwards have a much more subdued influence by $\lambda$ and quickly converges to the non-adaptive spread rates. The jump that can be observed between $\lambda=10^4$ and $\lambda=10^6$ is due to surpassing the bifurcation point at $\lambda=1/i_0=10^5$. }
+    \caption{\small Spread rates ($1/\Delta t$) at each subpopulation $i$ in a 1-lattice. It can be seen that $\lambda$ has the most impact on the immediate neighborhood of the subpopulation 1. Subpopulations 2 and onwards have a much more subdued influence by $\lambda$ and quickly converges to the non-adaptive spread rates. The jump that can be observed between $\lambda=10^4$ and $\lambda=10^6$ is due to surpassing the bifurcation point at $\lambda=1/i_0=10^5$. The observed rise in spread rate in the furthest subpopulation is due to having one neighbor, causing less outward diffusion as defined in \ref{eq: AH}.}
     \label{fig: inverse Δt vs path length var lambda}
 \end{figure}
 
