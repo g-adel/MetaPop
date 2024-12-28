@@ -7,100 +7,118 @@
 % \begin{document}
 
 \section{Analysis}
+
+In this chapter, we delve into the detailed analysis of the epidemic spread within metapopulation networks using the models and strategies introduced in the previous chapter. The primary focus is on understanding the dynamics of infection spread and evaluating the effectiveness of the Connection-Proprotional Travel restriction strategy on a path graph (1-lattice). The path graph was chosen due to its simplicity, homogeneity, and ease of handling for analysis.  By examining both non-adaptive and adaptive models, we aim to provide insights into how different travel restriction strategies can influence the rate and pattern of infection spread across a network of interconnected subpopulations. We look into extending the findings from the 1-lattice to more natural clustered networks.We begin by analyzing the infection dynamics in a non-adaptive path graph, which serves as a baseline for understanding the fundamental behavior of the epidemic spread without any adaptive interventions. This analysis includes deriving the spread rate and validating it through numerical simulations. Following this, we explore the impact of adaptive strategies on the infection dynamics, particularly focusing on the spread rate and delay the infection.
+
 \subsection{Non-Adaptive Path Graph}
+In this subsection, we focus on the infection dynamics of the infected population ($I$) within a non-adaptive path graph. By sequentially analyzing the behavior of consecutive subpopulations, we aim to understand the expected exponential rise in infection levels. The primary objective is to derive the spread rate of the infection across the network. To achieve this, we will define the spread rate and examine the governing equations that describe the infection dynamics.
+
 \begin{center}
-\begin{tikzpicture}
-    \node (y) at (-4,0)  {...};
-    \node (z) at (-2,0) [circle,draw] {...};
-    \node (a) at (0,0) [circle,draw] {1};
-    \node (b) at (2,0) [circle,draw] {2};
-    \node (c) at (4,0) [circle,draw] {3};
-    \node (d) at (6,0) [circle,draw] {...};
-    \node (e) at (8,0) {...};
-    
-    \draw[->, bend left] (y) to (z);
-    \draw[->, bend left] (z) to (y);
-    \draw[->, bend left] (a) to (z);
-    \draw[->, bend left] (z) to (a);
-    \draw[->, bend left] (a) to (b);
-    \draw[->, bend left] (b) to (a);
-    \draw[->, bend left] (b) to (c);
-    \draw[->, bend left] (c) to (b);
-    \draw[->, bend left] (c) to (d);
-    \draw[->, bend left] (d) to (c);
-    \draw[->, bend left] (d) to (e);
-    \draw[->, bend left] (e) to (d);
-\end{tikzpicture}
+    \begin{tikzpicture}
+        \node (y) at (-4,0)  {...};
+        \node (z) at (-2,0) [circle,draw] {...};
+        \node (a) at (0,0) [circle,draw] {1};
+        \node (b) at (2,0) [circle,draw] {2};
+        \node (c) at (4,0) [circle,draw] {3};
+        \node (d) at (6,0) [circle,draw] {...};
+        \node (e) at (8,0) {...};
+        
+        \draw[->, bend left] (y) to (z);
+        \draw[->, bend left] (z) to (y);
+        \draw[->, bend left] (a) to (z);
+        \draw[->, bend left] (z) to (a);
+        \draw[->, bend left] (a) to (b);
+        \draw[->, bend left] (b) to (a);
+        \draw[->, bend left] (b) to (c);
+        \draw[->, bend left] (c) to (b);
+        \draw[->, bend left] (c) to (d);
+        \draw[->, bend left] (d) to (c);
+        \draw[->, bend left] (d) to (e);
+        \draw[->, bend left] (e) to (d);
+    \end{tikzpicture}
 \end{center}
-Let the network be an unweighted undirected path graph (1-lattice graph),  and infinitely long on both sides. All subpopulations have population sizes $N_x=S_x+I_x+R_x\stackrel{!}{=}N$. We randomly select a subpopulation patch and designate it with index 1 and incrementally index each consecutive neighboring subpopulation to the right. We will be focusing on the group of subpopulations to the right side of subpopulation 1 though due to the symmetry of the network and the ODE system, the epidemic evolution of both sides are expected to be the same. In a pre-infection state, all subpopulations have $S_x=1,I_x=0,R_x=1$. To begin an infection scenario, we start with an initial condition where $I_1(0)=i_0$ and $S_1(0)=1-i_0$. 
-%STRATEGY: focus on I, go sequentially. Expected behaviour of consecutive exponential rise. Objective of finding spread rate. Define spread rate
+
+Let the network be an unweighted undirected path graph (1-lattice graph), and infinitely long on both sides. All subpopulations have a uniform/homogeneous population sizes $N_j=S_j+I_j+R_j\stackrel{!}{=}N$. The model hence follows the ODE system outlined in equation \ref{eq: SIR M}. We randomly select a subpopulation patch and designate it with index 1 and incrementally index each consecutive neighboring subpopulation to the right. We will be focusing on the group of subpopulations to the right side of subpopulation 1 though due to the symmetry of the network and the ODE system, the epidemic evolution of both sides are expected to be the same. In a pre-infection state, all subpopulations have $S_x=N,I_x=0,R_x=1$. We normalize the values of $S,I,R$ such that $N=1$ for the remainder of this chapter, as the scalar value does not impact the dynamics. To begin an infection scenario, we start with an initial condition where $I_1(0)=i_0$ and $S_1(0)=1-i_0$, where subpopulation 1 is the initially infected subpopulation.
+For a randomly selected subpopulation $j$
+\begin{equation}
+    \begin{aligned}
+    \dot I_j(t) &= \beta S_j I_j - \gamma I_j - 2\mu I_j  + \mu I_{j+1}+ \mu I_{j-1} \\
+    &= (\beta S_j - \gamma 2 \mu) I_j + \mu (I_{j+1}+ I_{j-1}).
+\end{aligned}
+\label{eq:I_j}
+\end{equation}
+
 The governing dynamics of the infection in subpopulation 1 is:
 
 \begin{equation}
-\dot I_1(t)=(\beta S_1-\gamma)I_1+\mu I_2-2\mu I_1
+\begin{aligned}
+\dot I_1(t) &= (\beta S_1 - \gamma - 2\mu) I_1 + \mu I_2 + \mu I_0 \\
+            &= \kappa I_1 + \mu I_2 + \mu I_0,
+\end{aligned}
 \end{equation}
-Since $I_2$ starts at zero and the susceptible fraction starts at one, a first-order approximation can be made:
+
+where $\kappa = \beta-\gamma-2\mu$. $\kappa$ can be thought of as the exponential growth coefficient due to the SIR dynamics and outflowing infected diffusion. For the rest of the analysis, we'll be looking only at $\kappa>0$ as it is where a growing infection spread occurs most strongly.
+
+Since $I_0(0)=I_2(0)$ starts at zero and the susceptible fraction starts at one, a first-order Taylor approximation can be made around $t=0$:
 \begin{equation}
-\dot I_1 \approx (\beta-\gamma-2\mu)I_1
-\end{equation}
-For a randomly selected subpopulation $j$, the infection fraction dynamics can be represented and approximated as:
-\begin{equation}
-\dot I_j =(\beta S_j-\gamma)I_j+\mu (I_{j-1}+I_{j+1}-2 I_j)
-\end{equation}
-Since the diffusion of infected individuals starts from index 1 and increasing, $I_{j+1} \approx 0$ with respect to $I_j$. Similar to the above linearization:
-\begin{equation}
-\dot I_j \approx \kappa I_j+\mu I_{j-1}
+\dot I_1 \approx \kappa I_1.
 \label{eq: kappa}
 \end{equation}
-where $\kappa = \beta-\gamma-2\mu$. Solving the differential equation for the linearized $\dot I_1$:
+
+Since the diffusion of infected individuals starts from index 1 and propagates to further away subpopulations, not-withstanding the impact of the internal transmission rate. Indeed, for $t \approx 0$, the infected population sizes $I_j$ is geometrically distributed where each consecutive subpopulation scales down by $\mu$. For sufficiently small $\mu<<1$, $I_{j+1} \approx 0$ with respect to $I_j$. Similar to the above linearization:
 \begin{equation}
-I_1 = I_0 e^{\kappa t}
+\dot I_j \approx \kappa I_j + \mu I_{j-1}.
+\end{equation} 
+
+Solving the differential equation for the linearized $\dot I_1$:
+\begin{equation}
+I_1 = I_0 e^{\kappa t}.
 \end{equation}
 Substituting for $j=2$ in the equation above:
 \begin{equation}
-\dot I_2=\kappa I_j +\mu I_0 e^{\kappa t}
+\dot I_2=\kappa I_j +\mu I_0 e^{\kappa t}.
 \end{equation}
 This ODE can be solved analytically which results in:
 \begin{equation}
-I_2=I_0 \mu t e^{\kappa t}  
+I_2=I_0 \mu t e^{\kappa t}.
 \end{equation}
 Consequently, for $\dot I_3$:
 \begin{equation}
-\dot I_3=\kappa I_j +\mu^2 \kappa t e^{\kappa t}
+\dot I_3=\kappa I_j +\mu^2 \kappa t e^{\kappa t},
 \end{equation}
 \begin{equation}
-I_3 = I_0 \frac{\mu^2 t^2}{2} e^{\kappa t}
+I_3 = I_0 \frac{\mu^2 t^2}{2} e^{\kappa t}.
 \end{equation}
 Through induction, it can be found that:
 \begin{equation}
-I_j=I_0 \frac{\mu^{j-1} t^{j-1}}{(j-1)!} e^{\kappa t}
+I_j=I_0 \frac{\mu^{j-1} t^{j-1}}{(j-1)!} e^{\kappa t}.
 \end{equation}
 
 To find the spread rate of the infection across the network, we solve for the time $t_{I_{j+1}=I_0} :=t_j$:
 \begin{equation}
-I_0 \frac{\mu^{j} t_j^{j}}{j!} e^{\kappa t_j} = I_0
+I_0 \frac{\mu^{j} t_j^{j}}{j!} e^{\kappa t_j} = I_0,
 \end{equation}
 \begin{equation}
-\frac{\mu^{j} t_j^{j}}{j!} e^{\kappa t_j} = 1 
+\frac{\mu^{j} t_j^{j}}{j!} e^{\kappa t_j} = 1.
+\label{eq:nonadaptiveSpreadExp}
 \end{equation}
 This unfortunately does not have a closed-form solution. However, a unique solution is guaranteed to exist, and since the function is monotonic and the root is simple, the solution can be found very easily numerically. To alleviate the numerical instability of higher and higher powers and factorial values, the log transform of the equation is solved instead:
 \begin{equation}
 \kappa t_j + j \ln(\mu t_j) - \ln(j!) = 0
 \end{equation}
 
-where the log of the factorial has very stable methods to solve\cite{C}.
+where the log of the factorial has very stable methods to solve \cite{C}.%REF
 
-To test this solution, the expected time for $I_j = I_0$ was found numerically through simulation of the ODEs for a path graph network and also computed numerically from equation (7).
+To test this solution, the expected time for $I_j = I_0$ was found numerically through simulation of the ODEs for a path graph network and also computed numerically from equation \ref{eq:nonadaptiveSpreadExp}. The expression is remarkably accurate in estimating the spread infection day of the subpopulations. Furthermore, the peak infection day can be inferred from the spread infection day as they each converge to the same slope, and the offset between them is approximately the time taken for one subpopulation to reach the peak infection day starting from $I_0$.
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=120mm]{Figures/Spread and Peak Infection Days_β0.125_γ0.02_σ0.0_μ0.01_nPop10_kbar2_λ0.0_mobBias0.0_h0.01_minh1.0e-9_nDays500_I01.0e-5_critRange0.0.pdf}
-    \caption{\small Simulation vs. analytical results for infection spread day. It can be seen that the time between $I_x(t)=i_0$ and $I_x(t)=sup(I_x(t))$ converges to a constant delay. Though this relationship, the spread infection days can be used to find the peak infection days.}
+    \caption{\small Simulation vs. analytical results for infection spread day. It can be seen that the time between $I_x(t)=i_0$ and $I_x(t)=sup(I_x(t))$ converges to a constant delay. Through this relationship, the spread infection days can be used to find the peak infection days.}
+    \label{fig:Spread-and-Peak-Infection-Days-non-adaptive}
 \end{figure}
 
-It was found that equation (6) was remarkably accurate in estimating the spread infection day of the subpopulations. Furthermore, the peak infection day can be inferred from the spread infection day as they each converge to the same slope, and the offset between them is approximately the time taken for one subpopulation to reach the peak infection day starting from $I_0$.
-
-Since we are interested in the spread rate of the infection, the objective is to derive the value ${\Delta t}_{j+1} := t_{j+1}-t_j$. To do so, we first use equation (7) to find $t_{j+1}$:
+Since we are interested in the spread rate of the infection, the objective is to derive the value ${\Delta t}_{j+1} := t_{j+1}-t_j$. The spread rate at $j+1$ is defined as $1/{\Delta t}_{j+1}$. To find it, we first use equation \ref{eq:nonadaptiveSpreadExp} to find $t_{j+1}$:
 
 \begin{equation}
 \kappa t_{j+1} + (j+1) \ln(\mu t_{j+1}) - \ln((j+1)!) = 0 
@@ -156,7 +174,7 @@ We also define the flow $f_{x,x'}(t)$, which is the rate of incoming infected in
 f_{x,x'}(t) = \mu \bar \rho_{x,x'} I_{x'}
 \end{equation}
 
-Applying the same linearization as equation (4):
+Applying the same linearization as equation (3.4):
 
 \begin{equation}
 \dot I_j \approx \kappa I_j + \mu \bar \rho I_{j-1} 
@@ -166,9 +184,10 @@ Substituting $I_1 = i_0 \kappa e^{\kappa t}$:
 
 \begin{equation}
 \dot{\bar{\rho}}_2(t) = - i_{0} \lambda \mu \bar \rho_{2}(t) e^{\kappa t}
+\label{eq:dotRhoBar}
 \end{equation}
 
-The ODE in equation (13) can be solved using separation of variables as follows:
+The ODE in equation \ref{eq:dotRhoBar} can be solved using separation of variables as follows:
 
 \begin{equation}
 \dot{\bar{\rho}}_2(t) = - i_{0} \lambda \mu \bar \rho_{2}(t) e^{\kappa t}

@@ -19,7 +19,6 @@ To model the epidemic dynamics within each subpopulation, we use a mean-field co
 \begin{itemize}
     \item $\mathbf{S + I \rightarrow 2I:}$ an infected individual infects a susceptible individual, with rate of $\beta$ individuals per second.
     \item $\mathbf{I \rightarrow R:}$ an infected individual recovers/is removed, with rate $\gamma$ individuals per second.
-    
 \end{itemize}
 
 No immunization loss process is considered in the SIR model. This results in a final steady state where $I_\infty=0$. This happens because the recovered individuals do not return to the susceptible state. Therefore, the disease eventually dies out as there will be no new susceptible individuals to infect. The disease could also die out in the case of $\gamma$ being sufficiently larger than $\beta$. In that case, at some point the rate of recovery can be faster than the rate of infection and then there's a possibility of completely depleting the infected population while there are still susceptibles remaining.
@@ -41,6 +40,7 @@ No immunization loss process is considered in the SIR model. This results in a f
     \caption{SIR model with state transition rates $\beta$ for S $\rightarrow$ I and $\gamma$ for I $\rightarrow$ R.}
     \label{fig:SIR_stochastic_model}
 \end{figure}
+
 While the stochastic Poisson process offers a precise representation of individual-level interactions during an epidemic, mathematical modeling often requires more tractable approaches that can provide insights into overall population dynamics. The computational complexity of tracking individual probabilistic transitions becomes prohibitive as the population size increases, motivating the development of aggregate models that capture the system's essential dynamics. By transitioning to an ordinary differential equation (ODE) representation, researchers can develop a more analytically manageable framework that preserves the core epidemiological mechanisms while simplifying computational requirements. %FIX: Repitition from before
 The transition from a stochastic Poisson process to a deterministic ODE representation is valid under specific conditions that involve large population sizes, interactions are well-mixed, and transition rates that are sufficiently larger than zero, among other considerations.  %FIX: valid in what sense
 When the number of individuals in each compartment is sufficiently large, the discrete, probabilistic transitions can be approximated by continuous, smooth changes described by differential equations. This mean-field approximation assumes that the probability of state transitions can be represented by their expected values, effectively smoothing out the inherent randomness of individual interactions. The ODE model captures the average behavior of the population, losing the detailed stochastic fluctuations but gaining computational simplicity and analytical tractability. This approach is most justifiable when individual-level variations are less important than the overall population dynamics\cite{armbruster2017elementary}.
@@ -70,7 +70,7 @@ The mean-field ordinary differential equations (ODEs) model from the SIR model g
 \end{aligned}
 \end{equation}
 where $ \beta_x$ and $ \gamma_x$ represent the infection and recovery rates at site $x$, respectively.\\
-The term $S_x I_x$ approximates the interaction rate between susceptible and infected individuals, which is valid for large populations with homogenous interaction.%REF
+Due to the nature of the ODE, $S_x, I_x, R_x, N_x$ are real-valued. This means that "fractional" individual quantities are an acceptable part of this model. An intuitive way of looking at this value is that it is the mean field of the stochastic possiblities \cite{colizza2008epidemic}. The term $S_x I_x$ approximates the interaction rate between susceptible and infected individuals, which is valid for large populations with homogeneous interaction \cite{armbruster2017elementary}.
 %FIX: explain S*I better
 Each subpopulation has a total number of individuals $ N_x = S_x + I_x + R_x$.
 For the remainder of this work, the transition rates $\beta_x$ and $ \gamma_x$ are assumed to be uniform across all subpopulations, such that $\beta_x=\beta$ and $ \gamma_x=\gamma$ \\

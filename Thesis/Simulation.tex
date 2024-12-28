@@ -159,8 +159,10 @@ Typically, visualizing dynamics on networks and especially dynamics of network w
 \subsection{Simulation Results}
 
 Besides the numerical simulations done to confirm the findings in the Analysis chapter, further simulations were done to observe the behavior of the described metapopulation networks in both nonadaptive and adaptive configurations with the proposed travel restriction strategies. Unlike what was shown in the analysis, however, there is a need here for network topologies that reflect transportation networks as seen in real life. The two main aspects that are desirable to be captured are clustering and small-world traits. Clustering is when nodes have a tendency to form triangles with their neighbors, while small-worldness is when the average path length between any two nodes is small compared to the number of nodes in the network. Two network topologies which have these traits that were used as a testbed: undirected unweighted Watts-Strogatz (Small World) and Barabasi-Albert (Scale-free) networks % REF
-, which have an average number of links per node $\bar k=4$ unless stated otherwise. However, due to the fundamentally stochastic nature of the chosen network topologies, the randomness of a randomly generated network could introduce biases to a simulation. To remedy, ensemble simulations were sometimes done such that an ensemble of several different networks, of the same topology and traits, with but different random number generator seeds, were simulated together. Aggregation and averaging was then taken for the parameters of interest and in some cases all ensemble results were shown. The size of the ensemble was made large enough until it was observed there was negligible change in the output range. To start a case scenario, a randomly selected subpopulation is chosen and whose infected subpopulation is set to the value $I_j=i_0$.\\ 
+, which have an average number of links per node $\bar k=4$ unless stated otherwise.\\
 
+To test the heterogeneous diffusion model described in chapter 2 and to better reflect real world distributions, a random subpopulation size distribution that is exponentially distributed (with an average of 1) was applied for some of the case scenarios. Although there is an observed relationship between population size and its connectivity, no such correlation was applied here for simplicity. For similar reasons, the exponential distribution was chosen instead of a power-law distiribution. %REF
+However, due to the fundamentally stochastic nature of the chosen network topologies, the randomness of a randomly generated network could introduce biases to a simulation. To remedy this, ensemble simulations were sometimes done such that a group of several different networks, of the same topology and traits, with but different random number generator seeds, were simulated together. Aggregation and averaging was then taken for the parameters of interest and in some cases all ensemble results were shown. The size of the ensemble was made large enough until it was observed there was negligible change in the output range. To start a case scenario, a randomly selected subpopulation is chosen and whose infected subpopulation is set to the value $I_j=i_0$.\\ 
 
 \subsubsection{Spread Rate in clustered networks}
 Since the analysis done in chapter 3 was only done on a 1-lattice, which is not representative of real-world network, it is important to see if the findings from it are at least partially applicable to more realistic networks, especially ones with higher clustering. To compare, we start with the non-adaptive model and see if the Lambert W function approximation, expressed in equation \ref{eq: Lambert W approximation}, is valid for other network topologies. A Watts-Strogatz network of size 50 subpopulations was used with $\bar k=4$, rewiring probability = 0.5, $\beta=0.25,\gamma=0.05,\mu=0.01,i_0=10^{-5}$.\\
@@ -186,9 +188,29 @@ To solve the issue of path length not being representative, a different distance
 	\label{fig: Watts Strogatz spread days path lengths and resistance distances}
 \end{figure}
 
+However, even in a network that is low in clustering, it is important to realize the impact of the node degree distribution and dimensionality of the network on how quickly the infection spreads across the global population inhabiting all patches. For example, in a 2-lattice (a cartesian grid of patches) the number of patches at any given path length is linearly proportional to the path length itself. That means that for a constant spread rate of infection as defined for the 1-lattice, the total number of infected individuals grows quadratically as time goes on. For Scale-free networks, the scaling can be much higher than that. Hence, it is important to take into account the dimensionality of the network to predict the peak concurrant infected over time and impact of travel restrictions.
+
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Prevalence of Infected_β0.25_γ0.02_σ0.0_μ0.01_nPop50_kbar3_topologySmallWorld_λ0.0_mobBias0.5_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0 CUSTOM.pdf}
+		\centering
+		(a)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Prevalence of Infected (Ensemble)_β0.25_γ0.02_σ0.0_μ0.01_nPop25_kbar3_topologySmallWorld_λ0.0_mobBias0.5_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0 Custom.pdf}
+		\centering
+		(b)
+	\end{minipage}
+	\caption{\small  (a) The cumulative size of infected individuals in a non-adaptive SIR Watts-Strogatz metapopulation network of size 50. Figure (b) is an ensemble simulation of 20 random Watts Strogatz network that shows the total infected size. While there are network-based variance in the evolution of infected size (as the number of individuals at varying distances can change from one network to the other), a single peaked average was found in the ensemble simulation.}
+	\label{fig:Infected-Evolution-cumu-and-ensemble}
+\end{figure}
+
 \subsubsection{Adative strategies}
 
 With the code structure being modular, it is easy to implement different travel restriction strategies and see how they impact the mobility network. Of particular interest is the infection spread rate, as the primary role of travel restriction is to slow down or to "flatten the curve" of the total global infectected count. All 4 travel restriction strategies (as described in section 2.3) along with the non-adaptive strategy, are tested first on a finite 1-lattice to see clearly how they perform with no clustering. For the three linearly proportional strategies, $\lambda=10^7$, while for the logarithmic strategy, a value of $\lambda = 0.1$ was choses and an $I_{min}=10^{-10}$.  All other traits and parameters are the same as given in this section. We start in this subsection with the strategies without mobility restoration bias. \\
+
 \begin{figure}
     \includegraphics[width=\textwidth]{Figures/Spread Infection Days different strategies_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar4_topologyPathGraph_λ0.1_mobBias0.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
     \caption{Spread infection days for different strategies: No restriction, Global proportional restriction, Uniform proportional restriction, Connection proportional restriction, and Connection logarithm restriction. The No restriction and Connection-proportional restriction show similar patterns as previously analyzed, with a steady spread rate. The Uniform proportional restriction shows a delay in infection spread for subpopulations 2 and 3. The Global restriction maintains a slowed spread rate across the network. The Connection-logarithm restriction shows promise in slowing the spread rate for a sizable distance around the initially infected subpopulation.}
@@ -197,25 +219,59 @@ With the code structure being modular, it is easy to implement different travel 
 
 As seen in Figure \ref{fig:spread-day-strategies}, the No restriction and Connection-proportional restriction are as previously found in the analysis section. For the Uniform proportional travel restriction, we find a somewhat similar result to the connection based one, where instead of a slowdown happening for only the immediate neighbor of the initially infected subpopulation, the subsequent one also takes a longer time to get infected. Though it is not as easy to understand why analytically (because this strategy doesn't have the locality found in the connection-based strategy), there is a satisfactory explanation of why this is the case from the understanding of the previous analysis. Due to the fact that the when subpopulation 2 restricts incoming traffic from subpopulation 1, it also restricts the outflow of individuals going to subpopulation 3, since in the Uniform strategy $\rho_{2,1}=\rho_{2,3}=\rho_2$, which is goverened by the relationship
 
-\begin{equation}
+$$
 	\dot{\rho}_2=\lambda M_{(I);2}= \lambda \mu (\bar{\rho}_{1} \bar{\rho}_{2} I_1 + \bar{\rho}_{2} \bar{\rho}_{3} I_3) \approx \lambda \mu \bar{\rho}_{1} \bar{\rho}_{2} I_1,
-\end{equation}
+$$
 
 which approximately equals $\dot{\rho}_{2,1}$ in the connection proportional strategy. $\rho_2$, in turn, affects $M_{(I);3}$ the same way to cause a delay in spread infection day $t_3$. And for similar reasons, the spread rate falls to the non-adaptive spread rate after that.\\
 
 The Global travel restriction also behaves the same way for the first three subpopulations, but manages to maintain this slowed down spread rate for the rest of the network. This is because the whole network, even in connections between relatively healthy subpopulations, are restricted in the same manner as the ones near the initially infected subpopulation. This slowed-down spread rate was found to hold true even for large networks.The fact that the same spread rate is maintained for all three strategies is due to the formulation of strategy formulas to let $\lambda$ have the same impact on travel restriction given the same infected mobility flow.\\
 
-Finally, the Connection-logarithm travel restriction strategy was the only local strategy that showed the most promise in slowing down the infection spread rate for a sizable distance around the initially infected subpopulation. The dependence on the ratio between incoming infected vs local infection growth (as defined by $\dot{\rho}_{xx'} = \lambda \log\left(\frac{\kappa I_{x} + M_{(I);x,x'}}{\kappa I_{x}}\right)$), allowed for far away subpopulation to react early to signs of infection spread. In the case of an unconstrained measurement of both local and incoming infected ($I_{min}=0$), it was found that the spread rate converges to that acheived by the global strategy. Since, however, such a value would be unrealistic (and result in infinite growth around $I_x=0$), we are more interested in the scenario where $I_{min}>0$, which diminishes the effect of the strategy for far away patches. It was found that while attaining a slowed down effect for several patches at a far away distance, it eventually collapses to the non-adaptive spread rate. The width of the region of slowed down spread rate is proportional to $log(1/I_{min})$.\\
-
-It is important to note as well the behavior of the travel restriction applied in the Connection Logarithm strategy, as it differs in behaviour from the other ones. While the proportional strategies, given the incoming infected flow start smoothly from zero, the applied travel restriction also starts from zero. They also eventually reach the maximum restriction value 1. On the other hand, due to the usage of the ratio of incoming infected vs local growth, there is an instantaneous nonzero slope as soon as $I_x>I_{min}$ which starts decreasing as the internal growth outpaces the incoming flow. In fact, $\dot \rho$ can decrease fast enough to not actually reach a value of 1 before , as the ratio becomes dominated by the internal growth. This has the nice benefit of maintaining some network activity while slowing down the spread. However, an unrealistic outcome of this strategy is that there is a tendency of populations which are detecting small amounts of inflow can react more severely than ones that are right next to the initially infected subpopulation. This issue could be solved by introducing a hybrid strategy that takes into consideration both the absolute value and the ratio. 
-
 \begin{figure}
-    \includegraphics[width=\textwidth]{Figures/Evolution of Path Mobility Restrictions_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar4_topologyPathGraph_λ0.05_mobBias0.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
+	\centering
+    \includegraphics[width=100mm]{Figures/Evolution of Path Mobility Restrictions_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar4_topologyPathGraph_λ0.05_mobBias0.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
     \caption{\small The different downstream applied restrictions in an SI system on a path graph with a Connection logarithm strategy. It can be seen that they start with an immediate high slope and then taper off to a value of 1 or somewhat below that. Unlike the other proportional strategies, here the order of starting or finishishing restricting traffic does not necissarily follow the path length distance from the initially infected subpopulation.}
     \label{fig:log-Restriction}
 \end{figure}
 
-\subsubsection{Mobility restoration}
+Finally, the Connection-logarithm travel restriction strategy was the only local strategy that showed the most promise in slowing down the infection spread rate for a sizable distance around the initially infected subpopulation. The dependence on the ratio between incoming infected vs local infection growth (as defined by $\dot{\rho}_{xx'} = \lambda \log\left(\frac{\kappa I_{x} + M_{(I);x,x'}}{\kappa I_{x}}\right)$), allowed for far away subpopulation to react early to signs of infection spread. In the case of an unconstrained measurement of both local and incoming infected ($I_{min}=0$), it was found that the spread rate converges to that acheived by the global strategy. Since, however, such a value would be unrealistic (and result in infinite growth around $I_x=0$), we are more interested in the scenario where $I_{min}>0$, which diminishes the effect of the strategy for far away patches. It was found that while attaining a slowed down effect for several patches at a far away distance, it eventually collapses to the non-adaptive spread rate. The width of the region of slowed down spread rate is proportional to $log(1/I_{min})$.\\
 
-Finally, we take a look at the impact these travel restrictions have had on the network activity. As previously discussed, it is expected that, without some kind of mobility restoration mechanism, in an SIR model, the network quickly shuts down as travel restrictions are applied against any population that has been infected. Even after infection has subsided, the restrictions are still in place. For this reason, a mobility restoration bias $b$ was introduced in the different strategies (as seen in equations 2.29 to 2.32)
+It is important to note as well the behavior of the travel restriction applied in the Connection Logarithm strategy, as it differs in behaviour from the other ones. While the proportional strategies, given the incoming infected flow start smoothly from zero, the applied travel restriction also starts from zero. They also eventually reach the maximum restriction value 1. On the other hand, due to the usage of the ratio of incoming infected vs local growth, there is an instantaneous nonzero slope as soon as $I_x>I_{min}$ which starts decreasing as the internal growth outpaces the incoming flow. In fact, $\dot \rho$ can decrease fast enough to not actually reach a value of 1 before , as the ratio becomes dominated by the internal growth. This has the nice benefit of maintaining some network activity while slowing down the spread. However, an unrealistic outcome of this strategy is that there is a tendency of populations which are detecting small amounts of inflow can react more severely than ones that are right next to the initially infected subpopulation. This issue could be solved by introducing a hybrid strategy that takes into consideration both the absolute value and the ratio. 
+
+\subsubsection{Mobility restoration}
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Evolution of Path Mobility Restrictions_β0.25_γ0.02_σ0.0_μ0.01_nPop10_kbar3_topologyPathGraph_λ10000.0_mobBias0.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
+		\centering
+		(a)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Evolution of Path Mobility Restrictions_β0.25_γ0.02_σ0.0_μ0.01_nPop10_kbar3_topologyPathGraph_λ10000.0_mobBias2.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
+		\centering
+		(b)
+	\end{minipage}
+	\caption{\small (a) The applied travel restrictions in a 1-lattice with no mobility restoration bias, showing a quick shutdown of the network as restrictions remain in place even after infection subsides. (b) The applied travel restrictions with mobility restoration bias, demonstrating a decrease in restrictions as the infected flow lowers, eventually reaching zero when the infection wave has terminated.}	\label{fig:Evolution-Restriction-without-and-with-bias}
+\end{figure}
+
+Finally, we take a look at the impact these travel restrictions have had on the network activity. As previously discussed, it is expected that, without some kind of mobility restoration mechanism, in an SIR model, the network quickly shuts down as travel restrictions are applied against any population that has been infected. Even after infection has subsided, the restrictions are still in place. For this reason, a mobility restoration bias $b$ was introduced in the different strategies (as seen in equations 2.29 to 2.32). As found in the modeling section, after the initial rise of travel restrictions due to infected mobility, and then the source of infected flow start to recover and cause the composition of incoming flow to have less infected, travel restrictions start to decrease due to the mobility restoration bias. An equilibrium is between the inclination of $\rho$ to increase due to the existing incoming infected and the mobility bias. This equilibrium gets lower as the infected flow lowers and reaches zero when the infection wave has terminated. This behavior can be seen in Figure \ref{fig:Evolution-Restriction-without-and-with-bias} (b).\\
+
+The net effect of having this mobility bias is enabling the restoration of network activity following an SIR type wave. The formulation of the bias in the travel restriction strategies, given a sufficiently small bias, causes diminished impact on subpopulations facing a large influx of infected (which can be inferred by the fact that most travel restrictions are able to reach a value of 1 during the peak infected flow) while cutting back on restrictions when there is little relevance to the infection spread dynamics. This causes a net effect of a total restoration of mobility not long after the infection in the metapopulation has subsided, as can be seen in Figure \ref{fig:Mobility-flow-without-and-with-bias}
+
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Cumulative Mobility Flow_β0.25_γ0.02_σ0.0_μ0.01_nPop50_kbar3_topologySmallWorld_λ10000.0_mobBias0.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
+		\centering
+		(a)
+	\end{minipage}
+	\hfill
+	\begin{minipage}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{Figures/Cumulative Mobility Flow_β0.25_γ0.02_σ0.0_μ0.01_nPop50_kbar3_topologySmallWorld_λ10000.0_mobBias2.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
+		\centering
+		(b)
+	\end{minipage}
+	\caption{\small Cumulative network mobility across the network without bias (a), showing a prolonged shutdown even after infection subsides, and with bias (b), demonstrating a gradual restoration of mobility as the infected flow decreases, eventually reaching normal levels when the infection wave has terminated.}	\label{fig:Mobility-flow-without-and-with-bias}
+\end{figure}
 
