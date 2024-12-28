@@ -17,9 +17,9 @@ mutable struct Scenario
 end
 
 function defineMeta()
-    epi = SIRS_epidemic(β = 0.25,γ = 0.00, σ = .0, μ = 0.01)
-    net = Network(nPopulations = 10, k_bar = 4, topology = PathGraph)
-    strat = Strat(λ =4e-2, mobBias = 0.0,strategy = IndivLogRestriction)
+    epi = SIRS_epidemic(β = 0.25,γ = 0.02, σ = .0, μ = 0.01)
+    net = Network(nPopulations = 50, k_bar = 3, topology = SmallWorld)
+    strat = Strat(λ =1e4, mobBias = 2,strategy = IndivPropRestriction)
     sim = Sim(h = 0.1,min_h=1e-2, nDays = 1000, I₀=1e-5, critRange = 0)
     S = Scenario(epi, net, strat, sim)
     meta = Metapopulation(S = S, populations=Array{Population, 1}(undef, net.nPopulations),
@@ -34,9 +34,8 @@ function singleCaseMain()
     @time metaHist = simulateSystem(meta)
     data = dataAnalytics(metaHist,S)
     generatePrettyTable(data)
-    
 
-    combinedPlot = plotCase(data,S,meta;save=false,adaptive=S.strat.λ>0)
+    combinedPlot = plotCase(data,S,meta;save=true,adaptive=S.strat.λ>0)
     return combinedPlot, data, meta
 end
 
@@ -47,18 +46,19 @@ function multiCaseMain()
     # Ss = multiScenario_μβ(S)
     # datas = multiSimulation2D(Ss)
 
-    combinedPlot = plotMulti(datas, Ss,meta;save=true)
+    combinedPlot = plotMulti(datas, Ss,meta;save=false)
     return combinedPlot, datas
 end
 
 function ensembleCaseMain()
     meta, S = defineMeta()
+    # Ss = multiScenario_strategies(S)
     Ss = multiScenario_1D(S)
     datas = multiSimulation1D(Ss)
     # Ss = multiScenario_μβ(S)
     # datas = multiSimulation2D(Ss)
 
-    combinedPlot = plotMulti(datas, Ss,meta;save=true)
+    combinedPlot = plotEnsemble(datas, Ss,meta;save=true)
     return combinedPlot, datas
 end
 

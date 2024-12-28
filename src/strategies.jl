@@ -37,7 +37,7 @@ function uniformPropRestriction(pop,meta)
 
     ρsRoC = spzeros(meta.S.net.nPopulations)
     for i in nbrs_indices
-        ρsRoC[i] = λ*(netFlowInfected - meta.S.strat.mobBias * pop.ρs[i])
+        ρsRoC[i] = λ*(netFlowInfected)- meta.S.strat.mobBias * pop.ρs[i]
     end
 
     return ρsRoC
@@ -51,7 +51,7 @@ function indivPropRestriction(pop,meta)
     for connPopInd in neighbors(g,pop.index)
         # could be turned into array operation
         inflowInfected = meta.mobilityRates[connPopInd,pop.index] * (meta.populations[connPopInd].I)
-        ρsRoC[connPopInd] = λ*(inflowInfected - meta.S.strat.mobBias * pop.ρs[connPopInd])
+        ρsRoC[connPopInd] = λ*(inflowInfected)- meta.S.strat.mobBias * pop.ρs[connPopInd]
     end
 
     return ρsRoC
@@ -67,7 +67,7 @@ function indivLogRestriction(pop,meta)
         # could be turned into array operation
         inflowInfected = meta.mobilityRates[connPopInd,pop.index] * (meta.populations[connPopInd].I)
         localRate = (meta.S.epi.β - meta.S.epi.γ) * pop.I
-        ρsRoC[connPopInd] = localRate>1e-20 ? λ*(log((inflowInfected + localRate)/(localRate)) - meta.S.strat.mobBias * pop.ρs[connPopInd]) : 0
+        ρsRoC[connPopInd] = pop.I>1e-20 ? λ*(log((inflowInfected + localRate)/(localRate)) - meta.S.strat.mobBias * pop.ρs[connPopInd]) : 0
         # ρsRoC[connPopInd] = λ*(log(1+inflowInfected) - meta.S.strat.mobBias * pop.ρs[connPopInd])
         # if isnan(ρsRoC[connPopInd]) || isinf(ρsRoC[connPopInd]) ||ρsRoC[connPopInd]<0
         #     ρsRoC[connPopInd] = 0

@@ -33,16 +33,19 @@ end
 function plotCase(data,S,meta;save=false,adaptive=false)
     plots = []
     push!(plots, plotInfEvolution(data))
+    push!(plots, plotInfEvolutionCumu(data))
     push!(plots, plotInfEvolution(data;yLog=true))
     if adaptive
         push!(plots, plotRestrictions(data))
         # push!(plots, plot_infect_ρ(data["infectedHistory"],data["ρsHistory"]))
-        push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
+        # push!(plots, plotAvgRestrictions(data["ρsAvgHistory"]))    
     end
     S.sim.critRange>0 && push!(plots, plotInfEvolution(data;yLog=true,xLog=true))
     # push!(plots, plotInfectedFlow(data))
     push!(plots, plotInfectionDays(data,S.epi))
     push!(plots, plotSpreadRates(data))
+    push!(plots, plotFlows(data))
+    push!(plots, plotFlowsCumu(data))
     # push!(plots, plot_cumulative_flow(data))
     # push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
     (S.net.topology != PathGraph) && push!(plots, plot_image(drawNetworkKarnak(meta, data)))
@@ -84,18 +87,47 @@ function plotInfEvolution(data; yLog=false, xLog = false)
     return p, height, title
 end
 
+function plotInfEvolutionCumu(data; yLog=false, xLog = false)
+    title = "Prevalence of Infected" * (xLog ? " (Log-x)" : "") * (yLog ? " (Log-y)" : "")
+    xAxis = data["days"]
+    infected_percent = data["infectedHistory"]
+    nTimeSteps, nPopulations = size(infected_percent)
+    infected_percent_cumu = zeros(nTimeSteps)
+
+    p = plot(size=(600,600))
+    infected_cleaned = replace(x -> x <= 0 ? NaN : x, infected_percent)
+    colors = palette(:jet, nPopulations)
+    infected_percent = yLog ? infected_cleaned : infected_percent
+    color_index = 1
+    yLog && plot!(p, yscale=:log10);    xLog && plot!(p, xscale=:log10)
+    nPopulations>10 && plot!(p,legend=false)
+    
+    for i in 1:nPopulations
+        plot!(p, xAxis, infected_percent_cumu, fillrange = (infected_percent_cumu.+infected_percent[:, i]), fillalpha = 0.35,label="")
+        infected_percent_cumu.+=infected_percent[:, i]
+        plot!(p,xAxis, infected_percent_cumu, label="", linewidth=0.5)
+        color_index += 1
+    end
+
+    plot!(p, xAxis, infected_percent_cumu, label="Total", linestyle=:dash, linewidth=2, lc=:black)
+    xlabel!(p,"Time (days)")
+    ylabel!(p,"Infected Population Fraction")
+    height = yLog ? 600 : 400
+    return p, height, title
+end
+
 
 function plotRestrictions(data)
     title = "Evolution of Path Mobility Restrictions"
     xAxis = data["days"]
     nTimeSteps, nρs= size(data["downstream_ρs"])
-    p = plot(legend=false)
-    
+    # p = plot(legend=false)
+    p=plot(legend=:bottomright)
     colors = palette(:jet, nρs)
     
     color_index = 1
     for i in 1:nρs
-            plot!(p, xAxis, data["downstream_ρs"][:,i] , label="P($i,$(i+1))",
+            plot!(p, xAxis, data["downstream_ρs"][:,i] , label="(ρ($i,$(i+1)))",
              color=colors[color_index], ylim=(0,1))
             color_index += 1
     end
@@ -104,6 +136,7 @@ function plotRestrictions(data)
     ylabel!(p, "Mobility Restrictions")
     return p, 400, title
 end
+
 
 function plotInfectedFlow(data)
     title = "Evolution of Infected Flow"
@@ -126,6 +159,52 @@ function plotInfectedFlow(data)
     return p, 400, title
 end
 
+function plotFlows(data)
+    title = "Evolution of Mobility Flow"
+    xAxis = data["days"][2:end]
+    flowsHistory = data["flowsHistory"]
+    nTimeSteps, nFlows = size(flowsHistory)
+    totalFlow = zeros(nTimeSteps-1)
+    p = plot(legend=false)
+    # p=plot()
+    colors = palette(:jet, nFlows)
+
+    color_index = 1
+    for i in 1:nFlows
+        plot!(p, xAxis, flowsHistory[2:end,i], label="M_$i)", linewidth=0.5)
+        totalFlow.+=flowsHistory[2:end,i]
+        color_index += 1
+    end
+    plot!(p, xAxis, totalFlow./nFlows, label="Average", linestyle=:dash, linewidth=3, lc=:black)
+
+    xlabel!(p, "Time (days)")
+    ylabel!(p, "Mobility Flow")
+    return p, 400, title
+end
+
+function plotFlowsCumu(data)
+    title = "Cumulative Mobility Flow"
+    xAxis = data["days"][2:end]
+    flowsHistory = data["flowsHistory"]
+    nTimeSteps, nFlows = size(flowsHistory)
+    cumulativeFlow = zeros(nTimeSteps-1)
+
+    p = plot(size=(600, 600), legend=false)
+    colors = palette(:jet, nFlows)
+    color_index = 1
+
+    for i in 1:nFlows
+        plot!(p, xAxis, cumulativeFlow, fillrange=(cumulativeFlow .+ flowsHistory[2:end, i]), fillalpha=0.35, label="")
+        cumulativeFlow .+= flowsHistory[2:end, i]
+        plot!(p, xAxis, cumulativeFlow, label="", linewidth=0.5)
+        color_index += 1
+    end
+
+    plot!(p, xAxis, cumulativeFlow, label="Total", linestyle=:dash, linewidth=2, lc=:black)
+    xlabel!(p, "Time (days)")
+    ylabel!(p, "Cumulative Mobility Flow")
+    return p, 400, title
+end
 
 function plotAvgRestrictions(ρsAvgHistory)
     title = "Evolution of Mobility Restrictions"

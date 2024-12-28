@@ -213,8 +213,8 @@ function metaRoC(meta)
         for connPopInd in neighbors(g,popInd)
             connPop = populations[connPopInd]
             # connWeight removed!! needs weighted graphs or another sparse matrix
-            meta.mobilityRates[popInd,connPopInd] =  epi.μ *  (1-connPop.ρs[popInd]) * (1-pop.ρs[connPopInd])
-            globalInfectedFlow += abs(meta.mobilityRates[popInd,connPopInd]*pop.I) # WRONG
+            meta.mobilityRates[popInd,connPopInd] =  epi.μ *  (1-connPop.ρs[popInd]) * (1-pop.ρs[connPopInd]) * connPop.size
+            globalInfectedFlow += abs(meta.mobilityRates[popInd,connPopInd]*pop.I) 
         end
     end
     for (i, population) in enumerate(populations)

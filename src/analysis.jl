@@ -6,17 +6,21 @@ function dataAnalytics(metaHist,S)
     infectedHistory = zeros(Float64,nPts, nPopulations)
     recoveredHistory = zeros(Float64,nPts, nPopulations)
     ρsHistory = zeros(Float64,nPts, nPopulations, nPopulations)
+    flowsHistory = zeros(Float64,nPts,nPopulations)
     cumuInfMob = spzeros(Float64,nPopulations,nPopulations)
     t=1
     for meta in metaHist
+        flowHistoryCumu = 0
         for i in 1:nPopulations
             days[t] = meta.day
             susceptibleHistory[t, i] =  meta.populations[i].S
             infectedHistory[t, i] = meta.populations[i].I
             recoveredHistory[t, i] = meta.populations[i].R
             ρsHistory[t, i, :] = meta.populations[i].ρs
+            flowsHistory[t,i] = sum(meta.mobilityRates[i,:]).*meta.populations[i].size
             cumuInfMob[i,:] .+= meta.mobilityRates[i,:].*(meta.populations[i].I .- [p.I for p in meta.populations])
         end
+        flowsHistory[t]=flowHistoryCumu
         t+=1
     end
     # plot!(p, xAxis, ρsHistory[:,i+1,i], label="P($i,$(i+1))", color=colors[color_index], ylim=(0,1))
@@ -25,7 +29,7 @@ function dataAnalytics(metaHist,S)
     data["metaHist"]=metaHist;    data["days"] = days; 
     data["susceptibleHistory"] = susceptibleHistory[1:nPts,:];    data["infectedHistory"] = infectedHistory[1:nPts,:];
     data["recoveredHistory"] = recoveredHistory[1:nPts,:];    data["ρsHistory"] = ρsHistory[1:nPts,:,:]; 
-    data["cumuInfMob"] = cumuInfMob;
+    data["cumuInfMob"] = cumuInfMob;   data["flowsHistory"]=flowsHistory;
     data["downstream_ρs"] = hcat([ρsHistory[:,i+1,i] for i in 1:nPopulations-1]...)
     downstream_flows = zeros(size(data["downstream_ρs"]))
     for i in 1:nPopulations-1

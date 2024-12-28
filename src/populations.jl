@@ -44,7 +44,8 @@ function initializePopulations!(meta)
     populations=meta.populations
     nPopulations = meta.S.net.nPopulations
     for i in 1:nPopulations
-        populations[i] = Population(1., 0., 0., spzeros(nPopulations),1., i)
+        size = -log(1 - rand()) 
+        populations[i] = Population(1., 0., 0., spzeros(nPopulations),size, i)
     end
     populations[1].I = meta.S.sim.I₀;
     populations[1].S = 1 - populations[1].I
@@ -84,8 +85,8 @@ function getPopulationRoC(pop::Population,meta::Metapopulation;globalInfFlow =0)
     ρsRoC = spzeros(meta.S.net.nPopulations)
     strategy = meta.S.strat.strategy
     if meta.S.strat.λ>0
-        if strategy == UniformPropRestriction   ρsRoC = uniformPropRestriction(pop,meta)
-        elseif strategy == GlobalDiffRestriction        ρsRoC = globalDiffRestriction(pop,meta,globalInfFlow)
+        if strategy == UniformPropRestriction       ρsRoC = uniformPropRestriction(pop,meta)
+        elseif strategy == GlobalDiffRestriction    ρsRoC = globalDiffRestriction(pop,meta,globalInfFlow)
         elseif strategy == IndivPropRestriction     ρsRoC = indivPropRestriction(pop,meta)
         elseif strategy == IndivLogRestriction      ρsRoC = indivLogRestriction(pop,meta)
         end
