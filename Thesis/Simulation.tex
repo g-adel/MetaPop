@@ -7,7 +7,7 @@ This chapter outlines the numerical methods employed to analyze the system's dyn
 Furthermore, efficient data structures and algorithms were developed to address scaling challenges posed by large networks. This requirement was amplified by multi-step integration schemes, which necessitate managing multiple concurrent states of the network. The combined focus on accuracy and efficiency ensures that the simulations can effectively support the analysis of adaptive epidemic containment strategies.\\
 
 \subsection{ODE System Properties}
-When solving an ODE, it is critical to first understand its type and properties, as different require different integration or solver schemes. The entire system of ODE system is represented in the set of infection dynamics and travel restriction equations [insert equation numbers here]. Although the system of ODEs is not time-dependent, it is still of-interest to keep accurate record of the elapsed time as the state of the system changes, as the main focus of this study is to find the spread rate of infection in the system, which requires knowledge of when different populations hit their infection peak. 
+When solving an ODE, it is critical to first understand its type and properties, as different require different integration or solver schemes. The entire system of ODE system is represented in the set of infection dynamics and travel restriction equations. Although the system of ODEs is not time-dependent, it is still of-interest to keep accurate record of the elapsed time as the state of the system changes, as the main focus of this study is to find the spread rate of infection in the system, which requires knowledge of when different populations hit their infection peak. 
 \\
 
 Based on the design of the model, it is expected that at all times, the sum of all compartments of individuals in all subpopulations should remain constant. Furthermore, due to the formulation of the mobility rates between subpopulations, it is expected that the total number of individuals at each subpopulation is also conserved. \\
@@ -36,12 +36,21 @@ The Julia programming language was used for the computational aspect of this pro
 \subsubsection{Data Structure}
 In designing an efficient and scalable data pipeline for epidemic simulations, the choice of data structures plays a critical role. These structures must support both static and dynamic components of the simulation while ensuring memory efficiency and computational speed. This subsection delves into the underlying principles guiding these choices, such as the use of structs, the importance of memory contiguity, and the modularization of code for optimizing computational performance.\\
 
-\includegraphics[width=120mm]{Figures/structs code.png}
-\\\\
+\begin{figure}
+	\centering
+	\includegraphics[width=120mm]{Figures/structs code.png}
+	\caption{\small Modular struct structure of a metapopulation}
+\end{figure}
+
 The aspect that taken under consideration the most in the data structure is Memory contiguity, which refers to the arrangement of data in sequential memory locations. This is important because modern computer architectures leverage caching mechanisms to speed up data retrieval. Contiguous memory allows processors to fetch adjacent data elements in fewer operations, significantly boosting performance for tasks that iterate over large datasets. For epidemic simulations, where data structures like adjacency matrices and population compartments are frequently accessed, maintaining memory contiguity minimizes latency and ensures efficient computational workflows.\\
 
 The struct (short for structure) was used extensively in this project. It is a user-defined composite data type that groups related variables under a single name, allowing them to be accessed and managed as a unit. They play a more bare-bones analog to classes in object-oriented programming. Structs enhance readability, ensure logical grouping, and facilitate passing complex data efficiently between functions while reducing the risk of accidental modifications. However, the most crucial benefit of structs is that they can be static, immutable and of preallocated size. This allows for great compiler optimizations as the reading and writing processes can be streamlined.\\
 
+\begin{figure}
+	\centering
+	\includegraphics[width=120mm]{Figures/Population RoC code.png}
+	\caption{\small Computation of the rate of change of a subpopulation}
+\end{figure}
 The usage of structs allows for Modularization in code design, which ensures that computational tasks are divided into smaller, self-contained functions or modules. For epidemic simulations, modularization allows dynamic operations—such as updating epidemiological states or applying travel restrictions—to be isolated within specific functions. These contained spaces reduce the scope of local variables and ensure that memory access patterns remain predictable, leading to optimized resource utilization. Additionally, modularization promotes parallel development and debugging by isolating distinct computational aspects into manageable units.\\
 
 There are two types of data in this sytem: 
@@ -92,11 +101,7 @@ The graph structure is stored in the form of a sparse weighted adjacency matrix 
 	\end{figure}
 
 Following the simulation, we are interested in the history of all the dynamic variables. One could store an array copies of the metapopulation, one for each time iteration. However, this data structure would have poor data contiguency. As in the data analysis we will mostly process each variable independently (e.g. looking at the evolution of infected in each subpopulation). Instead, seperate arrays for each of the variables were assigned and appended to with every time step. For the travel restrictions, an array of sparse matrices was stored, where each matrix is the travel restrictions applied from every subpopulation to every other subpopulation. This has the disadvantage that when looking solely on travel restrictions between two subpopulations over time, there is a relatively large span between consecutive time values. However, it was found that reordering the data structure to be a sparse matrix of arrays (where each element is the travel restriction history of a pair of subpopulations) took more time to create than just reading from the array of sparse matrices.\\
-\begin{figure}
-	\centering
-	\includegraphics[width=120mm]{Figures/Population RoC code.png}
-	\caption{\small Computation of the rate of change of a subpopulation}
-\end{figure}
+
 
 \subsubsection{Integration Scheme}
 
@@ -150,7 +155,7 @@ Typically, visualizing dynamics on networks and especially dynamics of network w
 	\caption{Animation frames showing the progression of the epidemic over time in a Watts-Strogatz network. The system is Susceptible-Infected-Recovered (Blue, Red, Green) compartmental system with connection proportional response strategy with no mobility restoration bias. The animation shows the state of the system at the initial condition of the system (the black-bordered patch is the subpopulation with an initial small infected fraction). Over time, the infection starts spreading within the first subpopulation along with its near neighbors. The flow rate of infected individuals across connections can be seen by the red tinting of connections. Along with the spread of the infection, many subpopulations start to increase their travel restriction to even mildly-infected patches which can be seen by the low or no opacity of some link endpoints. Over time, eventually the infection to spreads substantially to the rest of the network while many subpopulations nearly recover. In the final state of the metapopulation network, all populations have negligible amount of infected while the vast majority are recovered individuals.}
 \end{figure}
 
-\newpage
+\clearpage
 \subsection{Simulation Results}
 
 Besides the numerical simulations done to confirm the findings in the Analysis chapter, further simulations were done to observe the behavior of the described metapopulation networks in both nonadaptive and adaptive configurations with the proposed travel restriction strategies. Unlike what was shown in the analysis, however, there is a need here for network topologies that reflect transportation networks as seen in real life. The two main aspects that are desirable to be captured are clustering and small-world traits. Clustering is when nodes have a tendency to form triangles with their neighbors, while small-worldness is when the average path length between any two nodes is small compared to the number of nodes in the network. Two network topologies which have these traits that were used as a testbed: undirected unweighted Watts-Strogatz (Small World) and Barabasi-Albert (Scale-free) networks % REF
@@ -182,22 +187,35 @@ To solve the issue of path length not being representative, a different distance
 \end{figure}
 
 \subsubsection{Adative strategies}
-\begin{figure}[!ht]
-	\centering
-	\begin{minipage}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{Figures/Animation Frame 1.png}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{Figures/Animation Frame 2.png}
-	\end{minipage}
-	\vfill
-	\begin{minipage}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{Figures/Animation Frame 3.png}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{Figures/Animation Frame 4.png}
-	\end{minipage}
+
+With the code structure being modular, it is easy to implement different travel restriction strategies and see how they impact the mobility network. Of particular interest is the infection spread rate, as the primary role of travel restriction is to slow down or to "flatten the curve" of the total global infectected count. All 4 travel restriction strategies (as described in section 2.3) along with the non-adaptive strategy, are tested first on a finite 1-lattice to see clearly how they perform with no clustering. For the three linearly proportional strategies, $\lambda=10^7$, while for the logarithmic strategy, a value of $\lambda = 0.1$ was choses and an $I_{min}=10^{-10}$.  All other traits and parameters are the same as given in this section. We start in this subsection with the strategies without mobility restoration bias. \\
+\begin{figure}
+    \includegraphics[width=\textwidth]{Figures/Spread Infection Days different strategies_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar4_topologyPathGraph_λ0.1_mobBias0.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
+    \caption{Spread infection days for different strategies: No restriction, Global proportional restriction, Uniform proportional restriction, Connection proportional restriction, and Connection logarithm restriction. The No restriction and Connection-proportional restriction show similar patterns as previously analyzed, with a steady spread rate. The Uniform proportional restriction shows a delay in infection spread for subpopulations 2 and 3. The Global restriction maintains a slowed spread rate across the network. The Connection-logarithm restriction shows promise in slowing the spread rate for a sizable distance around the initially infected subpopulation.}
+    \label{fig:spread-day-strategies}
+\end{figure}
+
+As seen in Figure \ref{fig:spread-day-strategies}, the No restriction and Connection-proportional restriction are as previously found in the analysis section. For the Uniform proportional travel restriction, we find a somewhat similar result to the connection based one, where instead of a slowdown happening for only the immediate neighbor of the initially infected subpopulation, the subsequent one also takes a longer time to get infected. Though it is not as easy to understand why analytically (because this strategy doesn't have the locality found in the connection-based strategy), there is a satisfactory explanation of why this is the case from the understanding of the previous analysis. Due to the fact that the when subpopulation 2 restricts incoming traffic from subpopulation 1, it also restricts the outflow of individuals going to subpopulation 3, since in the Uniform strategy $\rho_{2,1}=\rho_{2,3}=\rho_2$, which is goverened by the relationship
+
+\begin{equation}
+	\dot{\rho}_2=\lambda M_{(I);2}= \lambda \mu (\bar{\rho}_{1} \bar{\rho}_{2} I_1 + \bar{\rho}_{2} \bar{\rho}_{3} I_3) \approx \lambda \mu \bar{\rho}_{1} \bar{\rho}_{2} I_1,
+\end{equation}
+
+which approximately equals $\dot{\rho}_{2,1}$ in the connection proportional strategy. $\rho_2$, in turn, affects $M_{(I);3}$ the same way to cause a delay in spread infection day $t_3$. And for similar reasons, the spread rate falls to the non-adaptive spread rate after that.\\
+
+The Global travel restriction also behaves the same way for the first three subpopulations, but manages to maintain this slowed down spread rate for the rest of the network. This is because the whole network, even in connections between relatively healthy subpopulations, are restricted in the same manner as the ones near the initially infected subpopulation. This slowed-down spread rate was found to hold true even for large networks.The fact that the same spread rate is maintained for all three strategies is due to the formulation of strategy formulas to let $\lambda$ have the same impact on travel restriction given the same infected mobility flow.\\
+
+Finally, the Connection-logarithm travel restriction strategy was the only local strategy that showed the most promise in slowing down the infection spread rate for a sizable distance around the initially infected subpopulation. The dependence on the ratio between incoming infected vs local infection growth (as defined by $\dot{\rho}_{xx'} = \lambda \log\left(\frac{\kappa I_{x} + M_{(I);x,x'}}{\kappa I_{x}}\right)$), allowed for far away subpopulation to react early to signs of infection spread. In the case of an unconstrained measurement of both local and incoming infected ($I_{min}=0$), it was found that the spread rate converges to that acheived by the global strategy. Since, however, such a value would be unrealistic (and result in infinite growth around $I_x=0$), we are more interested in the scenario where $I_{min}>0$, which diminishes the effect of the strategy for far away patches. It was found that while attaining a slowed down effect for several patches at a far away distance, it eventually collapses to the non-adaptive spread rate. The width of the region of slowed down spread rate is proportional to $log(1/I_{min})$.\\
+
+It is important to note as well the behavior of the travel restriction applied in the Connection Logarithm strategy, as it differs in behaviour from the other ones. While the proportional strategies, given the incoming infected flow start smoothly from zero, the applied travel restriction also starts from zero. They also eventually reach the maximum restriction value 1. On the other hand, due to the usage of the ratio of incoming infected vs local growth, there is an instantaneous nonzero slope as soon as $I_x>I_{min}$ which starts decreasing as the internal growth outpaces the incoming flow. In fact, $\dot \rho$ can decrease fast enough to not actually reach a value of 1 before , as the ratio becomes dominated by the internal growth. This has the nice benefit of maintaining some network activity while slowing down the spread. However, an unrealistic outcome of this strategy is that there is a tendency of populations which are detecting small amounts of inflow can react more severely than ones that are right next to the initially infected subpopulation. This issue could be solved by introducing a hybrid strategy that takes into consideration both the absolute value and the ratio. 
+
+\begin{figure}
+    \includegraphics[width=\textwidth]{Figures/Evolution of Path Mobility Restrictions_β0.25_γ0.0_σ0.0_μ0.01_nPop10_kbar4_topologyPathGraph_λ0.05_mobBias0.0_h0.1_minh0.01_nDays1000_I01.0e-5_critRange0.0.pdf}
+    \caption{\small The different downstream applied restrictions in an SI system on a path graph with a Connection logarithm strategy. It can be seen that they start with an immediate high slope and then taper off to a value of 1 or somewhat below that. Unlike the other proportional strategies, here the order of starting or finishishing restricting traffic does not necissarily follow the path length distance from the initially infected subpopulation.}
+    \label{fig:log-Restriction}
+\end{figure}
 
 \subsubsection{Mobility restoration}
+
+Finally, we take a look at the impact these travel restrictions have had on the network activity. As previously discussed, it is expected that, without some kind of mobility restoration mechanism, in an SIR model, the network quickly shuts down as travel restrictions are applied against any population that has been infected. Even after infection has subsided, the restrictions are still in place. For this reason, a mobility restoration bias $b$ was introduced in the different strategies (as seen in equations 2.29 to 2.32)
+
