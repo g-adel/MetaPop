@@ -48,7 +48,7 @@ function plotCase(data,S,meta;save=false,adaptive=false)
     push!(plots, plotFlowsCumu(data))
     # push!(plots, plot_cumulative_flow(data))
     # push!(plots, plot_consecutive_infected(data["infectedHistory"],log_scale=false))
-    (S.net.topology != PathGraph) && push!(plots, plot_image(drawNetworkKarnak(meta, data)))
+    # (S.net.topology != PathGraph) && push!(plots, plot_image(drawNetworkKarnak(meta, data)))
     # push!(plots, plot_infect_flow(data["infectedHistory"],data["downstream_flows"]))
     # push!(plots, plotRestrictionsGrid(data["ρsHistory"]))
     

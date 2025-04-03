@@ -1,0 +1,8 @@
+Graphs = "1.11.2"
+Images = "0.24.1"
+Karnak = "1.1.0"
+Luxor = "3.8.0"
+Plots = "1.40.4"
+PrettyTables = "2.4.0"
+Printf = "1.11.0"
+SparseArrays = "1.11.0"
