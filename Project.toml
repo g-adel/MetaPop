@@ -1,6 +1,6 @@
 name = "MetaPop"
 uuid = "11c9775e-e940-4225-a464-a0853028711a"
-authors = ["j-adel <islamelgamal97@gmail.com>"]
+authors = ["Gamal Adel i.m.a.f.elgamal@liacs.leidenuniv.nl"]
 version = "0.1.0"
 
 [deps]
